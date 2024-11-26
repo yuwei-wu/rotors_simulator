@@ -8,8 +8,24 @@ This is a customized version to use [VID-Fusion](https://github.com/ZJU-FAST-Lab
 ## 0. Noetic installation addition:
 
 ```
-sudo apt install ros-noetic-octomap-ros
+sudo apt install ros-noetic-octomap-ros ros-noetic-joy ros-noetic-mavlink ros-noetic-mavros
 ```
+
+Issues: https://github.com/gazebosim/gz-sim/issues/2364
+Solution:
+```
+sudo add-apt-repository ppa:kisak/kisak-mesa
+sudo apt update
+sudo apt upgrade
+```
+
+Hil interface issue: https://aur.archlinux.org/packages/ros-noetic-rotors-hil-interface
+
+replace with: 
+```
+git clone git clone https://aur.archlinux.org/ros-noetic-rotors-hil-interface.git
+```
+
 
 ## 1. Installation Instructions
 
