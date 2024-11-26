@@ -4,6 +4,13 @@ RotorS Instructions for Resilient Planner
 
 This is a customized version to use [VID-Fusion](https://github.com/ZJU-FAST-Lab/VID-Fusion) and [External Forces Resilient Planner](https://github.com/ZJU-FAST-Lab/forces_resilient_planner). The planner in the simulator has been tested on ubuntu 18.04 and ROS Melodic.
 
+
+## 0. Noetic installation addition:
+
+```
+sudo apt install ros-noetic-octomap-ros
+```
+
 ## 1. Installation Instructions
 
 Our system has been test on Ubuntu 18.04 with ROS Melodic. you can follow the instructions below to Install and initialize ROS Melodic desktop full, additional ROS packages, catkin-tools, and wstool:
