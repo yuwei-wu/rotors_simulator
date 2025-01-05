@@ -134,5 +134,11 @@
       <static>1</static>
       <pose frame=''>0 0 0 0 -0 0</pose>
     </model>
+
+    <!-- Add Moving Target -->
+    <include>
+      <uri>model://car_199</uri>
+      <pose>0 0 0 0 0 0</pose> <!-- Starting position -->
+    </include>
   </world>
 </sdf>

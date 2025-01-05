@@ -519,6 +519,14 @@ if (NOT NO_ROS)
   list(APPEND targets_to_install rotors_gazebo_wind_plugin)
 endif()
 
+#========================================= MY MOVING TARGET PLUGIN ==========================================//
+if (NOT NO_ROS)
+  add_library(moving_target_plugin SHARED src/moving_target_plugin.cpp)
+  target_link_libraries(moving_target_plugin ${target_linking_LIBRARIES})
+  add_dependencies(moving_target_plugin ${catkin_EXPORTED_TARGETS})
+  list(APPEND targets_to_install moving_target_plugin)
+endif()
+
 # =============================================================================================== #
 # ======================================= EXTERNAL LIBRARIES ==================================== #
 # =============================================================================================== #
