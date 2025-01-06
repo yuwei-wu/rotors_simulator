@@ -24,6 +24,8 @@ namespace gazebo
     // Connect to the world update event
     this->updateConnection = event::Events::ConnectWorldUpdateBegin(
         std::bind(&MovingTargetPlugin::OnUpdate, this));
+
+    this->lastUpdateTime = this->model->GetWorld()->SimTime();
   }
 
   // OnUpdate function: Called every simulation iteration
@@ -43,6 +45,9 @@ namespace gazebo
 
       // Calculate the new position
       ignition::math::Vector3d newPosition = currentPose.Pos() + this->velocity * timeDelta;
+
+      // Print confirmation to console
+      gzdbg << "Current position:" << currentPose << " New position: " << newPosition << std::endl;
 
       // Set the new position
       this->model->SetWorldPose(ignition::math::Pose3d(newPosition, currentPose.Rot()));

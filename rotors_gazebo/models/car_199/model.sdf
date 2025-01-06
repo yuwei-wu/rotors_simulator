@@ -34,7 +34,7 @@
     </link>
 
     <plugin name="moving_target_plugin" filename="libmoving_target_plugin.so">
-      <velocity>10.0 0.0 0.0</velocity> <!-- Velocity vector (x, y, z) -->
+      <velocity>0.0 0.5 0.0</velocity> <!-- Velocity vector (x, y, z) -->
     </plugin>
   </model>
 </sdf>
