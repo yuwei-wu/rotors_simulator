@@ -49,10 +49,10 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
     <state world_name='default'>
-      <sim_time>203 490000000</sim_time>
-      <real_time>168 470627290</real_time>
-      <wall_time>1596490486 155571625</wall_time>
-      <iterations>167975</iterations>
+      <sim_time>0 0</sim_time>
+      <real_time>0 0</real_time>
+      <wall_time>0 0</wall_time>
+      <iterations>0</iterations>
       <model name='agriculture_geom'>
         <pose frame=''>0 0 0 0 -0 0</pose>
         <scale>1 1 1</scale>
