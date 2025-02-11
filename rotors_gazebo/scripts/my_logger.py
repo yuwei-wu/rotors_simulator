@@ -6,7 +6,6 @@ import cv2
 import os
 from sensor_msgs.msg import Image
 from nav_msgs.msg import Odometry
-from gazebo_msgs.msg import ModelStates
 from std_msgs.msg import Header
 from tf.transformations import euler_from_quaternion
 from cv_bridge import CvBridge
@@ -34,7 +33,7 @@ def init_csv_position_file(filename):
         writer.writerow(["Timestamp", "X", "Y", "Z"])
 
 # Callback for synchronized messages
-def synchronized_callback(odom_msg, ground_truth_msg, model_states_msg, image_msg):
+def synchronized_callback(odom_msg, ground_truth_msg, target_msg, image_msg):
 
     timestamp = rospy.get_time()  # Use a single timestamp for all logs
     # Add a fake timestamp if missing
@@ -68,23 +67,7 @@ def synchronized_callback(odom_msg, ground_truth_msg, model_states_msg, image_ms
     
     process_odom(odom_msg, log_file_odom)
     process_odom(ground_truth_msg, log_file_ground_truth)
-
-    # --- Process Car Position ---
-    # The car's position is in the Odometry message
-    # If using `gazebo/model_states`, you can also extract the position similarly
-    try:
-        car_index = model_states_msg.name.index("car_199")  # Replace with actual model name if different
-        car_position = model_states_msg.pose[car_index].position
-
-        # Create a Point message with the car's position
-        x, y, z = car_position.x, car_position.y, car_position.z
-
-        # Log data
-        with open(log_file_target, "a") as file:
-            writer = csv.writer(file)
-            writer.writerow([rospy.get_time(), x, y, z])
-    except ValueError:
-        rospy.logwarn("Car model not found in /gazebo/model_states")
+    process_odom(target_msg, log_file_target)
 
     # --- Process Image Data ---
     bridge = CvBridge()
@@ -108,9 +91,6 @@ def synchronized_callback(odom_msg, ground_truth_msg, model_states_msg, image_ms
 def main():
     rospy.init_node("my_logger", anonymous=True)
 
-    # Synchronized rate
-    sync_rate = rospy.Rate(30)  # 30Hz
-
     # Initialize CSV logs
     init_csv_odom_file(log_file_odom)
     init_csv_odom_file(log_file_ground_truth)
@@ -119,7 +99,7 @@ def main():
     # Use message_filters to subscribe to multiple topics
     odom_sub = message_filters.Subscriber("/hummingbird/odometry_sensor1/odometry", Odometry)
     ground_truth_sub = message_filters.Subscriber("/hummingbird/ground_truth/odometry", Odometry)
-    model_states_sub = message_filters.Subscriber("/gazebo/model_states", ModelStates)
+    model_states_sub = message_filters.Subscriber("/odometry", Odometry)
     image_sub = message_filters.Subscriber("/hummingbird/camera_nadir/image_raw", Image)
 
     # Synchronize messages
