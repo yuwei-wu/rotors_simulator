@@ -166,6 +166,9 @@ class GazeboOdometryPlugin : public ModelPlugin {
 
   boost::thread callback_queue_thread_;
   void QueueThread();
+
+  double update_rate_; // For storing the update rate
+  common::Time last_update_time_; // For storing the last update time
 };
 
 } // namespace gazebo

@@ -226,6 +226,16 @@ void GazeboOdometryPlugin::Load(physics::ModelPtr _model,
       noise_normal_angular_velocity.Z() * noise_normal_angular_velocity.Z();
   twist_covariance = twist_covd.asDiagonal();
 
+  if (_sdf->HasElement("update_rate")) {
+    update_rate_ = _sdf->Get<double>("update_rate");
+  } else {
+    // Set a default update rate if not specified
+    update_rate_ = 30.0;  // 30Hz
+  }
+
+  // Initialize other components...
+  last_update_time_ = common::Time(0);
+
   // Listen to the update event. This event is broadcast every
   // simulation iteration.
   updateConnection_ = event::Events::ConnectWorldUpdateBegin(
@@ -238,278 +248,286 @@ void GazeboOdometryPlugin::OnUpdate(const common::UpdateInfo& _info) {
     gzdbg << __FUNCTION__ << "() called." << std::endl;
   }
 
-  if (!pubs_and_subs_created_) {
-    CreatePubsAndSubs();
-    pubs_and_subs_created_ = true;
+  // Get the current time
+  common::Time current_time = world_->SimTime();
+    
+  // Only update at the desired rate (e.g., 30 Hz)
+  if (current_time - last_update_time_ >= common::Time(1.0 / update_rate_)) {
+    last_update_time_ = current_time;
+
+    if (!pubs_and_subs_created_) {
+        CreatePubsAndSubs();
+        pubs_and_subs_created_ = true;
+    }
+
+    // C denotes child frame, P parent frame, and W world frame.
+    // Further C_pose_W_P denotes pose of P wrt. W expressed in C.
+    ignition::math::Pose3d W_pose_W_C = link_->WorldCoGPose();
+    ignition::math::Vector3d C_linear_velocity_W_C = link_->RelativeLinearVel();
+    ignition::math::Vector3d C_angular_velocity_W_C = link_->RelativeAngularVel();
+
+    ignition::math::Vector3d gazebo_linear_velocity = C_linear_velocity_W_C;
+    ignition::math::Vector3d gazebo_angular_velocity = C_angular_velocity_W_C;
+    ignition::math::Pose3d gazebo_pose = W_pose_W_C;
+
+    if (parent_frame_id_ != kDefaultParentFrameId) {
+        ignition::math::Pose3d W_pose_W_P = parent_link_->WorldPose();
+        ignition::math::Vector3d P_linear_velocity_W_P = parent_link_->RelativeLinearVel();
+        ignition::math::Vector3d P_angular_velocity_W_P =
+            parent_link_->RelativeAngularVel();
+        ignition::math::Pose3d C_pose_P_C_ = W_pose_W_C - W_pose_W_P;
+        ignition::math::Vector3d C_linear_velocity_P_C;
+        // \prescript{}{C}{\dot{r}}_{PC} = -R_{CP}
+        //       \cdot \prescript{}{P}{\omega}_{WP} \cross \prescript{}{P}{r}_{PC}
+        //       + \prescript{}{C}{v}_{WC}
+        //                                 - R_{CP} \cdot \prescript{}{P}{v}_{WP}
+        C_linear_velocity_P_C =
+            -C_pose_P_C_.Rot().Inverse() *
+                P_angular_velocity_W_P.Cross(C_pose_P_C_.Pos()) +
+            C_linear_velocity_W_C -
+            C_pose_P_C_.Rot().Inverse() * P_linear_velocity_W_P;
+
+        // \prescript{}{C}{\omega}_{PC} = \prescript{}{C}{\omega}_{WC}
+        //       - R_{CP} \cdot \prescript{}{P}{\omega}_{WP}
+        gazebo_angular_velocity =
+            C_angular_velocity_W_C -
+            C_pose_P_C_.Rot().Inverse() * P_angular_velocity_W_P;
+        gazebo_linear_velocity = C_linear_velocity_P_C;
+        gazebo_pose = C_pose_P_C_;
+    }
+
+    // This flag could be set to false in the following code...
+    bool publish_odometry = true;
+
+    // First, determine whether we should publish a odometry.
+    if (covariance_image_.data != NULL) {
+        // We have an image.
+
+        // Image is always centered around the origin:
+        int width = covariance_image_.cols;
+        int height = covariance_image_.rows;
+        int x = static_cast<int>(
+                    std::floor(gazebo_pose.Pos().X() / covariance_image_scale_)) +
+                width / 2;
+        int y = static_cast<int>(
+                    std::floor(gazebo_pose.Pos().Y() / covariance_image_scale_)) +
+                height / 2;
+
+        if (x >= 0 && x < width && y >= 0 && y < height) {
+        uint8_t pixel_value = covariance_image_.at<uint8_t>(y, x);
+        if (pixel_value == 0) {
+            publish_odometry = false;
+            // TODO: covariance scaling, according to the intensity values could be
+            // implemented here.
+        }
+        }
+    }
+
+    if (gazebo_sequence_ % measurement_divisor_ == 0) {
+        gz_geometry_msgs::Odometry odometry;
+        odometry.mutable_header()->set_frame_id(parent_frame_id_);
+        odometry.mutable_header()->mutable_stamp()->set_sec(
+            (world_->SimTime()).sec + static_cast<int32_t>(unknown_delay_));
+        odometry.mutable_header()->mutable_stamp()->set_nsec(
+            (world_->SimTime()).nsec + static_cast<int32_t>(unknown_delay_));
+        odometry.set_child_frame_id(child_frame_id_);
+
+        odometry.mutable_pose()->mutable_pose()->mutable_position()->set_x(
+            gazebo_pose.Pos().X());
+        odometry.mutable_pose()->mutable_pose()->mutable_position()->set_y(
+            gazebo_pose.Pos().Y());
+        odometry.mutable_pose()->mutable_pose()->mutable_position()->set_z(
+            gazebo_pose.Pos().Z());
+
+        odometry.mutable_pose()->mutable_pose()->mutable_orientation()->set_x(
+            gazebo_pose.Rot().X());
+        odometry.mutable_pose()->mutable_pose()->mutable_orientation()->set_y(
+            gazebo_pose.Rot().Y());
+        odometry.mutable_pose()->mutable_pose()->mutable_orientation()->set_z(
+            gazebo_pose.Rot().Z());
+        odometry.mutable_pose()->mutable_pose()->mutable_orientation()->set_w(
+            gazebo_pose.Rot().W());
+
+        odometry.mutable_twist()->mutable_twist()->mutable_linear()->set_x(
+            gazebo_linear_velocity.X());
+        odometry.mutable_twist()->mutable_twist()->mutable_linear()->set_y(
+            gazebo_linear_velocity.Y());
+        odometry.mutable_twist()->mutable_twist()->mutable_linear()->set_z(
+            gazebo_linear_velocity.Z());
+
+        odometry.mutable_twist()->mutable_twist()->mutable_angular()->set_x(
+            gazebo_angular_velocity.X());
+        odometry.mutable_twist()->mutable_twist()->mutable_angular()->set_y(
+            gazebo_angular_velocity.Y());
+        odometry.mutable_twist()->mutable_twist()->mutable_angular()->set_z(
+            gazebo_angular_velocity.Z());
+
+        if (publish_odometry)
+        odometry_queue_.push_back(
+            std::make_pair(gazebo_sequence_ + measurement_delay_, odometry));
+    }
+
+    // Is it time to publish the front element?
+    if (gazebo_sequence_ == odometry_queue_.front().first) {
+        // Copy the odometry message that is on the queue
+        gz_geometry_msgs::Odometry odometry_msg(odometry_queue_.front().second);
+
+        // Now that we have copied the first element from the queue, remove it.
+        odometry_queue_.pop_front();
+
+        // Calculate position distortions.
+        Eigen::Vector3d pos_n;
+        pos_n << position_n_[0](random_generator_) +
+                    position_u_[0](random_generator_),
+            position_n_[1](random_generator_) + position_u_[1](random_generator_),
+            position_n_[2](random_generator_) + position_u_[2](random_generator_);
+
+        gazebo::msgs::Vector3d* p =
+            odometry_msg.mutable_pose()->mutable_pose()->mutable_position();
+        p->set_x(p->x() + pos_n[0]);
+        p->set_y(p->y() + pos_n[1]);
+        p->set_z(p->z() + pos_n[2]);
+
+        // Calculate attitude distortions.
+        Eigen::Vector3d theta;
+        theta << attitude_n_[0](random_generator_) +
+                    attitude_u_[0](random_generator_),
+            attitude_n_[1](random_generator_) + attitude_u_[1](random_generator_),
+            attitude_n_[2](random_generator_) + attitude_u_[2](random_generator_);
+        Eigen::Quaterniond q_n = QuaternionFromSmallAngle(theta);
+        q_n.normalize();
+
+        gazebo::msgs::Quaternion* q_W_L =
+            odometry_msg.mutable_pose()->mutable_pose()->mutable_orientation();
+
+        Eigen::Quaterniond _q_W_L(q_W_L->w(), q_W_L->x(), q_W_L->y(), q_W_L->z());
+        _q_W_L = _q_W_L * q_n;
+        q_W_L->set_w(_q_W_L.w());
+        q_W_L->set_x(_q_W_L.x());
+        q_W_L->set_y(_q_W_L.y());
+        q_W_L->set_z(_q_W_L.z());
+
+        // Calculate linear velocity distortions.
+        Eigen::Vector3d linear_velocity_n;
+        linear_velocity_n << linear_velocity_n_[0](random_generator_) +
+                                linear_velocity_u_[0](random_generator_),
+            linear_velocity_n_[1](random_generator_) +
+                linear_velocity_u_[1](random_generator_),
+            linear_velocity_n_[2](random_generator_) +
+                linear_velocity_u_[2](random_generator_);
+
+        gazebo::msgs::Vector3d* linear_velocity =
+            odometry_msg.mutable_twist()->mutable_twist()->mutable_linear();
+
+        linear_velocity->set_x(linear_velocity->x() + linear_velocity_n[0]);
+        linear_velocity->set_y(linear_velocity->y() + linear_velocity_n[1]);
+        linear_velocity->set_z(linear_velocity->z() + linear_velocity_n[2]);
+
+        // Calculate angular velocity distortions.
+        Eigen::Vector3d angular_velocity_n;
+        angular_velocity_n << angular_velocity_n_[0](random_generator_) +
+                                angular_velocity_u_[0](random_generator_),
+            angular_velocity_n_[1](random_generator_) +
+                angular_velocity_u_[1](random_generator_),
+            angular_velocity_n_[2](random_generator_) +
+                angular_velocity_u_[2](random_generator_);
+
+        gazebo::msgs::Vector3d* angular_velocity =
+            odometry_msg.mutable_twist()->mutable_twist()->mutable_angular();
+
+        angular_velocity->set_x(angular_velocity->x() + angular_velocity_n[0]);
+        angular_velocity->set_y(angular_velocity->y() + angular_velocity_n[1]);
+        angular_velocity->set_z(angular_velocity->z() + angular_velocity_n[2]);
+
+        odometry_msg.mutable_pose()->mutable_covariance()->Clear();
+        for (int i = 0; i < pose_covariance_matrix_.size(); i++) {
+        odometry_msg.mutable_pose()->mutable_covariance()->Add(
+            pose_covariance_matrix_[i]);
+        }
+
+        odometry_msg.mutable_twist()->mutable_covariance()->Clear();
+        for (int i = 0; i < twist_covariance_matrix_.size(); i++) {
+        odometry_msg.mutable_twist()->mutable_covariance()->Add(
+            twist_covariance_matrix_[i]);
+        }
+
+        // Publish all the topics, for which the topic name is specified.
+        if (pose_pub_->HasConnections()) {
+        pose_pub_->Publish(odometry_msg.pose().pose());
+        }
+
+        if (pose_with_covariance_stamped_pub_->HasConnections()) {
+        gz_geometry_msgs::PoseWithCovarianceStamped
+            pose_with_covariance_stamped_msg;
+
+        pose_with_covariance_stamped_msg.mutable_header()->CopyFrom(
+            odometry_msg.header());
+        pose_with_covariance_stamped_msg.mutable_pose_with_covariance()->CopyFrom(
+            odometry_msg.pose());
+
+        pose_with_covariance_stamped_pub_->Publish(
+            pose_with_covariance_stamped_msg);
+        }
+
+        if (position_stamped_pub_->HasConnections()) {
+        gz_geometry_msgs::Vector3dStamped position_stamped_msg;
+        position_stamped_msg.mutable_header()->CopyFrom(odometry_msg.header());
+        position_stamped_msg.mutable_position()->CopyFrom(
+            odometry_msg.pose().pose().position());
+
+        position_stamped_pub_->Publish(position_stamped_msg);
+        }
+
+        if (transform_stamped_pub_->HasConnections()) {
+        gz_geometry_msgs::TransformStamped transform_stamped_msg;
+
+        transform_stamped_msg.mutable_header()->CopyFrom(odometry_msg.header());
+        transform_stamped_msg.mutable_transform()->mutable_translation()->set_x(
+            p->x());
+        transform_stamped_msg.mutable_transform()->mutable_translation()->set_y(
+            p->y());
+        transform_stamped_msg.mutable_transform()->mutable_translation()->set_z(
+            p->z());
+        transform_stamped_msg.mutable_transform()->mutable_rotation()->CopyFrom(
+            *q_W_L);
+
+        transform_stamped_pub_->Publish(transform_stamped_msg);
+        }
+
+        if (odometry_pub_->HasConnections()) {
+        // DEBUG
+        odometry_pub_->Publish(odometry_msg);
+        }
+
+        //==============================================//
+        //========= BROADCAST TRANSFORM MSG ============//
+        //==============================================//
+
+        gz_geometry_msgs::TransformStampedWithFrameIds
+            transform_stamped_with_frame_ids_msg;
+        transform_stamped_with_frame_ids_msg.mutable_header()->CopyFrom(
+            odometry_msg.header());
+        transform_stamped_with_frame_ids_msg.mutable_transform()
+            ->mutable_translation()
+            ->set_x(p->x());
+        transform_stamped_with_frame_ids_msg.mutable_transform()
+            ->mutable_translation()
+            ->set_y(p->y());
+        transform_stamped_with_frame_ids_msg.mutable_transform()
+            ->mutable_translation()
+            ->set_z(p->z());
+        transform_stamped_with_frame_ids_msg.mutable_transform()
+            ->mutable_rotation()
+            ->CopyFrom(*q_W_L);
+        transform_stamped_with_frame_ids_msg.set_parent_frame_id(parent_frame_id_);
+        transform_stamped_with_frame_ids_msg.set_child_frame_id(child_frame_id_);
+
+        broadcast_transform_pub_->Publish(transform_stamped_with_frame_ids_msg);
+
+    }  // if (gazebo_sequence_ == odometry_queue_.front().first) {
+
+    ++gazebo_sequence_;
   }
-
-  // C denotes child frame, P parent frame, and W world frame.
-  // Further C_pose_W_P denotes pose of P wrt. W expressed in C.
-  ignition::math::Pose3d W_pose_W_C = link_->WorldCoGPose();
-  ignition::math::Vector3d C_linear_velocity_W_C = link_->RelativeLinearVel();
-  ignition::math::Vector3d C_angular_velocity_W_C = link_->RelativeAngularVel();
-
-  ignition::math::Vector3d gazebo_linear_velocity = C_linear_velocity_W_C;
-  ignition::math::Vector3d gazebo_angular_velocity = C_angular_velocity_W_C;
-  ignition::math::Pose3d gazebo_pose = W_pose_W_C;
-
-  if (parent_frame_id_ != kDefaultParentFrameId) {
-    ignition::math::Pose3d W_pose_W_P = parent_link_->WorldPose();
-    ignition::math::Vector3d P_linear_velocity_W_P = parent_link_->RelativeLinearVel();
-    ignition::math::Vector3d P_angular_velocity_W_P =
-        parent_link_->RelativeAngularVel();
-    ignition::math::Pose3d C_pose_P_C_ = W_pose_W_C - W_pose_W_P;
-    ignition::math::Vector3d C_linear_velocity_P_C;
-    // \prescript{}{C}{\dot{r}}_{PC} = -R_{CP}
-    //       \cdot \prescript{}{P}{\omega}_{WP} \cross \prescript{}{P}{r}_{PC}
-    //       + \prescript{}{C}{v}_{WC}
-    //                                 - R_{CP} \cdot \prescript{}{P}{v}_{WP}
-    C_linear_velocity_P_C =
-        -C_pose_P_C_.Rot().Inverse() *
-            P_angular_velocity_W_P.Cross(C_pose_P_C_.Pos()) +
-        C_linear_velocity_W_C -
-        C_pose_P_C_.Rot().Inverse() * P_linear_velocity_W_P;
-
-    // \prescript{}{C}{\omega}_{PC} = \prescript{}{C}{\omega}_{WC}
-    //       - R_{CP} \cdot \prescript{}{P}{\omega}_{WP}
-    gazebo_angular_velocity =
-        C_angular_velocity_W_C -
-        C_pose_P_C_.Rot().Inverse() * P_angular_velocity_W_P;
-    gazebo_linear_velocity = C_linear_velocity_P_C;
-    gazebo_pose = C_pose_P_C_;
-  }
-
-  // This flag could be set to false in the following code...
-  bool publish_odometry = true;
-
-  // First, determine whether we should publish a odometry.
-  if (covariance_image_.data != NULL) {
-    // We have an image.
-
-    // Image is always centered around the origin:
-    int width = covariance_image_.cols;
-    int height = covariance_image_.rows;
-    int x = static_cast<int>(
-                std::floor(gazebo_pose.Pos().X() / covariance_image_scale_)) +
-            width / 2;
-    int y = static_cast<int>(
-                std::floor(gazebo_pose.Pos().Y() / covariance_image_scale_)) +
-            height / 2;
-
-    if (x >= 0 && x < width && y >= 0 && y < height) {
-      uint8_t pixel_value = covariance_image_.at<uint8_t>(y, x);
-      if (pixel_value == 0) {
-        publish_odometry = false;
-        // TODO: covariance scaling, according to the intensity values could be
-        // implemented here.
-      }
-    }
-  }
-
-  if (gazebo_sequence_ % measurement_divisor_ == 0) {
-    gz_geometry_msgs::Odometry odometry;
-    odometry.mutable_header()->set_frame_id(parent_frame_id_);
-    odometry.mutable_header()->mutable_stamp()->set_sec(
-        (world_->SimTime()).sec + static_cast<int32_t>(unknown_delay_));
-    odometry.mutable_header()->mutable_stamp()->set_nsec(
-        (world_->SimTime()).nsec + static_cast<int32_t>(unknown_delay_));
-    odometry.set_child_frame_id(child_frame_id_);
-
-    odometry.mutable_pose()->mutable_pose()->mutable_position()->set_x(
-        gazebo_pose.Pos().X());
-    odometry.mutable_pose()->mutable_pose()->mutable_position()->set_y(
-        gazebo_pose.Pos().Y());
-    odometry.mutable_pose()->mutable_pose()->mutable_position()->set_z(
-        gazebo_pose.Pos().Z());
-
-    odometry.mutable_pose()->mutable_pose()->mutable_orientation()->set_x(
-        gazebo_pose.Rot().X());
-    odometry.mutable_pose()->mutable_pose()->mutable_orientation()->set_y(
-        gazebo_pose.Rot().Y());
-    odometry.mutable_pose()->mutable_pose()->mutable_orientation()->set_z(
-        gazebo_pose.Rot().Z());
-    odometry.mutable_pose()->mutable_pose()->mutable_orientation()->set_w(
-        gazebo_pose.Rot().W());
-
-    odometry.mutable_twist()->mutable_twist()->mutable_linear()->set_x(
-        gazebo_linear_velocity.X());
-    odometry.mutable_twist()->mutable_twist()->mutable_linear()->set_y(
-        gazebo_linear_velocity.Y());
-    odometry.mutable_twist()->mutable_twist()->mutable_linear()->set_z(
-        gazebo_linear_velocity.Z());
-
-    odometry.mutable_twist()->mutable_twist()->mutable_angular()->set_x(
-        gazebo_angular_velocity.X());
-    odometry.mutable_twist()->mutable_twist()->mutable_angular()->set_y(
-        gazebo_angular_velocity.Y());
-    odometry.mutable_twist()->mutable_twist()->mutable_angular()->set_z(
-        gazebo_angular_velocity.Z());
-
-    if (publish_odometry)
-      odometry_queue_.push_back(
-          std::make_pair(gazebo_sequence_ + measurement_delay_, odometry));
-  }
-
-  // Is it time to publish the front element?
-  if (gazebo_sequence_ == odometry_queue_.front().first) {
-    // Copy the odometry message that is on the queue
-    gz_geometry_msgs::Odometry odometry_msg(odometry_queue_.front().second);
-
-    // Now that we have copied the first element from the queue, remove it.
-    odometry_queue_.pop_front();
-
-    // Calculate position distortions.
-    Eigen::Vector3d pos_n;
-    pos_n << position_n_[0](random_generator_) +
-                 position_u_[0](random_generator_),
-        position_n_[1](random_generator_) + position_u_[1](random_generator_),
-        position_n_[2](random_generator_) + position_u_[2](random_generator_);
-
-    gazebo::msgs::Vector3d* p =
-        odometry_msg.mutable_pose()->mutable_pose()->mutable_position();
-    p->set_x(p->x() + pos_n[0]);
-    p->set_y(p->y() + pos_n[1]);
-    p->set_z(p->z() + pos_n[2]);
-
-    // Calculate attitude distortions.
-    Eigen::Vector3d theta;
-    theta << attitude_n_[0](random_generator_) +
-                 attitude_u_[0](random_generator_),
-        attitude_n_[1](random_generator_) + attitude_u_[1](random_generator_),
-        attitude_n_[2](random_generator_) + attitude_u_[2](random_generator_);
-    Eigen::Quaterniond q_n = QuaternionFromSmallAngle(theta);
-    q_n.normalize();
-
-    gazebo::msgs::Quaternion* q_W_L =
-        odometry_msg.mutable_pose()->mutable_pose()->mutable_orientation();
-
-    Eigen::Quaterniond _q_W_L(q_W_L->w(), q_W_L->x(), q_W_L->y(), q_W_L->z());
-    _q_W_L = _q_W_L * q_n;
-    q_W_L->set_w(_q_W_L.w());
-    q_W_L->set_x(_q_W_L.x());
-    q_W_L->set_y(_q_W_L.y());
-    q_W_L->set_z(_q_W_L.z());
-
-    // Calculate linear velocity distortions.
-    Eigen::Vector3d linear_velocity_n;
-    linear_velocity_n << linear_velocity_n_[0](random_generator_) +
-                             linear_velocity_u_[0](random_generator_),
-        linear_velocity_n_[1](random_generator_) +
-            linear_velocity_u_[1](random_generator_),
-        linear_velocity_n_[2](random_generator_) +
-            linear_velocity_u_[2](random_generator_);
-
-    gazebo::msgs::Vector3d* linear_velocity =
-        odometry_msg.mutable_twist()->mutable_twist()->mutable_linear();
-
-    linear_velocity->set_x(linear_velocity->x() + linear_velocity_n[0]);
-    linear_velocity->set_y(linear_velocity->y() + linear_velocity_n[1]);
-    linear_velocity->set_z(linear_velocity->z() + linear_velocity_n[2]);
-
-    // Calculate angular velocity distortions.
-    Eigen::Vector3d angular_velocity_n;
-    angular_velocity_n << angular_velocity_n_[0](random_generator_) +
-                              angular_velocity_u_[0](random_generator_),
-        angular_velocity_n_[1](random_generator_) +
-            angular_velocity_u_[1](random_generator_),
-        angular_velocity_n_[2](random_generator_) +
-            angular_velocity_u_[2](random_generator_);
-
-    gazebo::msgs::Vector3d* angular_velocity =
-        odometry_msg.mutable_twist()->mutable_twist()->mutable_angular();
-
-    angular_velocity->set_x(angular_velocity->x() + angular_velocity_n[0]);
-    angular_velocity->set_y(angular_velocity->y() + angular_velocity_n[1]);
-    angular_velocity->set_z(angular_velocity->z() + angular_velocity_n[2]);
-
-    odometry_msg.mutable_pose()->mutable_covariance()->Clear();
-    for (int i = 0; i < pose_covariance_matrix_.size(); i++) {
-      odometry_msg.mutable_pose()->mutable_covariance()->Add(
-          pose_covariance_matrix_[i]);
-    }
-
-    odometry_msg.mutable_twist()->mutable_covariance()->Clear();
-    for (int i = 0; i < twist_covariance_matrix_.size(); i++) {
-      odometry_msg.mutable_twist()->mutable_covariance()->Add(
-          twist_covariance_matrix_[i]);
-    }
-
-    // Publish all the topics, for which the topic name is specified.
-    if (pose_pub_->HasConnections()) {
-      pose_pub_->Publish(odometry_msg.pose().pose());
-    }
-
-    if (pose_with_covariance_stamped_pub_->HasConnections()) {
-      gz_geometry_msgs::PoseWithCovarianceStamped
-          pose_with_covariance_stamped_msg;
-
-      pose_with_covariance_stamped_msg.mutable_header()->CopyFrom(
-          odometry_msg.header());
-      pose_with_covariance_stamped_msg.mutable_pose_with_covariance()->CopyFrom(
-          odometry_msg.pose());
-
-      pose_with_covariance_stamped_pub_->Publish(
-          pose_with_covariance_stamped_msg);
-    }
-
-    if (position_stamped_pub_->HasConnections()) {
-      gz_geometry_msgs::Vector3dStamped position_stamped_msg;
-      position_stamped_msg.mutable_header()->CopyFrom(odometry_msg.header());
-      position_stamped_msg.mutable_position()->CopyFrom(
-          odometry_msg.pose().pose().position());
-
-      position_stamped_pub_->Publish(position_stamped_msg);
-    }
-
-    if (transform_stamped_pub_->HasConnections()) {
-      gz_geometry_msgs::TransformStamped transform_stamped_msg;
-
-      transform_stamped_msg.mutable_header()->CopyFrom(odometry_msg.header());
-      transform_stamped_msg.mutable_transform()->mutable_translation()->set_x(
-          p->x());
-      transform_stamped_msg.mutable_transform()->mutable_translation()->set_y(
-          p->y());
-      transform_stamped_msg.mutable_transform()->mutable_translation()->set_z(
-          p->z());
-      transform_stamped_msg.mutable_transform()->mutable_rotation()->CopyFrom(
-          *q_W_L);
-
-      transform_stamped_pub_->Publish(transform_stamped_msg);
-    }
-
-    if (odometry_pub_->HasConnections()) {
-      // DEBUG
-      odometry_pub_->Publish(odometry_msg);
-    }
-
-    //==============================================//
-    //========= BROADCAST TRANSFORM MSG ============//
-    //==============================================//
-
-    gz_geometry_msgs::TransformStampedWithFrameIds
-        transform_stamped_with_frame_ids_msg;
-    transform_stamped_with_frame_ids_msg.mutable_header()->CopyFrom(
-        odometry_msg.header());
-    transform_stamped_with_frame_ids_msg.mutable_transform()
-        ->mutable_translation()
-        ->set_x(p->x());
-    transform_stamped_with_frame_ids_msg.mutable_transform()
-        ->mutable_translation()
-        ->set_y(p->y());
-    transform_stamped_with_frame_ids_msg.mutable_transform()
-        ->mutable_translation()
-        ->set_z(p->z());
-    transform_stamped_with_frame_ids_msg.mutable_transform()
-        ->mutable_rotation()
-        ->CopyFrom(*q_W_L);
-    transform_stamped_with_frame_ids_msg.set_parent_frame_id(parent_frame_id_);
-    transform_stamped_with_frame_ids_msg.set_child_frame_id(child_frame_id_);
-
-    broadcast_transform_pub_->Publish(transform_stamped_with_frame_ids_msg);
-
-  }  // if (gazebo_sequence_ == odometry_queue_.front().first) {
-
-  ++gazebo_sequence_;
 }
 
 void GazeboOdometryPlugin::CreatePubsAndSubs() {
