@@ -36,11 +36,7 @@ def init_csv_position_file(filename):
 def synchronized_callback(odom_msg, ground_truth_msg, target_msg, image_msg):
 
     timestamp = rospy.get_time()  # Use a single timestamp for all logs
-    # Add a fake timestamp if missing
-    if not hasattr(model_states_msg, "header"):
-        model_states_msg.header = Header()
-        model_states_msg.header.stamp = rospy.Time.now()
-    rospy.loginfo('sychronization called at ', timestamp)
+    rospy.loginfo("sychronization called at {}".format(timestamp))
 
     # --- Process Odometry Data ---
     def process_odom(msg, log_filename):
@@ -61,7 +57,7 @@ def synchronized_callback(odom_msg, ground_truth_msg, target_msg, image_msg):
         # Log data
         with open(log_filename, "a") as file:
             writer = csv.writer(file)
-            writer.writerow([rospy.get_time(), x, y, z, roll, pitch, yaw,
+            writer.writerow([timestamp, x, y, z, roll, pitch, yaw,
                             linear_velocity.x, linear_velocity.y, linear_velocity.z,
                             angular_velocity.x, angular_velocity.y, angular_velocity.z])
     
@@ -77,7 +73,7 @@ def synchronized_callback(odom_msg, ground_truth_msg, target_msg, image_msg):
         cv_image = bridge.imgmsg_to_cv2(image_msg, "bgr8")
 
         # Get the current timestamp for unique filenames
-        filename = os.path.join(log_image_dir, "{:.6f}.png".format(rospy.get_time()))
+        filename = os.path.join(log_image_dir, "{:.6f}.png".format(timestamp))
 
         # Save the image
         cv2.imwrite(filename, cv_image)
