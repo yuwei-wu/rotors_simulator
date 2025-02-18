@@ -16,7 +16,8 @@ log_file_odom = "./drone_log.csv"
 log_file_ground_truth = "./drone_ground_truth.csv"
 log_file_target = "./target_log.csv"
 log_image_dir = "./drone_images"
-
+if not os.path.exists(log_image_dir):
+    os.makedirs(log_image_dir)
 
 def init_csv_odom_file(filename):
     # Initialize CSV file

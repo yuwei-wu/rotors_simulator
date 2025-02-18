@@ -138,7 +138,7 @@
     <!-- Add Moving Target -->
     <include>
       <uri>model://car_199</uri>
-      <pose>20 0 0 0 -0 0</pose> <!-- Starting position -->
+      <pose>10 0 0 0 -0 -1.5708</pose> <!-- Rotated 90 degrees (π/2) --> 
     </include>
   </world>
 </sdf>
