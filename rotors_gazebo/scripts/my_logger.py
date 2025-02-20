@@ -10,12 +10,14 @@ from std_msgs.msg import Header
 from tf.transformations import euler_from_quaternion
 from cv_bridge import CvBridge
 import message_filters
-
+import threading
 # File for logging
 log_file_odom = "./drone_log.csv"
 log_file_ground_truth = "./drone_ground_truth.csv"
 log_file_target = "./target_log.csv"
 log_image_dir = "./drone_images"
+last_time = 0
+
 if not os.path.exists(log_image_dir):
     os.makedirs(log_image_dir)
 
@@ -36,8 +38,14 @@ def init_csv_position_file(filename):
 # Callback for synchronized messages
 def synchronized_callback(odom_msg, ground_truth_msg, target_msg, image_msg):
 
+    #rate = rospy.Rate(10) # 10hz
+
+    global last_time # Use global variable to keep track of time
+
     timestamp = rospy.get_time()  # Use a single timestamp for all logs
-    rospy.loginfo("sychronization called at {}".format(timestamp))
+    rospy.loginfo("sychronization called at {}, the time duration is {} ms".format(timestamp, 
+                                                                                   (timestamp - last_time) * 1000))
+    last_time = timestamp
 
     # --- Process Odometry Data ---
     def process_odom(msg, log_filename):
@@ -85,6 +93,8 @@ def synchronized_callback(odom_msg, ground_truth_msg, target_msg, image_msg):
         rospy.logerr("Failed to convert image: {}".format(e))
 
 
+    #rate.sleep()  # Sleep to maintain the rate
+
 def main():
     rospy.init_node("my_logger", anonymous=True)
 
@@ -97,13 +107,20 @@ def main():
     odom_sub = message_filters.Subscriber("/hummingbird/odometry_sensor1/odometry", Odometry)
     ground_truth_sub = message_filters.Subscriber("/hummingbird/ground_truth/odometry", Odometry)
     model_states_sub = message_filters.Subscriber("/odometry", Odometry)
-    image_sub = message_filters.Subscriber("/hummingbird/camera_nadir/image_raw", Image)
+    image_sub = message_filters.Subscriber("/hummingbird/vi_sensor/left/image_raw", Image)
 
     # Synchronize messages
-    sync = message_filters.TimeSynchronizer([odom_sub, ground_truth_sub, model_states_sub, image_sub], queue_size=100)
+    sync = message_filters.ApproximateTimeSynchronizer([odom_sub, ground_truth_sub, model_states_sub, image_sub], 
+                                            queue_size=50,
+                                            slop=0.05)  # Adjust the slop as needed
     sync.registerCallback(synchronized_callback)
 
-    rospy.spin()
+    last_time = rospy.get_time()
+    # Use threading to prevent blocking
+    spin_thread = threading.Thread(target=rospy.spin)
+    spin_thread.start()
+
+    #rospy.spin()
 
 if __name__ == "__main__":
     try:

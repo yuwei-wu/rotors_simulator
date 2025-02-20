@@ -1,3 +1,13 @@
+*rotors_hil_interface/
+.rosinstall.bak
+.rosinstall
+.vscode/
+DecompROS/
+catkin_simple/
+frames.gv
+mav_comm/
+mavlink/
+ros-noetic-rotors-hil-interface/
 .DS_Store
 .cproject
 .project

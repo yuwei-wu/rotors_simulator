@@ -25,6 +25,10 @@ namespace gazebo
     this->updateConnection = event::Events::ConnectWorldUpdateBegin(
         std::bind(&MovingTargetPlugin::OnUpdate, this));
 
+
+    // sleep for 2 seconds to let the world initialize
+    common::Time::MSleep(2000);
+
     this->lastUpdateTime = this->model->GetWorld()->SimTime();
   }
 
@@ -40,20 +44,38 @@ namespace gazebo
     // Update the target's position
     if (timeDelta > 0)
     {
+      update_cnt_ += 1;
+
+
       // Get the current position
       ignition::math::Pose3d currentPose = this->model->WorldPose();
 
-      // Calculate the new position
-      ignition::math::Vector3d newPosition = currentPose.Pos() + this->velocity * timeDelta;
 
-      // Print confirmation to console
-      gzdbg << "Current position:" << currentPose << " New position: " << newPosition << std::endl;
+      if (update_cnt_ % update_rate_ != 0)
+      {
+        // Set the new position
+        this->model->SetWorldPose(ignition::math::Pose3d(currentPose.Pos(), currentPose.Rot()));
 
-      // Set the new position
-      this->model->SetWorldPose(ignition::math::Pose3d(newPosition, currentPose.Rot()));
+        // Update the last update time
+        this->lastUpdateTime = currentTime;
+      }
+      else
+      {
+        // Calculate the new position
+        ignition::math::Vector3d newPosition = currentPose.Pos() + this->velocity * timeDelta;
 
-      // Update the last update time
-      this->lastUpdateTime = currentTime;
+        // Print confirmation to console
+        //gzdbg << "Current position:" << currentPose << " New position: " << newPosition << std::endl;
+        // print with timestamp
+        gzdbg << "[" << currentTime << "] Current position:" << currentPose << " New position: " << newPosition << std::endl;
+
+        // Set the new position
+        this->model->SetWorldPose(ignition::math::Pose3d(newPosition, currentPose.Rot()));
+
+        // Update the last update time
+        this->lastUpdateTime = currentTime;
+      }
+
     }
   }
 
