@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''
 Virtual Joystick from Keyboard
 Bharat Tak
