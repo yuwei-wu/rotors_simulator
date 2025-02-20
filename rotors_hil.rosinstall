@@ -4,3 +4,7 @@
 - git: {local-name: catkin_simple, uri: 'https://github.com/catkin/catkin_simple.git'}
 
 - git: {local-name: DecompROS, uri: 'https://github.com/yuwei-wu/DecompROS.git'}
+
+- git: {local-name: ros-noetic-rotors-hil-interface, uri: 'https://aur.archlinux.org/ros-noetic-rotors-hil-interface.git'}
+
+

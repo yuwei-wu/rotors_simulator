@@ -1,5 +1,5 @@
 <launch>
-  <arg name="mav_name" default="firefly"/>
+  <arg name="mav_name" default="hummingbird"/>
   <arg name="world_name" default="basic"/>
   <arg name="enable_logging" default="false"/>
   <arg name="enable_ground_truth" default="true"/>
