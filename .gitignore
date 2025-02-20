@@ -6,8 +6,3 @@
 *~
 */models/iris/*.sdf
 *.user
-DecompROS/
-catkin_simple/
-mav_comm/
-mavlink/
-ros-noetic-rotors-hil-interface/
