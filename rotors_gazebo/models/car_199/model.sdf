@@ -34,7 +34,7 @@
     </link>
 
     <plugin name="moving_target_plugin" filename="libmoving_target_plugin.so">
-      <velocity>0.3 0.0 0.0</velocity> <!-- Velocity vector (x, y, z) -->
+      <velocity>0.4 0.4 0.0</velocity> <!-- Velocity vector (x, y, z) -->
     </plugin>
     <plugin name="gazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
     <ros>

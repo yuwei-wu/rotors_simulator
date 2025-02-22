@@ -44,38 +44,20 @@ namespace gazebo
     // Update the target's position
     if (timeDelta > 0)
     {
-      update_cnt_ += 1;
-
-
       // Get the current position
       ignition::math::Pose3d currentPose = this->model->WorldPose();
 
+      // Calculate the new position
+      ignition::math::Vector3d newPosition = currentPose.Pos() + this->velocity * timeDelta;
 
-      if (update_cnt_ % update_rate_ != 0)
-      {
-        // Set the new position
-        this->model->SetWorldPose(ignition::math::Pose3d(currentPose.Pos(), currentPose.Rot()));
+      // Print confirmation to console
+      // gzdbg << "Current position:" << currentPose << " New position: " << newPosition << std::endl;
 
-        // Update the last update time
-        this->lastUpdateTime = currentTime;
-      }
-      else
-      {
-        // Calculate the new position
-        ignition::math::Vector3d newPosition = currentPose.Pos() + this->velocity * timeDelta;
+      // Set the new position
+      this->model->SetWorldPose(ignition::math::Pose3d(newPosition, currentPose.Rot()));
 
-        // Print confirmation to console
-        //gzdbg << "Current position:" << currentPose << " New position: " << newPosition << std::endl;
-        // print with timestamp
-        gzdbg << "[" << currentTime << "] Current position:" << currentPose << " New position: " << newPosition << std::endl;
-
-        // Set the new position
-        this->model->SetWorldPose(ignition::math::Pose3d(newPosition, currentPose.Rot()));
-
-        // Update the last update time
-        this->lastUpdateTime = currentTime;
-      }
-
+      // Update the last update time
+      this->lastUpdateTime = currentTime;
     }
   }
 

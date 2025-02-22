@@ -107,7 +107,7 @@ def main():
     odom_sub = message_filters.Subscriber("/hummingbird/odometry_sensor1/odometry", Odometry)
     ground_truth_sub = message_filters.Subscriber("/hummingbird/ground_truth/odometry", Odometry)
     model_states_sub = message_filters.Subscriber("/odometry", Odometry)
-    image_sub = message_filters.Subscriber("/hummingbird/vi_sensor/left/image_raw", Image)
+    image_sub = message_filters.Subscriber("/hummingbird/camera_nadir/image_raw", Image)
 
     # Synchronize messages
     sync = message_filters.ApproximateTimeSynchronizer([odom_sub, ground_truth_sub, model_states_sub, image_sub], 
@@ -115,7 +115,6 @@ def main():
                                             slop=0.05)  # Adjust the slop as needed
     sync.registerCallback(synchronized_callback)
 
-    last_time = rospy.get_time()
     # Use threading to prevent blocking
     spin_thread = threading.Thread(target=rospy.spin)
     spin_thread.start()

@@ -38,10 +38,6 @@ namespace gazebo
 
     /// Last update time
     common::Time lastUpdateTime;
-
-
-    int update_cnt_ = 0;
-    int update_rate_ = 10;
   };
 }
 
