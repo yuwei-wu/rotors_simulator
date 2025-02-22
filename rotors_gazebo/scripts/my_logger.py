@@ -28,12 +28,6 @@ def init_csv_odom_file(filename):
         writer.writerow(["Timestamp", "X", "Y", "Z", "Roll", "Pitch", "Yaw",
                          "Linear_Vel_X", "Linear_Vel_Y", "Linear_Vel_Z",
                          "Angular_Vel_X", "Angular_Vel_Y", "Angular_Vel_Z"])
-        
-def init_csv_position_file(filename):
-    # Initialize CSV file
-    with open(filename, "w") as file:
-        writer = csv.writer(file)
-        writer.writerow(["Timestamp", "X", "Y", "Z"])
 
 # Callback for synchronized messages
 def synchronized_callback(odom_msg, ground_truth_msg, target_msg, image_msg):
@@ -101,7 +95,7 @@ def main():
     # Initialize CSV logs
     init_csv_odom_file(log_file_odom)
     init_csv_odom_file(log_file_ground_truth)
-    init_csv_position_file(log_file_target)
+    init_csv_odom_file(log_file_target)
 
     # Use message_filters to subscribe to multiple topics
     odom_sub = message_filters.Subscriber("/hummingbird/odometry_sensor1/odometry", Odometry)
