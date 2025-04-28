@@ -27,6 +27,19 @@ catkin_package(
     sensor_msgs
 )
 
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+
+include_directories(${GAZEBO_INCLUDE_DIRS})
+link_directories(${GAZEBO_LIBRARY_DIRS})
+add_definitions(${GAZEBO_CXX_FLAGS})
+
+
+add_library(random_walk_human SHARED 
+  src/random_walk_human.cpp)
+target_link_libraries(random_walk_human ${GAZEBO_LIBRARIES})
+
+
+
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 add_executable(waypoint_publisher src/waypoint_publisher.cpp)
