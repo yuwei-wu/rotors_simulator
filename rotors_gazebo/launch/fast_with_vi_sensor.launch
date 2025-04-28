@@ -30,14 +30,18 @@
     <!-- <arg name="verbose" value="true"/> -->
   </include>
 
+
+  <arg name="if_rgb" default="true"/>
+
+
   <group ns="$(arg mav_name)">
     <include file="$(find rotors_gazebo)/launch/spawn_mav.launch">
       <arg name="mav_name" value="$(arg mav_name)" />
-      <arg name="model" value="$(find rotors_description)/urdf/mav_with_vi_sensor.gazebo" />
+      <arg name="model" value="$(eval '$(find rotors_description)/urdf/mav_with_vi_sensor_rgb.gazebo' 
+      if if_rgb else '$(find rotors_description)/urdf/mav_with_vi_sensor.gazebo')" />
       <arg name="enable_logging" value="$(arg enable_logging)" />
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)"/>
-      <!-- <arg name="use_sim_time" value="$(arg use_sim_time)"/> -->
       <arg name="x" value="$(arg init_x)"/>
       <arg name="y" value="$(arg init_y)"/>
       <arg name="z" value="$(arg init_z)"/>
