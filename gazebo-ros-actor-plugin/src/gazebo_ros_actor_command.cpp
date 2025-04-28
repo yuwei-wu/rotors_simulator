@@ -89,6 +89,9 @@ void GazeboRosActorCommand::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
   // Create ROS node handle
   this->ros_node_ = new ros::NodeHandle();
 
+  this->odom_pub_ = this->ros_node_->advertise<nav_msgs::Odometry>("actor_odom", 10);
+
+
   // Subscribe to the velocity commands
   ros::SubscribeOptions vel_so =
     ros::SubscribeOptions::create<geometry_msgs::Twist>(
@@ -156,6 +159,9 @@ void GazeboRosActorCommand::VelCallback(const geometry_msgs::Twist::ConstPtr &ms
 
 void GazeboRosActorCommand::PathCallback(const nav_msgs::Path::ConstPtr &msg) {
   // Extract the poses from the Path message
+  // Save the frame_id
+  this->odom_frame_id_ = msg->header.frame_id;  // <<< ADD THIS
+
   const std::vector<geometry_msgs::PoseStamped>& poses = msg->poses;
 
   // Extract the x, y, and yaw from each pose and store it as a target
@@ -182,7 +188,7 @@ void GazeboRosActorCommand::OnUpdate(const common::UpdateInfo &_info) {
   double dt = (_info.simTime - this->last_update_).Double();
   ignition::math::Pose3d pose = this->actor_->WorldPose();
   ignition::math::Vector3d rpy = pose.Rot().Euler();
-
+  std::string frame_id;
   if (this->follow_mode_ == "path") {
     ignition::math::Vector2d target_pos_2d(this->target_pose_.X(),
                                            this->target_pose_.Y());
@@ -260,6 +266,30 @@ void GazeboRosActorCommand::OnUpdate(const common::UpdateInfo &_info) {
   this->actor_->SetScriptTime(
   this->actor_->ScriptTime() + (distanceTraveled * this->animation_factor_));
   this->last_update_ = _info.simTime;
+
+
+  // publish the odom 
+  nav_msgs::Odometry odom_msg;
+  odom_msg.header.stamp = ros::Time::now();
+  odom_msg.header.frame_id = odom_frame_id_;  // or your world frame
+  odom_msg.child_frame_id = "base_link";  // or your actor frame
+
+  // Set position
+  odom_msg.pose.pose.position.x = pose.Pos().X();
+  odom_msg.pose.pose.position.y = pose.Pos().Y();
+  odom_msg.pose.pose.position.z = pose.Pos().Z();
+  odom_msg.pose.pose.orientation.x = pose.Rot().X();
+  odom_msg.pose.pose.orientation.y = pose.Rot().Y();
+  odom_msg.pose.pose.orientation.z = pose.Rot().Z();
+  odom_msg.pose.pose.orientation.w = pose.Rot().W();
+
+  // Set velocity (optional but useful)
+  odom_msg.twist.twist.linear.x = this->target_vel_.Pos().X();  // or compute based on displacement
+  odom_msg.twist.twist.angular.z = this->target_vel_.Rot().Euler().Z();  // angular velocity around Z
+
+  this->odom_pub_.publish(odom_msg);
+
+
 }
 
 void GazeboRosActorCommand::ChooseNewTarget() {

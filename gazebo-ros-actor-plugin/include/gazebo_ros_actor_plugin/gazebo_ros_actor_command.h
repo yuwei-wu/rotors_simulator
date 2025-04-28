@@ -5,6 +5,7 @@
 #include <ros/callback_queue.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Path.h>
+#include <nav_msgs/Odometry.h>
 
 #include <string>
 #include <queue>
@@ -60,6 +61,11 @@ class GazeboRosActorCommand : public ModelPlugin {
   /// \brief Subscribers for velocity and path commands.
   ros::Subscriber vel_sub_;
   ros::Subscriber path_sub_;
+
+
+  /// publisher for odom
+  ros::Publisher odom_pub_;
+  std::string odom_frame_id_ = "world";  // default frame_id
 
   /// \brief Custom callback queues for velocity and path commands.
   ros::CallbackQueue vel_queue_;
