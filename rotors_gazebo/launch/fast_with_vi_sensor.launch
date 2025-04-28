@@ -6,7 +6,7 @@
   <arg name="init_z" value="0.8"/> 
   <!--arg name="mav_name" default="hummingbird"/-->
   <arg name="mav_name" default="hummingbird"/>
-  <arg name="world_name" default="forest_Large"/>
+  <arg name="world_name" default="office_cpr"/>
   <arg name="enable_logging" default="false" />
   <arg name="enable_ground_truth" default="true" />
   <arg name="log_file" default="$(arg mav_name)" />

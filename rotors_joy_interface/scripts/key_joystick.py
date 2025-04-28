@@ -1,211 +1,143 @@
-#!/usr/bin/env python
-'''
-Virtual Joystick from Keyboard
-Bharat Tak
-September 2016
-'''
+#!/usr/bin/env python3
+"""
+Virtual Joystick from Keyboard → ROS sensor_msgs/Joy publisher
+Adapted from Bharat Tak's original uinput-based key_joystick.py
+"""
 
-import uinput, time
-import pygame, sys, os
+import os
+import pygame
+import rospy
 from pygame.locals import *
+from sensor_msgs.msg import Joy
 
+# Initialize pygame and window
 pygame.init()
-WHITE = (0,0,0)
-WIDTH = 485
-HEIGHT = 530
+WHITE = (250, 250, 250)
+WIDTH, HEIGHT = 485, 530
 windowSurface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
-windowSurface.fill(WHITE)
 pygame.display.set_caption('Position Controller Joystick')
 
-# Fill background
-background = pygame.Surface(windowSurface.get_size())
-background = background.convert()
-background.fill((250, 250, 250))
-
-# Load image
-dir = os.path.dirname(__file__)
-filename = os.path.join(dir, '../media/sticks.png')
-img = pygame.image.load(filename)
-
-windowSurface.blit(img,(0,0))
-pygame.display.flip()
+dir_path = os.path.dirname(__file__)
+# Pre-render background and static overlay
+background = pygame.Surface((WIDTH, HEIGHT)).convert()
+background.fill(WHITE)
+sticks_img = pygame.image.load(os.path.join(dir_path, '../media/sticks.png')).convert_alpha()
 
 class stick_state(object):
-    def __init__(self, name, stick, key_up, key_down, spring_back=True, incr_val=0.1):
-        self.name = name                            # The name of the stick
-        self.stick = stick                          # The stick on the joystick that this stick maps to 
-        self.key_up = key_up                        # The key on the keyboard that maps to this stick increment
-        self.key_down = key_down                    # The key on the keyboard that maps to this stick decrement
-        self.spring_back = spring_back              # Does the stick spring back to center on release?
-        self.incr_val = incr_val                    # The increment on keypress
-        self.min_val = 0.0                          # Minimum stick value
-        self.max_val = 255.0                        # Maximum stick value
-        self.active_up = False                      # True if up key is held pressed
-        self.active_down = False                    # True if down key is held pressed
-        if self.spring_back:
-            self.zero = 127.0
-        else:
-            self.zero = 0.0
-        self.val = self.zero                        # Stick value at initialization at zero position
-        self.emit_val = int(self.val)
-        self.display_ready = False                  # Whether optional display params have been set
-        self.display_height = 0                     # Height on the display screen 
-        self.display_width = 0                      # Width on the display screen 
-        self.display_hor = True                     # Whether the display bar is horizontal, else vertical
-        self.display_bar_g = []
-        self.display_bar_b = []
-
-    def keypress_up(self):
-        self.active_up = True
-        if (self.val + self.incr_val) <= self.max_val:
-            self.val = self.val + self.incr_val
-        else:
-            # Saturated
-            self.val = self.max_val
-
-
-    def keypress_down(self):
-
-        self.active_down = True
-        if (self.val - self.incr_val) >= self.min_val:
-            self.val = self.val - self.incr_val
-        else:
-            # Saturated
-            self.val = self.min_val
-
-
-    def release_stick(self):
-        if not self.spring_back:
-            pass
-        else:
-            if self.val > self.zero:
-                self.val = self.val - self.incr_val*0.2
-            elif self.val < self.zero:
-                self.val = self.val + self.incr_val*0.2
-            else:
-                self.val = self.zero
-
-    def emit(self, device):
-        # emit effeciently
-        if abs(int(round(self.val)) - int(self.emit_val)) > 0.001:
-            self.emit_val = int(round(self.val))
-            device.emit(self.stick, 255-int(self.emit_val), syn=False)
-            if self.display_ready:
-                self.display()
-
-    def set_display(self, offset_height, offset_width, horizontal):
-        self.display_height = offset_height
-        self.display_width = offset_width
+    def __init__(self, name, key_up, key_down, display_h, display_w, horizontal=True, spring_back=True, incr_val=0.1):
+        self.name = name
+        self.key_up = key_up
+        self.key_down = key_down
+        self.spring_back = spring_back
+        self.incr_val = incr_val
+        self.min_val = 0.0
+        self.max_val = 255.0
+        self.zero = 127.0 if spring_back else 0.0
+        self.val = self.zero
+        self.emit_val = int(self.zero)
+        # display params
+        self.display_h = display_h
+        self.display_w = display_w
         self.display_hor = horizontal
+        # load bar images
         if horizontal:
-            filename = os.path.join(dir, '../media/hg.png')
-            self.display_bar_g = pygame.image.load(filename)
-            filename = os.path.join(dir, '../media/hb.png')
-            self.display_bar_b = pygame.image.load(filename)
+            self.bar_g = pygame.image.load(os.path.join(dir_path, '../media/hg.png')).convert_alpha()
+            self.bar_b = pygame.image.load(os.path.join(dir_path, '../media/hb.png')).convert_alpha()
         else:
-            filename = os.path.join(dir, '../media/vg.png')
-            self.display_bar_g = pygame.image.load(filename)
-            filename = os.path.join(dir, '../media/vb.png')
-            self.display_bar_b = pygame.image.load(filename)    
-        self.display_ready = True
-
-    def display(self):
-        if not self.display_ready:
-            pass
-        else:
-            # Fill the entire bar
-            for i in range(256):
-                if i <= self.emit_val:
-                    # Fill green
-                    if self.display_hor:
-                        windowSurface.blit(self.display_bar_g,(self.display_width + i, self.display_height))
-                    else:
-                        windowSurface.blit(self.display_bar_g,(self.display_width, self.display_height - i))
-                else:
-                    # Fill grey
-                    if self.display_hor:
-                        windowSurface.blit(self.display_bar_b,(self.display_width + i, self.display_height))
-                    else:
-                        windowSurface.blit(self.display_bar_b,(self.display_width, self.display_height - i))
-            # Render it
-            pygame.display.flip()
+            self.bar_g = pygame.image.load(os.path.join(dir_path, '../media/vg.png')).convert_alpha()
+            self.bar_b = pygame.image.load(os.path.join(dir_path, '../media/vb.png')).convert_alpha()
+        self.active_up = False
+        self.active_down = False
 
     def update_event(self, event):
-        if event.type == KEYUP:
-            if (event.key == self.key_up):
+        if event.type == KEYDOWN:
+            if event.key == self.key_up:
+                self.active_up = True
+            elif event.key == self.key_down:
+                self.active_down = True
+        elif event.type == KEYUP:
+            if event.key == self.key_up:
                 self.active_up = False
             elif event.key == self.key_down:
                 self.active_down = False
-        elif event.type == KEYDOWN:
-            if (event.key == self.key_up):
-                self.active = True
-                self.keypress_up()
-            elif (event.key == self.key_down):
-                self.active = True
-                self.keypress_down()
-                
 
-    def update_stick(self, device):
+    def update_value(self):
         if self.active_up:
-            self.keypress_up()
-            self.emit(device)
+            self.val = min(self.val + self.incr_val, self.max_val)
         elif self.active_down:
-            self.keypress_down()
-            self.emit(device)
+            self.val = max(self.val - self.incr_val, self.min_val)
         else:
-            self.release_stick()
-            self.emit(device)
+            if self.spring_back:
+                if self.val > self.zero:
+                    self.val -= self.incr_val * 0.2
+                elif self.val < self.zero:
+                    self.val += self.incr_val * 0.2
+                else:
+                    self.val = self.zero
+        self.emit_val = int(round(self.val))
+
+    def draw(self, surface):
+        # draw bar segments for this stick
+        for i in range(256):
+            img = self.bar_g if i <= self.emit_val else self.bar_b
+            if self.display_hor:
+                surface.blit(img, (self.display_w + i, self.display_h))
+            else:
+                surface.blit(img, (self.display_w, self.display_h - i))
+
+    def get_axis(self):
+        # Normalize to [-1.0, 1.0]
+        return (self.emit_val - self.zero) / self.zero if self.zero else 0.0
+
 
 def main():
-    events = (
-        uinput.BTN_JOYSTICK,
-        uinput.ABS_X + (0, 255, 0, 0),
-        uinput.ABS_Y + (0, 255, 0, 0),
-        uinput.ABS_Z + (0, 255, 0, 0),
-        uinput.ABS_RX + (0, 255, 0, 0),
-        uinput.ABS_RY + (0, 255, 0, 0),
-        uinput.ABS_RZ + (0, 255, 0, 0),
-        uinput.ABS_RUDDER + (0, 255, 0, 0),               
-        )
+    rospy.init_node('key_joy_publisher')
+    joy_pub = rospy.Publisher('/joy', Joy, queue_size=10)
+    rate = rospy.Rate(50)  # update at 50 Hz to reduce CPU load
 
-    sticks = []
+    # Define sticks with display positions
+    sticks = [
+        stick_state('X', K_UP, K_DOWN, 320, 90, horizontal=False),
+        stick_state('Y', K_LEFT, K_RIGHT, 320, 180, horizontal=False),
+        stick_state('Z', K_w, K_s, 320, 270, horizontal=False),
+        stick_state('Yaw', K_d, K_a, 320, 360, horizontal=False),
+        stick_state('extX', K_u, K_y, 410, 120, horizontal=True),
+        stick_state('extY', K_j, K_h, 450, 120, horizontal=True),
+        stick_state('extZ', K_m, K_n, 490, 120, horizontal=True),
+    ]
 
-    # create sticks    # the order is changed
-    x_stick = stick_state('X', uinput.ABS_X, K_UP, K_DOWN)
-    x_stick.set_display(320, 90, False)
-    sticks.append(x_stick)
-    y_stick = stick_state('Y', uinput.ABS_Y, K_LEFT, K_RIGHT)
-    y_stick.set_display(320, 180, False)
-    sticks.append(y_stick)
-    z_stick = stick_state('Z', uinput.ABS_Z, K_w, K_s)
-    z_stick.set_display(320, 270, False)
-    sticks.append(z_stick)
-    yaw_stick = stick_state('Yaw', uinput.ABS_RUDDER, K_d, K_a)
-    yaw_stick.set_display(320, 360, False)
-    sticks.append(yaw_stick)
-
-    extforce_stick = stick_state('extforceX', uinput.ABS_RX, K_u, K_y)
-    extforce_stick.set_display(410, 120, True)
-    sticks.append(extforce_stick)
-    extforce_stick = stick_state('extforceY', uinput.ABS_RY, K_j, K_h)
-    extforce_stick.set_display(450,  120, True)
-    sticks.append(extforce_stick)
-    extforce_stick = stick_state('extforceZ', uinput.ABS_RZ, K_m, K_n)
-    extforce_stick.set_display(490,  120, True)
-    sticks.append(extforce_stick)
-
-    with uinput.Device(events) as device:
-
-
-        while True:
-            # event handling loop
+    try:
+        while not rospy.is_shutdown():
+            # poll events
             for event in pygame.event.get():
-                
-                for stick in sticks:
-                    stick.update_event(event)
-            for stick in sticks:
-                    stick.update_stick(device)
-            time.sleep(0.0005)
+                if event.type == QUIT:
+                    rospy.signal_shutdown('Window closed')
+                for s in sticks:
+                    s.update_event(event)
 
-if __name__ == "__main__":
+            # update stick values
+            for s in sticks:
+                s.update_value()
+
+            # build and publish Joy msg
+            joy = Joy()
+            joy.header.stamp = rospy.Time.now()
+            joy.axes = [s.get_axis() for s in sticks]
+            joy.buttons = []
+            joy_pub.publish(joy)
+
+            # redraw entire display once
+            windowSurface.blit(background, (0, 0))
+            windowSurface.blit(sticks_img, (0, 0))
+            for s in sticks:
+                s.draw(windowSurface)
+            pygame.display.flip()
+
+            rate.sleep()
+    except rospy.ROSInterruptException:
+        pass
+    finally:
+        pygame.quit()
+
+if __name__ == '__main__':
     main()
