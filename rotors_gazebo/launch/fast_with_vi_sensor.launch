@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="init_x" value="0.0"/>
-  <arg name="init_y" value="0.0"/>
-  <arg name="init_z" value="0.0"/> 
+  <arg name="init_x" value="-0.0"/>
+  <arg name="init_y" value="-0.0"/>
+  <arg name="init_z" value="0.8"/> 
   <!--arg name="mav_name" default="hummingbird"/-->
   <arg name="mav_name" default="hummingbird"/>
-  <arg name="world_name" default="fast_quad"/>
+  <arg name="world_name" default="forest_Large"/>
   <arg name="enable_logging" default="false" />
   <arg name="enable_ground_truth" default="true" />
   <arg name="log_file" default="$(arg mav_name)" />
@@ -38,6 +38,9 @@
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)"/>
       <!-- <arg name="use_sim_time" value="$(arg use_sim_time)"/> -->
+      <arg name="x" value="$(arg init_x)"/>
+      <arg name="y" value="$(arg init_y)"/>
+      <arg name="z" value="$(arg init_z)"/>
     </include>
 
     <node name="lee_position_controller_node" pkg="rotors_control" type="lee_position_controller_node" output="screen">

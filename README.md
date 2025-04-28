@@ -5,6 +5,19 @@ RotorS Instructions for Resilient Planner
 This is a customized version to use [VID-Fusion](https://github.com/ZJU-FAST-Lab/VID-Fusion) and [External Forces Resilient Planner](https://github.com/ZJU-FAST-Lab/forces_resilient_planner). The planner in the simulator has been tested on ubuntu 18.04 and ROS Melodic.
 
 
+### More world models
+
+
+- https://github.com/engcang/gazebo_maps
+
+- https://github.com/mlherd/Dataset-of-Gazebo-Worlds-Models-and-Maps
+
+- https://github.com/osrf/gazebo_models
+
+- https://github.com/PX4/PX4-SITL_gazebo-classic/blob/main/worlds/
+
+- https://github.com/KumarRobotics/mrsl_quadrotor
+
 ## 0. Noetic installation addition:
 
 ```
