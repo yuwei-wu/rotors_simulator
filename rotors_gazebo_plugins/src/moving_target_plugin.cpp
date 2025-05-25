@@ -10,18 +10,17 @@ namespace gazebo
     this->model = model;
     this->velocity = ignition::math::Vector3d(0, 0, 0);
 
-    // Load velocity from SDF if provided
-    if (sdf->HasElement("velocity"))
-    {
-      this->velocity = sdf->Get<ignition::math::Vector3d>("velocity");
+    // Load velocity from SDF
+    if (sdf->HasElement("velocity")) {
+        this->velocity = sdf->Get<ignition::math::Vector3d>("velocity");
+    } else {
+        gzerr << "Missing <velocity> in SDF. Plugin won't move.\n";
+        return;
     }
 
-    // Load odometry topic name from SDF or use default
-    std::string topicName = "odometry";
-    if (sdf->HasElement("topic"))
-    {
-      topicName = sdf->Get<std::string>("topic");
-    }
+    // Load topic from SDF
+    std::string topicName;
+    topicName = "/" + model->GetName() + "/odometry";
 
     // Print loaded parameters
     gzdbg << "MovingTargetPlugin loaded for model [" << model->GetName()
