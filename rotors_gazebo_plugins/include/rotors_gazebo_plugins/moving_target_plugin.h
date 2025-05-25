@@ -7,6 +7,9 @@
 #include <ignition/math/Vector3.hh>
 #include <gazebo/common/Time.hh>
 
+#include <nav_msgs/Odometry.h>
+#include <ros/ros.h>
+
 namespace gazebo
 {
   class MovingTargetPlugin : public ModelPlugin
@@ -38,6 +41,9 @@ namespace gazebo
 
     /// Last update time
     common::Time lastUpdateTime;
+
+    std::unique_ptr<ros::NodeHandle> rosNode;
+    ros::Publisher odomPub;
   };
 }
 
