@@ -135,11 +135,18 @@
       <pose frame=''>0 0 0 0 -0 0</pose>
     </model>
 
-    <!-- Add Moving Target -->
+    <!-- First Moving Target -->
     <include>
       <uri>model://car_199</uri>
-      <pose>10 0 0 0 -0 -0.78</pose> <!-- Rotated 90 degrees (π/2) --> 
-      <!-- <pose>10 0 0 0 -0 -1.5708</pose> Rotated 90 degrees (π/2) --> 
+      <pose>20 0 0 0 -0 0</pose> <!-- Starting at (10, 0, 0) -->
+      <name>car_199_1</name>
+    </include>
+
+    <!-- Second Moving Target -->
+    <include>
+      <uri>model://car_199</uri>
+      <pose>30 0 0 0 -0 0</pose> <!-- Starting at (-10, 5, 0), facing another direction -->
+      <name>car_199_2</name>
     </include>
   </world>
 </sdf>
