@@ -1,0 +1,56 @@
+<?xml version='1.0'?>
+<sdf version="1.5">
+<model name="car_1">
+  <pose>5 2 0 0 0 0</pose>
+  <static>true</static>
+    <link name="link">
+      <inertial>
+        <mass>1.0</mass>
+        <inertia> <!-- interias are tricky to compute -->
+          <!-- http://answers.gazebosim.org/question/4372/the-inertia-matrix-explained/ -->
+          <ixx>0.083</ixx>       <!-- for a box: ixx = 0.083 * mass * (y*y + z*z) -->
+          <ixy>0.0</ixy>         <!-- for a box: ixy = 0 -->
+          <ixz>0.0</ixz>         <!-- for a box: ixz = 0 -->
+          <iyy>0.083</iyy>       <!-- for a box: iyy = 0.083 * mass * (x*x + z*z) -->
+          <iyz>0.0</iyz>         <!-- for a box: iyz = 0 -->
+          <izz>0.083</izz>       <!-- for a box: izz = 0.083 * mass * (x*x + y*y) -->
+        </inertia>
+      </inertial>
+      <collision name="collision">
+        <geometry>
+          <box>
+            <size>1 1 1</size>
+          </box>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <cast_shadows>false</cast_shadows>
+      <geometry>
+        <mesh>
+          <uri>model://car_1/meshes/car_1.dae</uri>
+        </mesh>
+      </geometry>
+      </visual>
+    </link>
+
+    <plugin name="moving_target_plugin" filename="libmoving_target_plugin.so">
+      <velocity>0.0 0.5 0.0</velocity> <!-- Velocity vector (x, y, z) -->
+    </plugin>
+    <plugin name="gazebo_ros_p3d" filename="libgazebo_ros_p3d.so">
+    <ros>
+        <namespace>/car_1</namespace>  <!-- Change this to match your model -->
+        <remapping>
+            <from>odom</from>
+            <to>odometry</to>  <!-- The topic name in ROS -->
+        </remapping>
+    </ros>
+    <topicName>odometry</topicName>
+    <bodyName>link</bodyName>
+    <odomFrame>odom</odomFrame>
+    <robotBaseFrame>link</robotBaseFrame>
+    <updateRate>30</updateRate>  <!-- Adjust the update rate as needed -->
+    <xyzOffsets>0 0 0</xyzOffsets>  <!-- Adjust offsets if necessary -->
+    <rpyOffsets>0 0 0</rpyOffsets>
+    </plugin>
+</model>
+</sdf>

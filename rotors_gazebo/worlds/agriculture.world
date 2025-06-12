@@ -137,16 +137,23 @@
 
     <!-- First Moving Target -->
     <include>
-      <uri>model://car_199</uri>
-      <pose>20 0 0 0 -0 0</pose>
-      <name>car_199_1</name>
+      <uri>model://car_1</uri>
+      <pose>20 0 0.5 0 -0 0</pose>
+      <name>car_1</name>
     </include>
 
     <!-- Second Moving Target -->
     <include>
-      <uri>model://car_199</uri>
-      <pose>30 0 0 0 -0 0</pose>
-      <name>car_199_2</name>
+      <uri>model://car_2</uri>
+      <pose>30 0 0.5 0 -0 0</pose>
+      <name>car_2</name>
+    </include>
+
+    <!-- Third Moving Target -->
+    <include>
+      <uri>model://car_3</uri>
+      <pose>40 0 0.5 0 -0 0</pose>
+      <name>car_3</name>
     </include>
   </world>
 </sdf>

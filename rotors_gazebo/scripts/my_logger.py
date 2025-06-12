@@ -16,6 +16,7 @@ log_file_odom = "./drone_log.csv"
 log_file_ground_truth = "./drone_ground_truth.csv"
 log_file_target_1 = "./target_1_log.csv"
 log_file_target_2 = "./target_2_log.csv"
+log_file_target_3 = "./target_3_log.csv"
 log_image_dir = "./drone_images"
 last_time = 0
 
@@ -31,7 +32,7 @@ def init_csv_odom_file(filename):
                          "Angular_Vel_X", "Angular_Vel_Y", "Angular_Vel_Z"])
 
 # Callback for synchronized messages
-def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, image_msg):
+def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_msg3, image_msg):
 
     #rate = rospy.Rate(10) # 10hz
 
@@ -69,6 +70,7 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, image_
     process_odom(ground_truth_msg, log_file_ground_truth)
     process_odom(car_msg1, log_file_target_1)
     process_odom(car_msg2, log_file_target_2)
+    process_odom(car_msg3, log_file_target_3)
 
     # --- Process Image Data ---
     bridge = CvBridge()
@@ -99,18 +101,21 @@ def main():
     init_csv_odom_file(log_file_ground_truth)
     init_csv_odom_file(log_file_target_1)
     init_csv_odom_file(log_file_target_2)
+    init_csv_odom_file(log_file_target_3)
 
     # Use message_filters to subscribe to multiple topics
     odom_sub = message_filters.Subscriber("/hummingbird/odometry_sensor1/odometry", Odometry)
     ground_truth_sub = message_filters.Subscriber("/hummingbird/ground_truth/odometry", Odometry)
     car_sub1 = message_filters.Subscriber("/car_199_1/odometry", Odometry)
     car_sub2 = message_filters.Subscriber("/car_199_2/odometry", Odometry)
-    image_sub = message_filters.Subscriber("/hummingbird/camera_nadir/image_raw", Image)
+    car_sub3 = message_filters.Subscriber("/car_199_3/odometry", Odometry)
+    image_sub = message_filters.Subscriber("/hummingbird/rgb_camera/rgb_camera/image_raw", Image)
 
     # Synchronize messages
-    sync = message_filters.ApproximateTimeSynchronizer([odom_sub, ground_truth_sub, car_sub1, car_sub2, image_sub], 
-                                            queue_size=50,
-                                            slop=0.05)  # Adjust the slop as needed
+    sync = message_filters.ApproximateTimeSynchronizer([odom_sub, ground_truth_sub, 
+                                                        car_sub1, car_sub2, car_sub3, image_sub], 
+                                                        queue_size=50,
+                                                        slop=0.05)  # Adjust the slop as needed
     sync.registerCallback(synchronized_callback)
 
     # Use threading to prevent blocking
