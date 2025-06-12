@@ -23,25 +23,51 @@
   <!-- Instantiate the mav with a generic odometry sensor. -->
   <xacro:include filename="$(find rotors_description)/urdf/mav_generic_odometry_sensor.gazebo" />
 
-  <!--Mount a Camera-->
-  <xacro:camera_macro
-    namespace="${namespace}"
-    parent_link="${namespace}/base_link"
-    camera_suffix="nadir"
-    frame_rate="30.0"
-    horizontal_fov="2"
-    image_width="752"
-    image_height="480"
-    image_format="L8"
-    min_distance="0.02"
-    max_distance="50"
-    noise_mean="0.0"
-    noise_stddev="0.007"
-    enable_visual="true">
+  <!-- Link for RGB camera -->
+  <link name="rgb_camera_link">
+    <visual>
+      <geometry>
+        <box size="0.05 0.05 0.05" />
+      </geometry>
+      <material name="blue">
+        <color rgba="0.0 0.0 1.0 1.0"/> <!-- blue color -->
+      </material>
+    </visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </link>
 
-    <box size="0.05 0.05 0.02" />
-    <origin xyz="0 0 ${-arm_length/4}" rpy="0 ${pi/2} 0" />
-  </xacro:camera_macro>
+  <!-- Joint to attach RGB camera to base_link -->
+  <joint name="rgb_camera_joint" type="fixed">
+    <parent link="${namespace}/base_link"/>   <!-- parent is base_link -->
+    <child link="rgb_camera_link"/>           <!-- child is rgb_camera_link -->
+    <origin xyz="0.05 0 0" rpy="0 ${pi/2} 0"/>
+  </joint>
+
+  <!-- Gazebo plugin for RGB camera -->
+  <gazebo reference="rgb_camera_link">
+    <sensor type="camera" name="rgb_camera_sensor">
+      <update_rate>30.0</update_rate>
+      <camera>
+        <horizontal_fov>1.3962634</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>720</height>
+          <format>R8G8B8</format> <!-- RGB format -->
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>100</far>
+        </clip>
+      </camera>
+      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <robotNamespace>$(arg mav_name)/rgb_camera</robotNamespace>
+        <cameraName>rgb_camera</cameraName>
+        <imageTopicName>image_raw</imageTopicName>
+        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+        <frameName>rgb_camera_link</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
 
 
   <!-- Add a wind gust starting at 40s and lasting for 2s. -->
