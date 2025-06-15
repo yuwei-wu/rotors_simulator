@@ -70,7 +70,7 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
     process_odom(ground_truth_msg, log_file_ground_truth)
     process_odom(car_msg1, log_file_target_1)
     process_odom(car_msg2, log_file_target_2)
-    process_odom(car_msg3, log_file_target_3)
+    #process_odom(car_msg3, log_file_target_3)
 
     # --- Process Image Data ---
     bridge = CvBridge()
@@ -106,9 +106,9 @@ def main():
     # Use message_filters to subscribe to multiple topics
     odom_sub = message_filters.Subscriber("/hummingbird/odometry_sensor1/odometry", Odometry)
     ground_truth_sub = message_filters.Subscriber("/hummingbird/ground_truth/odometry", Odometry)
-    car_sub1 = message_filters.Subscriber("/car_199_1/odometry", Odometry)
-    car_sub2 = message_filters.Subscriber("/car_199_2/odometry", Odometry)
-    car_sub3 = message_filters.Subscriber("/car_199_3/odometry", Odometry)
+    car_sub1 = message_filters.Subscriber("/car_1/odometry", Odometry)
+    car_sub2 = message_filters.Subscriber("/car_2/odometry", Odometry)
+    car_sub3 = message_filters.Subscriber("/car_3/odometry", Odometry)
     image_sub = message_filters.Subscriber("/hummingbird/rgb_camera/rgb_camera/image_raw", Image)
 
     # Synchronize messages
