@@ -70,7 +70,7 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
     process_odom(ground_truth_msg, log_file_ground_truth)
     process_odom(car_msg1, log_file_target_1)
     process_odom(car_msg2, log_file_target_2)
-    #process_odom(car_msg3, log_file_target_3)
+    process_odom(car_msg3, log_file_target_3)
 
     # --- Process Image Data ---
     bridge = CvBridge()
