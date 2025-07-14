@@ -38,6 +38,9 @@
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)"/>
       <!-- <arg name="use_sim_time" value="$(arg use_sim_time)"/> -->
+      <arg name="x" value="$(arg init_x)"/>
+      <arg name="y" value="$(arg init_y)"/>
+      <arg name="z" value="$(arg init_z)"/>
     </include>
 
     <node name="lee_position_controller_node" pkg="rotors_control" type="lee_position_controller_node" output="screen">
@@ -60,10 +63,10 @@
 
 
     <node name="hovering_example" pkg="rotors_gazebo" type="hovering_example" output="screen">
-     <param name="init_state_x" value="$(arg init_x)"/>
-     <param name="init_state_y" value="$(arg init_y)"/>
-     <param name="init_state_z" value="$(arg init_z)"/>
-   </node>
+      <param name="x" value="$(arg init_x)"/>
+      <param name="y" value="$(arg init_y)"/>
+      <param name="z" value="$(arg init_z)"/>
+    </node>
 
 
   <!--launch rviz-->

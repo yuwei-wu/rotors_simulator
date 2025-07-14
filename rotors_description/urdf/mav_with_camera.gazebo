@@ -1,0 +1,89 @@
+<?xml version="1.0"?>
+<!--
+  Copyright 2015 Fadri Furrer, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Michael Burri, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Mina Kamel, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Janosch Nikolic, ASL, ETH Zurich, Switzerland
+  Copyright 2015 Markus Achtelik, ASL, ETH Zurich, Switzerland
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<robot name="$(arg mav_name)" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- Instantiate the mav with a generic odometry sensor. -->
+  <xacro:include filename="$(find rotors_description)/urdf/mav_generic_odometry_sensor.gazebo" />
+
+  <!-- Link for RGB camera -->
+  <link name="rgb_camera_link">
+    <visual>
+      <geometry>
+        <box size="0.05 0.05 0.05" />
+      </geometry>
+      <material name="blue">
+        <color rgba="0.0 0.0 1.0 1.0"/> <!-- blue color -->
+      </material>
+    </visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </link>
+
+  <!-- Joint to attach RGB camera to base_link -->
+  <joint name="rgb_camera_joint" type="fixed">
+    <parent link="${namespace}/base_link"/>   <!-- parent is base_link -->
+    <child link="rgb_camera_link"/>           <!-- child is rgb_camera_link -->
+    <origin xyz="0.05 0 0" rpy="0 ${pi/2} 0"/>
+  </joint>
+
+  <!-- Gazebo plugin for RGB camera -->
+  <gazebo reference="rgb_camera_link">
+    <sensor type="camera" name="rgb_camera_sensor">
+      <update_rate>30.0</update_rate>
+      <camera>
+        <horizontal_fov>1.3962634</horizontal_fov>
+        <image>
+          <width>1280</width>
+          <height>720</height>
+          <format>R8G8B8</format> <!-- RGB format -->
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>100</far>
+        </clip>
+      </camera>
+      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <robotNamespace>$(arg mav_name)/rgb_camera</robotNamespace>
+        <cameraName>rgb_camera</cameraName>
+        <imageTopicName>image_raw</imageTopicName>
+        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+        <frameName>rgb_camera_link</frameName>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+
+  <!-- Add a wind gust starting at 40s and lasting for 2s. -->
+  <!--<xacro:wind_plugin_macro
+    namespace="${namespace}"
+    xyz_offset="0 0 0"
+    wind_direction="1 0 0"
+    wind_force_mean="0"
+    wind_gust_direction="1 1 0"
+    wind_gust_duration="5"
+    wind_gust_start="40"
+    wind_gust_force_mean="4"
+    use_custom_static_wind_field="false"
+    custom_wind_field_path="~/.ros"
+    wind_speed_mean="0">
+  </xacro:wind_plugin_macro> -->
+
+
+</robot>

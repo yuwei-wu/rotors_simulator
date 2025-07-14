@@ -70,6 +70,8 @@ Eigen::Vector3d position_gt;
 double yaw_gt;
 double PI = 3.1415926;
 
+bool get_position_gt = false;
+
 
 
 void gt_callback(const nav_msgs::Odometry::ConstPtr &msg)
@@ -90,6 +92,8 @@ void gt_callback(const nav_msgs::Odometry::ConstPtr &msg)
     mav_msgs::getEulerAnglesFromQuaternion(quaternion, &temp2);
 
     yaw_gt =  temp2(2);
+
+    get_position_gt = true;
 
 
 }
@@ -152,6 +156,11 @@ void Joy::JoyCallback(const sensor_msgs::JoyConstPtr& msg) {
   // std::cout << "joy " << std::endl;
   static double x_,  y_, z_ , yaw_;
   static bool buttons_up_midyaw_p = true, buttons_up_midyaw_n = true;
+  
+  if (!get_position_gt) {
+    std::cout << "waiting for ground truth position..." << std::endl;
+    return;
+  }
 
   x_ = position_gt[0] + msg->axes[0]*1.0;
   y_ = position_gt[1] + msg->axes[1]*1.0;
