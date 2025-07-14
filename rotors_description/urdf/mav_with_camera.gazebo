@@ -19,7 +19,7 @@
   limitations under the License.
 -->
 
-<robot name="$(arg mav_name)" xmlns:xacro="http://ros.org/wiki/xacro">
+<robot name="$(arg namespace)" xmlns:xacro="http://ros.org/wiki/xacro">
   <!-- Instantiate the mav with a generic odometry sensor. -->
   <xacro:include filename="$(find rotors_description)/urdf/mav_generic_odometry_sensor.gazebo" />
 
@@ -60,7 +60,7 @@
         </clip>
       </camera>
       <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
-        <robotNamespace>$(arg mav_name)/rgb_camera</robotNamespace>
+        <robotNamespace>$(arg namespace)/rgb_camera</robotNamespace>
         <cameraName>rgb_camera</cameraName>
         <imageTopicName>image_raw</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
@@ -68,22 +68,6 @@
       </plugin>
     </sensor>
   </gazebo>
-
-
-  <!-- Add a wind gust starting at 40s and lasting for 2s. -->
-  <!--<xacro:wind_plugin_macro
-    namespace="${namespace}"
-    xyz_offset="0 0 0"
-    wind_direction="1 0 0"
-    wind_force_mean="0"
-    wind_gust_direction="1 1 0"
-    wind_gust_duration="5"
-    wind_gust_start="40"
-    wind_gust_force_mean="4"
-    use_custom_static_wind_field="false"
-    custom_wind_field_path="~/.ros"
-    wind_speed_mean="0">
-  </xacro:wind_plugin_macro> -->
 
 
 </robot>

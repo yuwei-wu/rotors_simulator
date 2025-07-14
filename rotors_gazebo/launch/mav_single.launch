@@ -1,0 +1,45 @@
+<launch>
+  <!-- Declare arguments -->
+  <arg name="mav_id" default="drone1"/>
+  <arg name="mav_name" default="hummingbird"/>
+  <arg name="namespace" default="$(arg mav_id)"/>
+  <arg name="init_x" default="0.0"/>
+  <arg name="init_y" default="0.0"/>
+  <arg name="init_z" default="1.0"/>
+  <arg name="enable_logging" default="false"/>
+  <arg name="enable_ground_truth" default="true"/>
+  <arg name="log_file" default="$(arg mav_id)"/>
+
+  <!-- MAV Group -->
+  <group ns="$(arg mav_id)">
+    <include file="$(find rotors_gazebo)/launch/spawn_mav.launch">
+      <arg name="mav_name" value="$(arg mav_name)" />
+      <arg name="namespace" value="$(arg mav_id)" />
+      <arg name="model" value="$(find rotors_description)/urdf/mav_with_camera.gazebo" />
+      <arg name="enable_logging" value="$(arg enable_logging)" />
+      <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
+      <arg name="log_file" value="$(arg log_file)"/>
+      <arg name="x" value="$(arg init_x)"/>
+      <arg name="y" value="$(arg init_y)"/>
+      <arg name="z" value="$(arg init_z)"/>
+    </include>
+
+    <node name="lee_position_controller_node" pkg="rotors_control" type="lee_position_controller_node" output="screen">
+      <rosparam command="load" file="$(find rotors_gazebo)/resource/lee_controller_$(arg mav_name).yaml" />
+      <rosparam command="load" file="$(find rotors_gazebo)/resource/$(arg mav_name).yaml" />
+      <remap from="odometry" to="odometry_sensor1/odometry" />
+    </node>
+
+    <node name="hovering_example" pkg="rotors_gazebo" type="hovering_example" output="screen">
+      <param name="x" value="$(arg init_x)"/>
+      <param name="y" value="$(arg init_y)"/>
+      <param name="z" value="$(arg init_z)"/>
+    </node>
+
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+    <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" /> -->
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" output="screen">
+      <remap from="joint_states" to="custom_joint_states"/>
+    </node>
+  </group>
+</launch>
