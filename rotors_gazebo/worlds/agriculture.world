@@ -83,9 +83,9 @@
     <wind/>
     <model name='agriculture_geom'>
       <link name='agriculture_world_link'>
-        <pose frame=''>0 0 0 0 -0 0</pose>
+        <pose frame=''>-25 5 0 0 -0 0</pose>
         <inertial>
-          <pose frame=''>0 0 0 0 -0 0</pose>
+          <pose frame=''>-25 5 0 0 -0 0</pose>
           <mass>1</mass>
           <inertia>
             <ixx>1</ixx>
@@ -97,7 +97,7 @@
           </inertia>
         </inertial>
         <collision name='agriculture_world_link_collision'>
-          <pose frame=''>0 0 0 0 -0 0</pose>
+          <pose frame=''>-25 5 0 0 -0 0</pose>
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
@@ -119,7 +119,7 @@
           </surface>
         </collision>
         <visual name='agriculture_world_link_visual'>
-          <pose frame=''>0 0 0 0 -0 0</pose>
+          <pose frame=''>-25 5 0 0 -0 0</pose>
           <geometry>
             <mesh>
               <scale>1 1 1</scale>
@@ -132,27 +132,27 @@
         <kinematic>0</kinematic>
       </link>
       <static>1</static>
-      <pose frame=''>0 0 0 0 -0 0</pose>
+      <pose frame=''>-25 5 0 0 -0 0</pose>
     </model>
 
     <!-- First Moving Target -->
     <include>
       <uri>model://car_1</uri>
-      <pose>20 0 0.5 0 -0 0</pose>
+      <pose>-5 5 0.5 0 -0 0</pose>
       <name>car_1</name>
     </include>
 
     <!-- Second Moving Target -->
     <include>
       <uri>model://car_2</uri>
-      <pose>30 0 0.5 0 -0 0</pose>
+      <pose>0 5 0.5 0 -0 0</pose>
       <name>car_2</name>
     </include>
 
     <!-- Third Moving Target -->
     <include>
       <uri>model://car_3</uri>
-      <pose>40 0 0.5 0 -0 0</pose>
+      <pose>5 5 0.5 0 -0 0</pose>
       <name>car_3</name>
     </include>
   </world>

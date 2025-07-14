@@ -23,7 +23,7 @@ Hil interface issue: https://aur.archlinux.org/packages/ros-noetic-rotors-hil-in
 
 replace with: 
 ```
-git clone git clone https://aur.archlinux.org/ros-noetic-rotors-hil-interface.git
+git clone https://aur.archlinux.org/ros-noetic-rotors-hil-interface.git
 ```
 
 
