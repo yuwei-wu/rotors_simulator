@@ -60,10 +60,10 @@
 
 
     <node name="hovering_example" pkg="rotors_gazebo" type="hovering_example" output="screen">
-     <param name="init_state_x" value="$(arg init_x)"/>
-     <param name="init_state_y" value="$(arg init_y)"/>
-     <param name="init_state_z" value="$(arg init_z)"/>
-   </node>
+      <param name="x" value="$(arg init_x)"/>
+      <param name="y" value="$(arg init_y)"/>
+      <param name="z" value="$(arg init_z)"/>
+    </node>
 
   <node name="disturbance_manager" pkg="rotors_gazebo" type="disturbance_manager" output="screen"/>
 

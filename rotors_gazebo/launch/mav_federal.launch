@@ -1,8 +1,8 @@
 <launch>
 
 
-  <arg name="init_x" value="0.0"/>
-  <arg name="init_y" value="0.0"/>
+  <arg name="init_x" value="30.0"/>
+  <arg name="init_y" value="25.0"/>
   <arg name="init_z" value="0.0"/> 
   
   <arg name="mav_name" default="hummingbird"/>
@@ -34,6 +34,9 @@
       <arg name="enable_logging" value="$(arg enable_logging)" />
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)"/>
+      <arg name="x" value="$(arg init_x)"/>
+      <arg name="y" value="$(arg init_y)"/>
+      <arg name="z" value="$(arg init_z)"/>
     </include>
     <node name="key_joystick" pkg="rotors_joy_interface" type="key_joystick.py" output="screen" />
     <node name="joy_node" pkg="joy" type="joy_node" />
@@ -52,10 +55,10 @@
     </node>
 
     <node name="hovering_example" pkg="rotors_gazebo" type="hovering_example" output="screen">
-     <param name="init_state_x" value="$(arg init_x)"/>
-     <param name="init_state_y" value="$(arg init_y)"/>
-     <param name="init_state_z" value="$(arg init_z)"/>
-   </node>
+      <param name="x" value="$(arg init_x)"/>
+      <param name="y" value="$(arg init_y)"/>
+      <param name="z" value="$(arg init_z)"/>
+    </node>
 
     <!--<node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator.rviz"/> -->
 
