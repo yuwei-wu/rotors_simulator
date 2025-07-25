@@ -127,12 +127,12 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
         process_bbox(timestamp, bbox, log_file_bbox)
 
         # Get the current timestamp for unique filenames
-        #filename = os.path.join(log_image_dir, "{:.6f}.png".format(timestamp))
+        filename = os.path.join(log_image_dir, "{:.6f}.png".format(timestamp))
 
         # Save the image
-        #cv2.imwrite(filename, cv_image)
+        cv2.imwrite(filename, cv_image)
 
-        #rospy.loginfo("Saved image to {}".format(filename))
+        rospy.loginfo("Saved image to {}".format(filename))
 
     except Exception as e:
         rospy.logerr("Failed to convert image: {}".format(e))
