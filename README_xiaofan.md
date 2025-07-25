@@ -18,6 +18,22 @@ python3 src/rotors_simulator/rotors_gazebo/scripts/my_logger.py
 
 ```
 
+### Integration
+I am using Python 3.8 to run the detection model. The requirements can be found in `rotors_gazebo/scripts/requirements.txt`.
+To run the YOLO detection, you need to download the `best_yolo.pt` from [here](https://drive.google.com/file/d/13hKl5SC1ntilpZSolp6-cfXE_w6vSSQH/view?usp=sharing) and put it under `rotors_gazebo/scripts/`.
+
+To run the api, use the following command under `rotors_gazebo/scripts/`:
+```
+python3 data_logger.py
+```
+Open two other terminals to run the following:
+```
+# One terminal running ros simulation
+roslaunch rotors_gazebo mav_swarm.launch
+# One terminal running Yuwei's planner
+python3 tracker_server.py
+```
+
 ### File Locations
 
 * File for logging script: https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/scripts/my_logger.py

@@ -14,8 +14,9 @@ import message_filters
 import threading
 import torch
 from torchvision import transforms
-from ultralytics import YOLO
 from PIL import Image as PILImage
+
+from model_utils import load_yolo_model, yolo_detect
 
 # File for logging
 log_file_odom = "./drone_log.csv"
@@ -23,6 +24,7 @@ log_file_ground_truth = "./drone_ground_truth.csv"
 log_file_target_1 = "./target_1_log.csv"
 log_file_target_2 = "./target_2_log.csv"
 log_file_target_3 = "./target_3_log.csv"
+log_file_bbox = "./bbox_log.csv"
 log_image_dir = "./drone_images"
 last_time = 0
 
@@ -34,17 +36,57 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 target_num = 3  # Number of targets to detect
 yolo_model = None  # Placeholder for YOLO model
 yolo_model_name = 'best_yolo.pt'
+traj_model_name = 'best_model.pth'
 
 if not os.path.exists(log_image_dir):
     os.makedirs(log_image_dir)
 
 def init_csv_odom_file(filename):
-    # Initialize CSV file
+    # Initialize CSV file for odometry data
     with open(filename, "w") as file:
         writer = csv.writer(file)
         writer.writerow(["Timestamp", "X", "Y", "Z", "Roll", "Pitch", "Yaw",
                          "Linear_Vel_X", "Linear_Vel_Y", "Linear_Vel_Z",
                          "Angular_Vel_X", "Angular_Vel_Y", "Angular_Vel_Z"])
+        
+# --- Process Odometry Data ---
+def process_odom(timestamp, msg, log_filename):
+    # Extract position
+    position = msg.pose.pose.position
+    x, y, z = position.x, position.y, position.z
+
+    # Extract orientation (quaternion to Euler angles)
+    orientation = msg.pose.pose.orientation
+    quaternion = (orientation.x, orientation.y, orientation.z, orientation.w)
+    roll, pitch, yaw = euler_from_quaternion(quaternion)
+
+    # Extract velocity
+    velocity = msg.twist.twist
+    linear_velocity = velocity.linear
+    angular_velocity = velocity.angular
+
+    # Log data
+    with open(log_filename, "a") as file:
+        writer = csv.writer(file)
+        writer.writerow([timestamp, x, y, z, roll, pitch, yaw,
+                        linear_velocity.x, linear_velocity.y, linear_velocity.z,
+                        angular_velocity.x, angular_velocity.y, angular_velocity.z])
+        
+def init_bbox_csv_file(filename, target_num):
+    # Initialize CSV file for bounding boxes
+    header = ['timestamp']
+    for i in range(target_num):
+        header.extend([f'target_{i}_x', f'target_{i}_y', f'target_{i}_w', f'target_{i}_h'])
+    with open(filename, "w") as file:
+        writer = csv.writer(file)
+        writer.writerow(header)
+
+def process_bbox(timestamp, bbox, log_filename):
+    # Log bounding box data
+    with open(log_filename, "a") as file:
+        writer = csv.writer(file)
+        row = [timestamp] + bbox.tolist()
+        writer.writerow(row)
 
 # Callback for synchronized messages
 def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_msg3, image_msg):
@@ -57,36 +99,12 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
     rospy.loginfo("sychronization called at {}, the time duration is {} ms".format(timestamp, 
                                                                                    (timestamp - last_time) * 1000))
     last_time = timestamp
-
-    # --- Process Odometry Data ---
-    def process_odom(msg, log_filename):
-        # Extract position
-        position = msg.pose.pose.position
-        x, y, z = position.x, position.y, position.z
-
-        # Extract orientation (quaternion to Euler angles)
-        orientation = msg.pose.pose.orientation
-        quaternion = (orientation.x, orientation.y, orientation.z, orientation.w)
-        roll, pitch, yaw = euler_from_quaternion(quaternion)
-
-        # Extract velocity
-        velocity = msg.twist.twist
-        linear_velocity = velocity.linear
-        angular_velocity = velocity.angular
-
-        # Log data
-        with open(log_filename, "a") as file:
-            writer = csv.writer(file)
-            writer.writerow([timestamp, x, y, z, roll, pitch, yaw,
-                            linear_velocity.x, linear_velocity.y, linear_velocity.z,
-                            angular_velocity.x, angular_velocity.y, angular_velocity.z])
     
-    process_odom(odom_msg, log_file_odom)
-    process_odom(ground_truth_msg, log_file_ground_truth)
-    process_odom(car_msg1, log_file_target_1)
-    process_odom(car_msg2, log_file_target_2)
-    process_odom(car_msg3, log_file_target_3)
-    print('process odom done')
+    process_odom(timestamp, odom_msg, log_file_odom)
+    process_odom(timestamp, ground_truth_msg, log_file_ground_truth)
+    process_odom(timestamp, car_msg1, log_file_target_1)
+    process_odom(timestamp, car_msg2, log_file_target_2)
+    process_odom(timestamp, car_msg3, log_file_target_3)
 
     # --- Process Image Data ---
     bridge = CvBridge()
@@ -94,9 +112,7 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
     try:
         # Convert the ROS image message to an OpenCV image
         cv_image = bridge.imgmsg_to_cv2(image_msg, "bgr8")
-        print('cv image ready', cv_image.shape)
         image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-        print('image rgb ready', image_rgb.shape)
         pil_image = PILImage.fromarray(image_rgb)
 
         image_tensor = transform(pil_image)
@@ -107,6 +123,8 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
         # Step 5: Perform YOLO detection
         img_xywhn, detect_masks = yolo_detect(yolo_model, image_tensor, target_num, device)
         print(img_xywhn)
+        bbox = img_xywhn.cpu().numpy().reshape(-1)
+        process_bbox(timestamp, bbox, log_file_bbox)
 
         # Get the current timestamp for unique filenames
         #filename = os.path.join(log_image_dir, "{:.6f}.png".format(timestamp))
@@ -121,75 +139,6 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
 
 
     #rate.sleep()  # Sleep to maintain the rate
-
-def yolo_detect(yolo_model, x_images, n_target, device):
-
-    # Image input shape to YOLO: (bsz * win_size, 3, 640, 640)
-    img_results = yolo_model.predict(source=x_images.view(-1, 3, 640, 640), verbose=False)
-
-    # Find the detection results
-    img_xywhn, detect_masks = [], []
-    for result in img_results:
-        detections, detect_mask = sort_detections(result, n_target, device)  
-        # Output shape for detections: [n_target, 4]
-        # Output shape for detect_mask: [n_target]
-        
-        img_xywhn.append(detections) 
-        detect_masks.append(detect_mask)
-    
-    return torch.stack(img_xywhn), torch.stack(detect_masks)  # Return shape: [bsz * win_size, n_target, 4]
-
-
-def sort_detections(result, n_target, device):
-    # Given a detection result, sort the detections based on the number of detection
-    n_detections = len(result.boxes)
-    detections = torch.zeros((n_target, 4), device=device)
-    detect_mask = torch.zeros((n_target), dtype=torch.bool, device=device)
-    # print('n_detections', n_detections)
-
-    if n_detections == 0:
-        #print('0 detections found')
-        return detections, detect_mask
-    
-    cls_index = result.boxes.cls.int()  # Get the class indices of the detections
-    if n_detections <= n_target:
-        # Fill in the detecting tensor with the xywhn values
-        detections[cls_index] = result.boxes.xywhn  # Fill the detections tensor with the xywhn values
-        detect_mask[cls_index] = 1  # Mark the detected targets
-
-    else: # Redundant detections exist
-        # The output boxes are automatically sorted by confidence score in ultralytics YOLO
-        # Fill the detections tensor with the sorted boxes
-        #print(n_detections, 'detections found, but only', n_target, 'targets are needed')
-        for cls_id in range(n_target):
-            # Get indices where cls_id is found in sorted_cls
-            indices = torch.nonzero(cls_index == cls_id, as_tuple=False)
-
-            # Get the first index if it exists, and move it to CPU
-            first_index = indices[0].item() if indices.numel() > 0 else -1
-            #print('detections for cls_id', cls_id, 'first_index', first_index)
-
-            # Fill the detections tensor with the first detection of the cls_id
-            if first_index > -1:
-                detections[cls_id] = result.boxes.xywhn[first_index]
-                detect_mask[cls_id] = 1  # Mark the detected targets
-    
-    # print(detections)
-
-    return detections, detect_mask
-
-
-def load_yolo_model(yolo_model_name, device):
-    # Load the YOLO model
-    # Set the shared instance of YOLO model in each client model and global
-    yolo_model = YOLO(yolo_model_name)
-    yolo_model.eval()
-    yolo_model = yolo_model.to(device)
-    # Freeze YOLO model
-    for param in yolo_model.parameters():
-        param.requires_grad = False
-
-    return yolo_model
 
 
 def main():
@@ -206,6 +155,7 @@ def main():
     init_csv_odom_file(log_file_target_1)
     init_csv_odom_file(log_file_target_2)
     init_csv_odom_file(log_file_target_3)
+    init_bbox_csv_file(log_file_bbox, target_num)
 
     # Use message_filters to subscribe to multiple topics
     odom_sub = message_filters.Subscriber("/drone1/odometry_sensor1/odometry", Odometry)
