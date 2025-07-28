@@ -17,6 +17,7 @@ from torchvision import transforms
 from PIL import Image as PILImage
 
 from model_utils import load_yolo_model, yolo_detect
+from model_utils import load_traj_model, traj_pred
 
 # File for logging
 log_file_odom = "./drone_log.csv"
@@ -34,9 +35,19 @@ transform = transforms.Compose([
 ])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 target_num = 3  # Number of targets to detect
+win_size = 40   # Window size for trajectory prediction
+pred_win_size = 20 # Prediction window size
+
+# Placeholder for YOLO model and trajectory model
 yolo_model = None  # Placeholder for YOLO model
+traj_model = None  # Placeholder for trajectory prediction model
 yolo_model_name = 'best_yolo.pt'
 traj_model_name = 'best_model.pth'
+
+
+# Create npy array for storing odom and bbox data
+odom_data = torch.zeros((1, win_size * 12), dtype=torch.float32)  # 12 columns for odometry data
+bbox_data = torch.zeros((1, target_num, win_size * 4), dtype=torch.float32)  # 4 columns for each target bbox + timestamp
 
 if not os.path.exists(log_image_dir):
     os.makedirs(log_image_dir)
@@ -66,11 +77,15 @@ def process_odom(timestamp, msg, log_filename):
     angular_velocity = velocity.angular
 
     # Log data
+    data = [timestamp, x, y, z, roll, pitch, yaw,
+            linear_velocity.x, linear_velocity.y, linear_velocity.z,
+            angular_velocity.x, angular_velocity.y, angular_velocity.z]
     with open(log_filename, "a") as file:
         writer = csv.writer(file)
-        writer.writerow([timestamp, x, y, z, roll, pitch, yaw,
-                        linear_velocity.x, linear_velocity.y, linear_velocity.z,
-                        angular_velocity.x, angular_velocity.y, angular_velocity.z])
+        writer.writerow(data)
+
+    return data[1:] # Return position and orientation for further processing if needed
+    
         
 def init_bbox_csv_file(filename, target_num):
     # Initialize CSV file for bounding boxes
@@ -94,13 +109,17 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
     #rate = rospy.Rate(10) # 10hz
 
     global last_time # Use global variable to keep track of time
+    global odom_data, bbox_data
 
     timestamp = rospy.get_time()  # Use a single timestamp for all logs
     rospy.loginfo("sychronization called at {}, the time duration is {} ms".format(timestamp, 
                                                                                    (timestamp - last_time) * 1000))
     last_time = timestamp
     
-    process_odom(timestamp, odom_msg, log_file_odom)
+    odom = process_odom(timestamp, odom_msg, log_file_odom)
+    odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)  # Convert to tensor
+    odom_data = torch.cat((odom_data[:, :(win_size-1)*12], odom), dim=1)
+    # print(odom_data.shape) # Shape: (1, win_size * 12)
     process_odom(timestamp, ground_truth_msg, log_file_ground_truth)
     process_odom(timestamp, car_msg1, log_file_target_1)
     process_odom(timestamp, car_msg2, log_file_target_2)
@@ -117,12 +136,22 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
 
         image_tensor = transform(pil_image)
 
-        # Step 4: Add batch dimension and move to device
+        # Add batch dimension and move to device
         image_tensor = image_tensor.unsqueeze(0).to(device)  # Shape: (1, 3, 640, 640)
-
-        # Step 5: Perform YOLO detection
+        # Perform YOLO detection
         img_xywhn, detect_masks = yolo_detect(yolo_model, image_tensor, target_num, device)
-        print(img_xywhn)
+        # print(img_xywhn.shape, img_xywhn) # Shape: (1, target_num, 4)
+        bbox_data = torch.cat((bbox_data[:, :, :(win_size-1)*4], img_xywhn.cpu()), dim=2)
+        # print(bbox_data.shape)  # Shape: (1, target_num, win_size * 4)
+
+        # Perform trajectory prediction
+        pred_traj = traj_pred(traj_model, odom_data, bbox_data, target_num, win_size, pred_win_size, device)
+        # pred_traj Shape: (target_num, pred_win_size, 2)
+        print(pred_traj[0, :5])  # Predict the trajectory for the 1st target
+        print(pred_traj[1, :5])  # Predict the trajectory for the 2nd target
+        print(pred_traj[2, :5])  # Predict the trajectory for the 3rd target
+
+        # Log bounding boxes
         bbox = img_xywhn.cpu().numpy().reshape(-1)
         process_bbox(timestamp, bbox, log_file_bbox)
 
@@ -145,9 +174,10 @@ def main():
     rospy.init_node("data_logger", anonymous=True)
 
     # Load yolo model
-    global yolo_model
-    global yolo_model_name
+    global yolo_model, traj_model
+    global yolo_model_name, traj_model_name
     yolo_model = load_yolo_model(yolo_model_name, device)
+    traj_model = load_traj_model(win_size, pred_win_size, target_num, device, traj_model_name)
 
     # Initialize CSV logs
     init_csv_odom_file(log_file_odom)
