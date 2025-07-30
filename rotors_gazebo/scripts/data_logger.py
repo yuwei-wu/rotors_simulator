@@ -15,6 +15,7 @@ import threading
 import torch
 from torchvision import transforms
 from PIL import Image as PILImage
+from std_msgs.msg import Float32MultiArray
 
 from model_utils import load_yolo_model, yolo_detect
 from model_utils import load_traj_model, traj_pred
@@ -43,6 +44,8 @@ yolo_model = None  # Placeholder for YOLO model
 traj_model = None  # Placeholder for trajectory prediction model
 yolo_model_name = 'best_yolo.pt'
 traj_model_name = 'best_model.pth'
+
+bbox_publisher = None
 
 
 # Create npy array for storing odom and bbox data
@@ -110,6 +113,7 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
 
     global last_time # Use global variable to keep track of time
     global odom_data, bbox_data
+    global bbox_publisher
 
     timestamp = rospy.get_time()  # Use a single timestamp for all logs
     rospy.loginfo("sychronization called at {}, the time duration is {} ms".format(timestamp, 
@@ -153,7 +157,15 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
 
         # Log bounding boxes
         bbox = img_xywhn.cpu().numpy().reshape(-1)
-        process_bbox(timestamp, bbox, log_file_bbox)
+        print('bounding box', bbox)
+        process_bbox(timestamp, bbox, log_file_bbox) #all three targets, zeros out if less than target num
+
+        #Create & publish bounding box message
+        if bbox_publisher is not None:
+            bbox_msg = Float32MultiArray(data = bbox.tolist())
+            bbox_publisher.publish(bbox_msg)
+        else:
+            rospy.logwarn("BBox Publisher is not initialized.")
 
         # Get the current timestamp for unique filenames
         filename = os.path.join(log_image_dir, "{:.6f}.png".format(timestamp))
@@ -178,6 +190,12 @@ def main():
     global yolo_model_name, traj_model_name
     yolo_model = load_yolo_model(yolo_model_name, device)
     traj_model = load_traj_model(win_size, pred_win_size, target_num, device, traj_model_name)
+
+    #declare bbox publisher
+    global bbox_publisher
+    bbox_publisher = rospy.Publisher("/target_bbox", Float32MultiArray, queue_size=10)
+    rospy.loginfo("BBox Publisher created. Waiting for callbacks...")
+    rospy.sleep(0.1)  # Ensure publisher registers
 
     # Initialize CSV logs
     init_csv_odom_file(log_file_odom)
@@ -206,7 +224,7 @@ def main():
     spin_thread = threading.Thread(target=rospy.spin)
     spin_thread.start()
 
-    #rospy.spin()
+    # rospy.spin()
 
 if __name__ == "__main__":
     try:
