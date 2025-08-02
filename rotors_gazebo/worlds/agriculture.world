@@ -155,5 +155,26 @@
       <pose>15 -5 0.5 0 -0 0</pose>
       <name>car_3</name>
     </include>
+
+    <!-- Fourth Moving Target -->
+    <include>
+      <uri>model://car_4</uri>
+      <pose>25 -5 0.5 0 -0 0</pose>
+      <name>car_4</name>
+    </include>
+
+    <!-- Fifth Moving Target -->
+    <include>
+      <uri>model://car_5</uri>
+      <pose>35 -5 0.5 0 -0 0</pose>
+      <name>car_5</name>
+    </include>
+
+    <!-- Sixth Moving Target -->
+    <include>
+      <uri>model://car_6</uri>
+      <pose>45 -5 0.5 0 -0 0</pose>
+      <name>car_6</name>
+    </include>
   </world>
 </sdf>
