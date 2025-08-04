@@ -48,3 +48,14 @@ python3 tracker_server.py
 ### Other Important Settings
 * Target speed is set in https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/models/car_199/model.sdf
 * Target initial location is set in https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/worlds/agriculture.world
+
+
+### Runing multi-threaded version
+* run this instead of data_logger.py
+```bash
+#Separate terminal
+roslaunch rotors_gazebo multi_drone.launch\
+```
+
+* File for multi_drone.launch: https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/launch/multi_drone.launch
+* File for drone_bbox_node.py: https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/scripts/drone_bbox_node.py
