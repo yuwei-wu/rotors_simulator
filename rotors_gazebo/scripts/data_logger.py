@@ -45,7 +45,7 @@ traj_model = None  # Placeholder for trajectory prediction model
 yolo_model_name = 'best_yolo.pt'
 traj_model_name = 'best_model.pth'
 
-bbox_publisher = None
+bbox_publisher1 = None
 
 
 # Create npy array for storing odom and bbox data
@@ -113,7 +113,7 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
 
     global last_time # Use global variable to keep track of time
     global odom_data, bbox_data
-    global bbox_publisher
+    global bbox_publisher1
 
     timestamp = rospy.get_time()  # Use a single timestamp for all logs
     rospy.loginfo("sychronization called at {}, the time duration is {} ms".format(timestamp, 
@@ -161,9 +161,9 @@ def synchronized_callback(odom_msg, ground_truth_msg, car_msg1, car_msg2, car_ms
         process_bbox(timestamp, bbox, log_file_bbox) #all three targets, zeros out if less than target num
 
         #Create & publish bounding box message
-        if bbox_publisher is not None:
+        if bbox_publisher1 is not None:
             bbox_msg = Float32MultiArray(data = bbox.tolist())
-            bbox_publisher.publish(bbox_msg)
+            bbox_publisher1.publish(bbox_msg)
         else:
             rospy.logwarn("BBox Publisher is not initialized.")
 
@@ -192,8 +192,8 @@ def main():
     traj_model = load_traj_model(win_size, pred_win_size, target_num, device, traj_model_name)
 
     #declare bbox publisher
-    global bbox_publisher
-    bbox_publisher = rospy.Publisher("/target_bbox", Float32MultiArray, queue_size=10)
+    global bbox_publisher1
+    bbox_publisher1 = rospy.Publisher("/target_bbox", Float32MultiArray, queue_size=10)
     rospy.loginfo("BBox Publisher created. Waiting for callbacks...")
     rospy.sleep(0.1)  # Ensure publisher registers
 
@@ -206,19 +206,36 @@ def main():
     init_bbox_csv_file(log_file_bbox, target_num)
 
     # Use message_filters to subscribe to multiple topics
-    odom_sub = message_filters.Subscriber("/drone1/odometry_sensor1/odometry", Odometry)
-    ground_truth_sub = message_filters.Subscriber("/drone1/ground_truth/odometry", Odometry)
+    odom_sub1 = message_filters.Subscriber("/drone1/odometry_sensor1/odometry", Odometry)
+    ground_truth_sub1 = message_filters.Subscriber("/drone1/ground_truth/odometry", Odometry)
     car_sub1 = message_filters.Subscriber("/car_1/odometry", Odometry)
     car_sub2 = message_filters.Subscriber("/car_2/odometry", Odometry)
     car_sub3 = message_filters.Subscriber("/car_3/odometry", Odometry)
     image_sub = message_filters.Subscriber("/drone1/rgb_camera/rgb_camera/image_raw", Image)
 
     # Synchronize messages
-    sync = message_filters.ApproximateTimeSynchronizer([odom_sub, ground_truth_sub, 
+    sync1 = message_filters.ApproximateTimeSynchronizer([odom_sub1, ground_truth_sub1, 
                                                         car_sub1, car_sub2, car_sub3, image_sub], 
                                                         queue_size=50,
                                                         slop=0.05)  # Adjust the slop as needed
-    sync.registerCallback(synchronized_callback)
+    sync1.registerCallback(synchronized_callback)
+
+    # #TODO - eventually want to spin this off to multiple threads
+    # odom_sub2 = message_filters.Subscriber("/drone2/odometry_sensor2/odometry", Odometry)
+    # ground_truth_sub2 = message_filters.Subscriber("/drone2/ground_truth/odometry", Odometry)
+    # odom_sub3 = message_filters.Subscriber("/drone3/odometry_sensor3/odometry", Odometry)
+    # ground_truth_sub3 = message_filters.Subscriber("/drone3/ground_truth/odometry", Odometry)
+    # sync2 = message_filters.ApproximateTimeSynchronizer([odom_sub2, ground_truth_sub2, 
+    #                                                     car_sub1, car_sub2, car_sub3, image_sub], 
+    #                                                     queue_size=50,
+    #                                                     slop=0.05)  # Adjust the slop as needed
+    # sync2.registerCallback(synchronized_callback)
+    # sync3 = message_filters.ApproximateTimeSynchronizer([odom_sub3, ground_truth_sub3, 
+    #                                                     car_sub1, car_sub2, car_sub3, image_sub], 
+    #                                                     queue_size=50,
+    #                                                     slop=0.05)  # Adjust the slop as needed
+    # sync3.registerCallback(synchronized_callback)
+
 
     # Use threading to prevent blocking
     spin_thread = threading.Thread(target=rospy.spin)
