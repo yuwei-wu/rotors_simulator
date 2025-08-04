@@ -28,6 +28,9 @@
       <arg name="enable_logging" value="$(arg enable_logging)" />
       <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
       <arg name="log_file" value="$(arg log_file)"/>
+      <arg name="x" value="15.0"/>
+      <arg name="y" value="-5"/>
+      <arg name="z" value="25.0"/>
     </include>
     <node name="key_joystick" pkg="rotors_joy_interface" type="key_joystick.py" />
     <node name="joy_node" pkg="joy" type="joy_node" />

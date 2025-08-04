@@ -138,22 +138,43 @@
     <!-- First Moving Target -->
     <include>
       <uri>model://car_1</uri>
-      <pose>-5 3 0.5 0 -0 0</pose>
+      <pose>-5 -5 0.5 0 -0 0</pose>
       <name>car_1</name>
     </include>
 
     <!-- Second Moving Target -->
     <include>
       <uri>model://car_2</uri>
-      <pose>0 3 0.5 0 -0 0</pose>
+      <pose>5 -5 0.5 0 -0 0</pose>
       <name>car_2</name>
     </include>
 
     <!-- Third Moving Target -->
     <include>
       <uri>model://car_3</uri>
-      <pose>5 3 0.5 0 -0 0</pose>
+      <pose>15 -5 0.5 0 -0 0</pose>
       <name>car_3</name>
+    </include>
+
+    <!-- Fourth Moving Target -->
+    <include>
+      <uri>model://car_4</uri>
+      <pose>25 -5 0.5 0 -0 0</pose>
+      <name>car_4</name>
+    </include>
+
+    <!-- Fifth Moving Target -->
+    <include>
+      <uri>model://car_5</uri>
+      <pose>35 -5 0.5 0 -0 0</pose>
+      <name>car_5</name>
+    </include>
+
+    <!-- Sixth Moving Target -->
+    <include>
+      <uri>model://car_6</uri>
+      <pose>45 -5 0.5 0 -0 0</pose>
+      <name>car_6</name>
     </include>
   </world>
 </sdf>
