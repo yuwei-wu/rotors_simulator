@@ -61,15 +61,17 @@ class DroneProcessor:
             self.bbox_data = torch.zeros((1, self.target_num, self.win_size * 4), dtype=torch.float32)
 
             # Setup publishers
-            self.bbox_pub = rospy.Publisher(f"/target_bbox_{self.drone_id}", Float32MultiArray, queue_size=10)
+            self.bbox_pub = rospy.Publisher(f"drone{self.drone_id}/target_bbox", Float32MultiArray, queue_size=10)
 
             # Setup subscribers
             self.setup_subscribers()
 
             # Setup Logging
-            self.setup_logging()
+            self.log_dir = f"./drone_{self.drone_id}_logs"
+            # self.setup_logging()
 
             rospy.loginfo(f"Drone {self.drone_id} processor initialized")
+            
         except Exception as e:
             rospy.logerr(f"Initialization failed: {str(e)}")
             import traceback
@@ -101,7 +103,6 @@ class DroneProcessor:
 
     def setup_logging(self):
         # Create log directory
-        self.log_dir = f"./drone_{self.drone_id}_logs"
         if not os.path.exists(self.log_dir):
             os.makedirs(self.log_dir)
             
@@ -145,13 +146,15 @@ class DroneProcessor:
         linear_velocity = velocity.linear
         angular_velocity = velocity.angular
 
-        # Log data
+        # # Log data
         data = [timestamp, x, y, z, roll, pitch, yaw,
                 linear_velocity.x, linear_velocity.y, linear_velocity.z,
                 angular_velocity.x, angular_velocity.y, angular_velocity.z]
-        with open(log_filename, "a") as file:
-            writer = csv.writer(file)
-            writer.writerow(data)
+        # with open(log_filename, "a") as file:
+        #     writer = csv.writer(file)
+        #     writer.writerow(data)
+
+        # rospy.loginfo(f"Drone {self.drone_id} processed odometry at {timestamp}: {data}")
 
         return data[1:] # Return position and orientation for further processing if needed
 
@@ -170,59 +173,82 @@ class DroneProcessor:
             image_tensor = image_tensor.unsqueeze(0).to(self.device)  # Shape: (1, 3, 640, 640)
             # Perform YOLO detection
             img_xywhn, detect_masks = yolo_detect(self.yolo_model, image_tensor, self.target_num, self.device)
-            bbox_data = torch.cat((bbox_data[:, :, :(self.win_size-1)*4], img_xywhn.cpu()), dim=2)
+            self.bbox_data = torch.cat((self.bbox_data[:, :, :(self.win_size-1)*4], img_xywhn.cpu()), dim=2)
+
+            # Perform trajectory prediction
+            pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data, 
+                                  self.target_num, self.win_size, self.pred_win_size, self.device)
 
             # Save the image
             # Get the current timestamp for unique filenames
-            img_filename = os.path.join(log_image_dir, "{:.6f}.png".format(timestamp))
-            cv2.imwrite(img_filename, cv_image)
+            # img_filename = os.path.join(log_image_dir, "{:.6f}.png".format(timestamp))
+            # cv2.imwrite(img_filename, cv_image)
+
+            # rospy.loginfo(f"Drone {self.drone_id} processed image at {timestamp}, saved to {img_filename}")
+
         except Exception as e:
             rospy.logerr(f"Drone {self.drone_id}: Failed to convert image: {e}")
             return None, None, None
 
-        return img_xywhn, bbox_data
+        return img_xywhn, pred_traj
     
-    def process_bbox(self, timestamp, bbox, log_filename):
+    def process_bbox(self, timestamp, bbox, pred_traj, log_filename):
         # Log bounding box data
         with open(log_filename, "a") as file:
             writer = csv.writer(file)
             row = [timestamp] + bbox.tolist()
             writer.writerow(row)
-        #publish bbox message
-        bbox_msg = Float32MultiArray(data=bbox.tolist())
-        self.bbox_pub.publish(bbox_msg)
+        bbox = bbox.tolist()
 
-        rospy.loginfo(f"Drone {self.drone_id} processed bounding box at {timestamp}: {bbox}")
+        data = pred_traj.flatten().tolist()
+        #packet = [predicted window size, target num, 1 if target is real, else 0, predicted trajectory points...]
+        packet = [self.pred_win_size, self.target_num]
+        traj_packet = []
+        for i in range(self.target_num): #check if target is real
+            if all(b == 0 for b in bbox[i*4:i*4+4]): #if all bbox values are zero, target not real
+                packet.append(0)
+            else: #target is real, sending pred traj info
+                packet.append(1)
+                traj_packet.extend(data[i*self.pred_win_size*2:(i+1)*self.pred_win_size*2]) #flattened pred traj for target i
+        packet.extend(traj_packet) #add flattened pred traj to packet
+
+        # print('packet', packet)
+
+        pred_traj_msg = Float32MultiArray(data=packet) #TODO - check this
+        self.bbox_pub.publish(pred_traj_msg)
+        # rospy.loginfo(f"Drone {self.drone_id} published predicted trajectory at {timestamp}")
     
     def synchronized_callback(self, odom_msg, ground_truth_msg, *car_msgs):
         image_msg = car_msgs[-1]  # The last message is the image
         car_msgs = car_msgs[:-1]  # All but the last are car odometry
+
+        rospy.loginfo(f"Drone {self.drone_id} received synchronized messages at {rospy.get_time()}")
     
         with self.lock: #ensure thread saftey
             timestamp = rospy.get_time()
-            try:
-                #process odom
-                odom = self.process_odom(timestamp, odom_msg, f"{self.log_dir}/odom.csv")
-                odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)   
-                self.odom_data = torch.cat((self.odom_data[:, :(self.win_size-1)*12], odom))
+            # try:
+            #process odom
+            odom = self.process_odom(timestamp, odom_msg, f"{self.log_dir}/odom.csv")
+            odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)   
+            self.odom_data = torch.cat((self.odom_data[:, :(self.win_size-1)*12], odom), dim=1)
 
-                #process ground truth
-                self.process_odom(timestamp, ground_truth_msg, f"{self.log_dir}/ground_truth.csv")
+            #process ground truth
+            self.process_odom(timestamp, ground_truth_msg, f"{self.log_dir}/ground_truth.csv")
 
-                #process car odom   
-                for i, car_msg in enumerate(car_msgs, 1):
-                    self.process_odom(timestamp, car_msg, f"{self.log_dir}/target_{i}.csv")
+            #process car odom   
+            for i, car_msg in enumerate(car_msgs, 1):
+                self.process_odom(timestamp, car_msg, f"{self.log_dir}/target_{i}.csv")
 
-                #process image
-                img_xywhn, self.bbox_data, cv_image = self.process_image(image_msg)
+            #process image
+            img_xywhn, pred_traj = self.process_image(image_msg, timestamp)
 
-                # Log bounding boxes
-                bbox = img_xywhn.cpu().numpy().reshape(-1)
-                self.process_bbox(timestamp, bbox, log_file_bbox) #all three targets, zeros out if less than target num
+            # # Log bounding boxes
+            # bbox = img_xywhn.cpu().numpy().reshape(-1)
+            # self.process_bbox(timestamp, bbox, pred_traj, log_file_bbox) #all three targets, zeros out if less than target num
 
-            except Exception as e:
-                rospy.logerr(f"Processing error in drone {self.drone_id}: {str(e)}")
-                return
+            # except Exception as e:
+            #     rospy.logerr(f"Processing error in drone {self.drone_id}: {str(e)}")
+            #     return
 
  
 

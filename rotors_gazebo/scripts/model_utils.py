@@ -110,7 +110,7 @@ def traj_pred(model, odom_data, bbox_data, target_num, win_size, pred_win_size, 
     # drone_odometry Shape: [1, win_size, 12]
 
     out, mask = model(drone_odometry, yolo_detect_data)
-    print('out shape:', out.shape) # (n_target, 1, pred_win_size * 2)
+    # print('out shape:', out.shape) # (n_target, 1, pred_win_size * 2)
     out = out.reshape(target_num, -1, pred_win_size, 2)
     out += new_refer_point.unsqueeze(0).unsqueeze(2)  # Add the new reference point to the predicted trajectory
     out = out.squeeze(1)  # Remove the batch dimension, shape: (n_target, pred_win_size, 2)
@@ -146,7 +146,7 @@ class TransformerTrajectoryPredictor(nn.Module):
 
         # Step 1: Get the mask of shape (n_target, bsz)
         img_mask = x_xywhn.view(self.n_target, bsz, -1).sum(-1) > 0 # Shape: (n_target, bsz)
-        print('image mask of all targets', img_mask)  # (n_target, bsz)
+        # print('image mask of all targets', img_mask)  # (n_target, bsz)
         
         # Step 2: Prepare odometry and image tensor data
         # Repeat odometry for each target → shape: (n_target, bsz, win_size, 12)
