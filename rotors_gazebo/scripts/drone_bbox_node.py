@@ -15,6 +15,8 @@ import threading
 from torchvision import transforms
 from PIL import Image as PILImage
 from std_msgs.msg import Float32MultiArray
+from visualization_msgs.msg import Marker, MarkerArray
+from geometry_msgs.msg import Point
 
 from model_utils import load_yolo_model, yolo_detect
 from model_utils import load_traj_model, traj_pred
@@ -29,8 +31,10 @@ log_file_bbox = "./bbox_log.csv"
 log_image_dir = "./drone_images"
 last_time = 0
 
-yolo_model_name = "/home/maokat/Documents/fed_learn_quad/catkin_ws/src/rotors_simulator/rotors_gazebo/scripts/best_yolo.pt"
-traj_model_name = "/home/maokat/Documents/fed_learn_quad/catkin_ws/src/rotors_simulator/rotors_gazebo/scripts/best_model.pth"
+
+#use a relative path for the model
+yolo_model_name = "best_yolo.pt"
+traj_model_name = "best_model.pth"
 
 transform = transforms.Compose([
     transforms.Resize((640, 640)),  # Resize to model's input
@@ -62,6 +66,10 @@ class DroneProcessor:
 
             # Setup publishers
             self.bbox_pub = rospy.Publisher(f"drone{self.drone_id}/target_bbox", Float32MultiArray, queue_size=10)
+
+
+            self.marker_pub = rospy.Publisher(f"drone{self.drone_id}/target_bbox_markers", MarkerArray, queue_size=10)
+
 
             # Setup subscribers
             self.setup_subscribers()
@@ -243,14 +251,118 @@ class DroneProcessor:
             img_xywhn, pred_traj = self.process_image(image_msg, timestamp)
 
             # # Log bounding boxes
-            # bbox = img_xywhn.cpu().numpy().reshape(-1)
-            # self.process_bbox(timestamp, bbox, pred_traj, log_file_bbox) #all three targets, zeros out if less than target num
-
+            bbox = img_xywhn.cpu().numpy().reshape(-1)
+            self.process_bbox(timestamp, bbox, pred_traj, log_file_bbox) #all three targets, zeros out if less than target num
+            
+            self.publish_bbox_markers(bbox, pred_traj, timestamp)
             # except Exception as e:
             #     rospy.logerr(f"Processing error in drone {self.drone_id}: {str(e)}")
             #     return
+            rospy.loginfo(f"Drone {self.drone_id} finished processing odom and image at {timestamp}")
+        rospy.loginfo(f"Drone {self.drone_id} finished processing at {timestamp}")
 
- 
+    def publish_bbox_markers(self, bbox, pred_traj, timestamp):
+        marker_array = MarkerArray()
+        marker_id = 0
+        # pred_traj (3, 20, 2)
+
+
+        for i in range(self.target_num):
+            # Check if trajectory is valid (not all zeros)
+            traj_points = pred_traj[i]  # Shape: (pred_win_size, 2)
+
+            # Draw cubes and spheres at each predicted position
+            for j in range(self.pred_win_size):
+                x, y = traj_points[j].tolist()
+
+                # Cube marker at trajectory point
+                cube_marker = Marker()
+                cube_marker.header.frame_id = "world"
+                cube_marker.header.stamp = rospy.Time.now()
+                cube_marker.ns = f"target_{i}_traj_cubes"
+                cube_marker.id = marker_id
+                marker_id += 1
+                cube_marker.type = Marker.CUBE
+                cube_marker.action = Marker.ADD
+
+                cube_marker.pose.position.x = x
+                cube_marker.pose.position.y = -y
+                cube_marker.pose.position.z = 0.5  # height off the ground
+                cube_marker.pose.orientation.w = 1.0
+
+                cube_marker.scale.x = 0.1
+                cube_marker.scale.y = 0.1
+                cube_marker.scale.z = 1.0
+
+                cube_marker.color.r = 1.0
+                cube_marker.color.g = 0.7
+                cube_marker.color.b = 0.0
+                cube_marker.color.a = 0.5
+
+                cube_marker.lifetime = rospy.Duration(1.0)
+                marker_array.markers.append(cube_marker)
+
+                # Sphere marker at trajectory point center
+                # sphere_marker = Marker()
+                # sphere_marker.header.frame_id = "world"
+                # sphere_marker.header.stamp = rospy.Time.now()
+                # sphere_marker.ns = f"target_{i}_traj_spheres"
+                # sphere_marker.id = marker_id + 500
+                # marker_id += 1
+                # sphere_marker.type = Marker.SPHERE
+                # sphere_marker.action = Marker.ADD
+
+                # sphere_marker.pose.position.x = x
+                # sphere_marker.pose.position.y = y
+                # sphere_marker.pose.position.z = 0.5
+                # sphere_marker.pose.orientation.w = 1.0
+
+                # sphere_marker.scale.x = 0.1
+                # sphere_marker.scale.y = 0.1
+                # sphere_marker.scale.z = 0.1
+
+                # sphere_marker.color.r = 0.0
+                # sphere_marker.color.g = 1.0
+                # sphere_marker.color.b = 0.0
+                # sphere_marker.color.a = 1.0
+
+                # sphere_marker.lifetime = rospy.Duration(1.0)
+                # marker_array.markers.append(sphere_marker)
+
+            # Draw the trajectory line
+            traj_marker = Marker()
+            traj_marker.header.frame_id = "world"
+            traj_marker.header.stamp = rospy.Time.now()
+            traj_marker.ns = f"target_{i}_predicted_traj"
+            traj_marker.id = marker_id + 1000
+            marker_id += 1
+            traj_marker.type = Marker.LINE_STRIP
+            traj_marker.action = Marker.ADD
+
+            traj_marker.scale.x = 0.05  # line width
+
+            traj_marker.pose.orientation.w = 1.0
+
+            traj_marker.color.r = 0.0
+            traj_marker.color.g = 0.8
+            traj_marker.color.b = 0.8
+            traj_marker.color.a = 1.0
+
+            #traj_marker.lifetime = rospy.Duration(2.0)
+
+            for j in range(self.pred_win_size):
+                point = Point()
+                point.x = traj_points[j, 0].item()
+                point.y = - traj_points[j, 1].item()
+                point.z = 1.5
+                traj_marker.points.append(point)
+
+            marker_array.markers.append(traj_marker)
+
+        self.marker_pub.publish(marker_array)
+
+
+
 
 if __name__ == "__main__":
     rospy.init_node("drone_processor")
