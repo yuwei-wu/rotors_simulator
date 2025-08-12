@@ -1,5 +1,14 @@
 # Target tracking data collection
 
+### Features
+
+* Targets do **not move autonomously**. They will only start moving after you set a **2D Nav Goal** in RViz (published to `/move_base_simple/goal`).
+* Added **predicted target trajectory visualization**:
+
+  * The prediction is visualized as markers in RViz.
+  * Note: The relation of X and Y coordinates in the prediction seems to be in a **local or relative frame**, not the global world frame. Ensure proper transformation if you need them in the global coordinate system.
+ 
+  
 ### Getting Started
 
 Prerequisite: Need to setup the virtual joy stick ([wiki](https://github.com/ethz-asl/rotors_simulator/wiki/Setup-virtual-keyboard-joystick))
