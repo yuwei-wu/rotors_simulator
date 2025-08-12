@@ -1,5 +1,13 @@
 # Target tracking data collection
 
+### Update
+
+Just run one launch to run both the sim and the data logger together:
+```
+roslaunch rotors_gazebo mav_swarm_all.launch
+```
+
+
 ### Features
 
 * Targets do **not move autonomously**. They will only start moving after you set a **2D Nav Goal** in RViz (published to `/move_base_simple/goal`).
