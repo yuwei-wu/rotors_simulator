@@ -1,0 +1,83 @@
+<launch>
+
+  <arg name="world_name" default="agriculture"/>
+
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rotors_gazebo)/worlds/$(arg world_name).world" />
+    <!-- <arg name="debug" value="true"/> -->
+    <arg name="paused" value="true"/>
+    <!-- <arg name="gui" value="false"/> -->
+    <!-- <arg name="verbose" value="true"/> -->
+  </include>
+
+
+
+  <!-- Parameters -->
+  <arg name="target_num" default="3"/>
+  <arg name="win_size" default="40"/>
+  <arg name="pred_win_size" default="20"/>
+  <arg name="pred_model_path" default="$(find rotors_gazebo)/scripts/"/>
+
+
+  <!-- Drone 1 -->
+  <include file="$(find rotors_gazebo)/launch/mav_single.launch">
+    <arg name="mav_id" value="drone1"/>
+    <arg name="mav_name" value="hummingbird"/>
+    <arg name="init_x" value="-4.0"/>
+    <arg name="init_y" value="-3.0"/>
+    <arg name="init_z" value="7.5"/>
+  </include>
+
+  <include file="$(find rotors_gazebo)/launch/mav_single.launch">
+    <arg name="mav_id" value="drone2"/>
+    <arg name="mav_name" value="hummingbird"/>
+    <arg name="init_x" value="0.0"/>
+    <arg name="init_y" value="-3.0"/>
+    <arg name="init_z" value="6.5"/>
+  </include>
+
+  <include file="$(find rotors_gazebo)/launch/mav_single.launch">
+    <arg name="mav_id" value="drone3"/>
+    <arg name="mav_name" value="hummingbird"/>
+    <arg name="init_x" value="4.0"/>
+    <arg name="init_y" value="-3.0"/>
+    <arg name="init_z" value="7.0"/>
+  </include>
+
+
+    <!-- Drone 1 Processor -->
+    <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone1_processor" output="screen">
+        <param name="drone_id" value="1"/>
+        <param name="target_num" value="$(arg target_num)"/>
+        <param name="win_size" value="$(arg win_size)"/>
+        <param name="pred_win_size" value="$(arg pred_win_size)"/>
+        <param name="pred_model_path" value="$(arg pred_model_path)"/>
+    </node>
+    
+    <!-- Drone 2 Processor -->
+    <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone2_processor" output="screen">
+        <param name="drone_id" value="2"/>
+        <param name="target_num" value="$(arg target_num)"/>
+        <param name="win_size" value="$(arg win_size)"/>
+        <param name="pred_win_size" value="$(arg pred_win_size)"/>
+        <param name="pred_model_path" value="$(arg pred_model_path)"/>
+    </node>
+    
+    <!-- Drone 3 Processor -->
+    <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone3_processor" output="screen">
+        <param name="drone_id" value="3"/>
+        <param name="target_num" value="$(arg target_num)"/>
+        <param name="win_size" value="$(arg win_size)"/>
+        <param name="pred_win_size" value="$(arg pred_win_size)"/>
+        <param name="pred_model_path" value="$(arg pred_model_path)"/>
+    </node>
+
+  <!-- RViz -->
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator.rviz"/>
+
+
+</launch>
+

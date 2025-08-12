@@ -1,3 +1,7 @@
+*.csv
+*.pth
+*.pt
+*drone_images/
 *rotors_hil_interface/
 .rosinstall.bak
 .rosinstall

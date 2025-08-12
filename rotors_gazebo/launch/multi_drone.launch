@@ -3,13 +3,15 @@
     <arg name="target_num" default="3"/>
     <arg name="win_size" default="40"/>
     <arg name="pred_win_size" default="20"/>
-    
+    <arg name="pred_model_path" default="$(find rotors_gazebo)/scripts/"/>
+
     <!-- Drone 1 Processor -->
     <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone1_processor" output="screen">
         <param name="drone_id" value="1"/>
         <param name="target_num" value="$(arg target_num)"/>
         <param name="win_size" value="$(arg win_size)"/>
         <param name="pred_win_size" value="$(arg pred_win_size)"/>
+        <param name="pred_model_path" value="$(arg pred_model_path)"/>
     </node>
     
     <!-- Drone 2 Processor -->
@@ -18,6 +20,7 @@
         <param name="target_num" value="$(arg target_num)"/>
         <param name="win_size" value="$(arg win_size)"/>
         <param name="pred_win_size" value="$(arg pred_win_size)"/>
+        <param name="pred_model_path" value="$(arg pred_model_path)"/>
     </node>
     
     <!-- Drone 3 Processor -->
@@ -26,6 +29,12 @@
         <param name="target_num" value="$(arg target_num)"/>
         <param name="win_size" value="$(arg win_size)"/>
         <param name="pred_win_size" value="$(arg pred_win_size)"/>
+        <param name="pred_model_path" value="$(arg pred_model_path)"/>
     </node>
 
 </launch>
+
+
+
+
+

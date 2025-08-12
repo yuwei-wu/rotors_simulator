@@ -21,20 +21,6 @@ from geometry_msgs.msg import Point
 from model_utils import load_yolo_model, yolo_detect
 from model_utils import load_traj_model, traj_pred
 
-# File for logging
-log_file_odom = "./drone_log.csv"
-log_file_ground_truth = "./drone_ground_truth.csv"
-log_file_target_1 = "./target_1_log.csv"
-log_file_target_2 = "./target_2_log.csv"
-log_file_target_3 = "./target_3_log.csv"
-log_file_bbox = "./bbox_log.csv"
-log_image_dir = "./drone_images"
-last_time = 0
-
-
-#use a relative path for the model
-yolo_model_name = "best_yolo.pt"
-traj_model_name = "best_model.pth"
 
 transform = transforms.Compose([
     transforms.Resize((640, 640)),  # Resize to model's input
@@ -53,6 +39,12 @@ class DroneProcessor:
             self.target_num = rospy.get_param('~target_num', 3)
             self.win_size = rospy.get_param('~win_size', 40)
             self.pred_win_size = rospy.get_param('~pred_win_size', 20)
+            self.pred_model_path = rospy.get_param('~pred_model_path', './scripts')  # Default path if not set
+
+            yolo_model_name = os.path.join(self.pred_model_path, "best_yolo.pt")
+            traj_model_name = os.path.join(self.pred_model_path, "best_model.pth")
+
+            self.log_file_bbox = os.path.join(self.pred_model_path, "bbox_log.csv")
 
             #initialize models
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -88,7 +80,7 @@ class DroneProcessor:
 
     def setup_subscribers(self):
         # Drone-specific topics
-        odom_topic = f"/drone{self.drone_id}/odometry_sensor{self.drone_id}/odometry"
+        odom_topic = f"/drone{self.drone_id}/odometry_sensor1/odometry"
         ground_truth_topic = f"/drone{self.drone_id}/ground_truth/odometry"
         image_topic = f"/drone{self.drone_id}/rgb_camera/rgb_camera/image_raw"
         
@@ -252,8 +244,8 @@ class DroneProcessor:
 
             # # Log bounding boxes
             bbox = img_xywhn.cpu().numpy().reshape(-1)
-            self.process_bbox(timestamp, bbox, pred_traj, log_file_bbox) #all three targets, zeros out if less than target num
-            
+            self.process_bbox(timestamp, bbox, pred_traj, self.log_file_bbox) #all three targets, zeros out if less than target num
+
             self.publish_bbox_markers(bbox, pred_traj, timestamp)
             # except Exception as e:
             #     rospy.logerr(f"Processing error in drone {self.drone_id}: {str(e)}")
@@ -363,9 +355,9 @@ class DroneProcessor:
 
 
 
-
 if __name__ == "__main__":
-    rospy.init_node("drone_processor")
+    rospy.init_node("drone_processor", anonymous=True)
+
     try:
         processor = DroneProcessor()
         rospy.spin()
