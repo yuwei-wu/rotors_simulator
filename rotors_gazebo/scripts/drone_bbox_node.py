@@ -286,12 +286,12 @@ class DroneProcessor:
                 cube_marker.scale.y = 0.1
                 cube_marker.scale.z = 1.0
 
-                cube_marker.color.r = 1.0
-                cube_marker.color.g = 0.7
-                cube_marker.color.b = 0.0
+                cube_marker.color.r = 0.7
+                cube_marker.color.g = 0.0
+                cube_marker.color.b = 0.7
                 cube_marker.color.a = 0.5
 
-                cube_marker.lifetime = rospy.Duration(1.0)
+                #cube_marker.lifetime = rospy.Duration(1.0)
                 marker_array.markers.append(cube_marker)
 
                 # Sphere marker at trajectory point center
@@ -335,9 +335,9 @@ class DroneProcessor:
 
             traj_marker.pose.orientation.w = 1.0
 
-            traj_marker.color.r = 0.0
-            traj_marker.color.g = 0.8
-            traj_marker.color.b = 0.8
+            traj_marker.color.r = 0.7
+            traj_marker.color.g = 0.0
+            traj_marker.color.b = 0.7
             traj_marker.color.a = 1.0
 
             #traj_marker.lifetime = rospy.Duration(2.0)

@@ -28,7 +28,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: depth_image
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -981,12 +981,87 @@ Visualization Manager:
       Topic: /car_3/odometry
       Unreliable: false
       Value: true
+    - Angle Tolerance: 0.10000000149011612
+      Class: rviz/Odometry
+      Covariance:
+        Orientation:
+          Alpha: 0.5
+          Color: 255; 255; 127
+          Color Style: Unique
+          Frame: Local
+          Offset: 1
+          Scale: 1
+          Value: true
+        Position:
+          Alpha: 0.30000001192092896
+          Color: 204; 51; 204
+          Scale: 1
+          Value: true
+        Value: true
+      Enabled: true
+      Keep: 100
+      Name: car4
+      Position Tolerance: 0.10000000149011612
+      Queue Size: 10
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.10000000149011612
+        Color: 255; 25; 0
+        Head Length: 0.30000001192092896
+        Head Radius: 0.10000000149011612
+        Shaft Length: 1
+        Shaft Radius: 0.05000000074505806
+        Value: Axes
+      Topic: /car_4/odometry
+      Unreliable: false
+      Value: true
+    - Angle Tolerance: 0.10000000149011612
+      Class: rviz/Odometry
+      Covariance:
+        Orientation:
+          Alpha: 0.5
+          Color: 255; 255; 127
+          Color Style: Unique
+          Frame: Local
+          Offset: 1
+          Scale: 1
+          Value: true
+        Position:
+          Alpha: 0.30000001192092896
+          Color: 204; 51; 204
+          Scale: 1
+          Value: true
+        Value: true
+      Enabled: true
+      Keep: 100
+      Name: car5
+      Position Tolerance: 0.10000000149011612
+      Queue Size: 10
+      Shape:
+        Alpha: 1
+        Axes Length: 1
+        Axes Radius: 0.10000000149011612
+        Color: 255; 25; 0
+        Head Length: 0.30000001192092896
+        Head Radius: 0.10000000149011612
+        Shaft Length: 1
+        Shaft Radius: 0.05000000074505806
+        Value: Axes
+      Topic: /car_5/odometry
+      Unreliable: false
+      Value: true
     - Class: rviz/MarkerArray
       Enabled: true
       Marker Topic: /drone1/target_bbox_markers
       Name: targetbox1
       Namespaces:
-        {}
+        target_0_predicted_traj: true
+        target_0_traj_cubes: true
+        target_1_predicted_traj: true
+        target_1_traj_cubes: true
+        target_2_predicted_traj: true
+        target_2_traj_cubes: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -994,7 +1069,12 @@ Visualization Manager:
       Marker Topic: /drone2/target_bbox_markers
       Name: targetbox2
       Namespaces:
-        {}
+        target_0_predicted_traj: true
+        target_0_traj_cubes: true
+        target_1_predicted_traj: true
+        target_1_traj_cubes: true
+        target_2_predicted_traj: true
+        target_2_traj_cubes: true
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
@@ -1002,7 +1082,12 @@ Visualization Manager:
       Marker Topic: /drone3/target_bbox_markers
       Name: targetbox3
       Namespaces:
-        {}
+        target_0_predicted_traj: true
+        target_0_traj_cubes: true
+        target_1_predicted_traj: true
+        target_1_traj_cubes: true
+        target_2_predicted_traj: true
+        target_2_traj_cubes: true
       Queue Size: 100
       Value: true
   Enabled: true
@@ -1040,9 +1125,9 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 1.9886912107467651
-        Y: 3.5850753784179688
-        Z: 2.8356053829193115
+        X: 2.8303537368774414
+        Y: -1.6483272314071655
+        Z: 2.0837361812591553
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
