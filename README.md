@@ -7,10 +7,12 @@ This is a customized version to run [VID-Fusion](https://github.com/ZJU-FAST-Lab
 
 ## 1. Installation Instructions
 
+### 1.1 Install
+
 This simulation has been tested on Ubuntu 20.04 with ROS Noetic (and Ubuntu 18.04 with ROS Melodic). 
 You can follow the instructions below to install and initialize ROS desktop full, additional ROS packages, catkin-tools, and wstool:
 
-### Ubuntu 20.04 with ROS Noetic
+#### Ubuntu 20.04 with ROS Noetic
 
 ```console
 $ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -26,9 +28,9 @@ $ source ~/.bashrc
 $ sudo apt install python3-rosinstall python3-rosinstall-generator build-essential
 ```
 
-### Potential issues
+Potential issues
 
-#### 1. Issues: https://github.com/gazebosim/gz-sim/issues/2364
+- Issues: https://github.com/gazebosim/gz-sim/issues/2364
 Solution:
 ```
 sudo add-apt-repository ppa:kisak/kisak-mesa
@@ -36,14 +38,14 @@ sudo apt update
 sudo apt upgrade
 ```
 
-#### 2. Hil interface issue: https://aur.archlinux.org/packages/ros-noetic-rotors-hil-interface
+- Hil interface issue: https://aur.archlinux.org/packages/ros-noetic-rotors-hil-interface
 
 replace with: 
 ```
 git clone https://aur.archlinux.org/ros-noetic-rotors-hil-interface.git
 ```
 
-### Ubuntu 18.04 with ROS Melodic
+#### Ubuntu 18.04 with ROS Melodic
 
 ```console
 $ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -59,7 +61,9 @@ $ source ~/.bashrc
 $ sudo apt install python-rosinstall python-rosinstall-generator build-essential
 ```
 
-2. If you don't have a ROS workspace yet, you can do so by: (It's better to directly create a new workspace.)
+### 1.2 Set workspace
+
+If you don't have a ROS workspace yet, you can do so by: (It's better to directly create a new workspace.)
 
 ```console
 $ mkdir -p ~/catkin_ws/src && cd ~/catkin_ws/
@@ -71,7 +75,7 @@ $ wstool merge rotors_hil.rosinstall
 $ wstool update
 ```
 
-3. Build your workspace
+### 1.3 Build
 
 ```console
 $ cd ~/catkin_ws/
