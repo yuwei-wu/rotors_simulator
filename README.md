@@ -2,16 +2,33 @@
 RotorS Instructions for Resilient Planner
 ===============
 
-This is a customized version to use [VID-Fusion](https://github.com/ZJU-FAST-Lab/VID-Fusion) and [External Forces Resilient Planner](https://github.com/ZJU-FAST-Lab/forces_resilient_planner). The planner in the simulator has been tested on ubuntu 18.04 and ROS Melodic.
+This is a customized version to use [VID-Fusion](https://github.com/ZJU-FAST-Lab/VID-Fusion) and [External Forces Resilient Planner](https://github.com/ZJU-FAST-Lab/forces_resilient_planner).
 
 
-## 0. Noetic installation addition:
+## 1. Installation Instructions
 
+This simulation has been tested on Ubuntu 20.04 with ROS Noetic (and Ubuntu 18.04 with ROS Melodic). 
+You can follow the instructions below to install and initialize ROS Melodic desktop full, additional ROS packages, catkin-tools, and wstool:
+
+### Ubuntu 20.04 with ROS Noetic
+
+```console
+$ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+$ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+$ sudo apt update
+$ sudo apt install ros-noetic-desktop-full ros-noetic-joy ros-noetic-octomap-ros ros-noetic-mavlink ros-noetic-mavros
+$ sudo apt install python3-wstool python3-catkin-tools protobuf-compiler libgoogle-glog-dev ros-noetic-control-toolbox
+$ sudo pip3 install python-uinput pygame
+$ sudo rosdep init
+$ rosdep update
+$ echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+$ source ~/.bashrc
+$ sudo apt install python3-rosinstall python3-rosinstall-generator build-essential
 ```
-sudo apt install ros-noetic-octomap-ros ros-noetic-joy ros-noetic-mavlink ros-noetic-mavros
-```
 
-Issues: https://github.com/gazebosim/gz-sim/issues/2364
+### Potential issues
+
+#### 1. Issues: https://github.com/gazebosim/gz-sim/issues/2364
 Solution:
 ```
 sudo add-apt-repository ppa:kisak/kisak-mesa
@@ -19,17 +36,14 @@ sudo apt update
 sudo apt upgrade
 ```
 
-Hil interface issue: https://aur.archlinux.org/packages/ros-noetic-rotors-hil-interface
+#### 2. Hil interface issue: https://aur.archlinux.org/packages/ros-noetic-rotors-hil-interface
 
 replace with: 
 ```
 git clone https://aur.archlinux.org/ros-noetic-rotors-hil-interface.git
 ```
 
-
-## 1. Installation Instructions
-
-Our system has been test on Ubuntu 18.04 with ROS Melodic. you can follow the instructions below to Install and initialize ROS Melodic desktop full, additional ROS packages, catkin-tools, and wstool:
+### Ubuntu 18.04 with ROS Melodic
 
 ```console
 $ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -45,7 +59,7 @@ $ source ~/.bashrc
 $ sudo apt install python-rosinstall python-rosinstall-generator build-essential
 ```
 
-2. If you don't have ROS workspace yet you can do so by: (It's better to directly create a new workspace.)
+2. If you don't have a ROS workspace yet, you can do so by: (It's better to directly create a new workspace.)
 
 ```console
 $ mkdir -p ~/catkin_ws/src && cd ~/catkin_ws/
@@ -72,8 +86,8 @@ We use the drone "hummingbird" with a vi sensor for testing. After following the
 source devel/setup.bash && roslaunch rotors_gazebo fast_with_vi_sensor.launch
 ```
 
-It will also launch a virtual joystick window and you can press keyboard to control the drone. 
-(The joy interface is revised as position control rather than altitude control, which is easier for interface.)
+It will also launch a virtual joystick window, and you can press the keyboard to control the drone. 
+(The joy interface is revised as position control rather than altitude control, which is easier for the interface.)
 
 The important topics are:
 
@@ -136,7 +150,7 @@ You can both use `joystick` or `disturbance manager` to add external forces.
 
 ## 5. Other Notes
 
-#### Custom the world file
+#### Customize the world file
 
 VID-fusion need features to track, so it's better to change the texture in you environment. In `fast_quad.world`, I add several brick box with different texture, and their model can be found in `rotors_gazebo/models`
 
