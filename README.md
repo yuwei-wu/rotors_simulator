@@ -175,7 +175,9 @@ In `rotors_description/urdf/hummingbird.xacro` to change the color of the rotors
 
 - https://github.com/KumarRobotics/mrsl_quadrotor
 
+- https://github.com/leonhartyao/gazebo_models_worlds_collection
 
+- https://github.com/RISC-NYUAD/Aerial-Manipulator-Gazebo
 
 ## About RotorS
 
