@@ -8,7 +8,7 @@ This is a customized version to use [VID-Fusion](https://github.com/ZJU-FAST-Lab
 ## 1. Installation Instructions
 
 This simulation has been tested on Ubuntu 20.04 with ROS Noetic (and Ubuntu 18.04 with ROS Melodic). 
-You can follow the instructions below to install and initialize ROS Melodic desktop full, additional ROS packages, catkin-tools, and wstool:
+You can follow the instructions below to install and initialize ROS desktop full, additional ROS packages, catkin-tools, and wstool:
 
 ### Ubuntu 20.04 with ROS Noetic
 
