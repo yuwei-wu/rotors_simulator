@@ -3,7 +3,7 @@
 
   <arg name="init_x" value="0.0"/>
   <arg name="init_y" value="0.0"/>
-  <arg name="init_z" value="0.0"/> 
+  <arg name="init_z" value="0.1"/> 
   <!--arg name="mav_name" default="hummingbird"/-->
   <arg name="mav_name" default="hummingbird"/>
   <arg name="world_name" default="fast_quad"/>
@@ -74,6 +74,6 @@
 
 
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" /> -->
   </group>
 </launch>

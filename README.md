@@ -9,10 +9,9 @@ This is a customized version to run [VID-Fusion](https://github.com/ZJU-FAST-Lab
 
 ### 1.1 Install
 
-This simulation has been tested on Ubuntu 20.04 with ROS Noetic (and Ubuntu 18.04 with ROS Melodic). 
+This simulation has been tested on Ubuntu 20.04 with ROS Noetic . 
 You can follow the instructions below to install and initialize ROS desktop full, additional ROS packages, catkin-tools, and wstool:
 
-#### Ubuntu 20.04 with ROS Noetic
 
 ```console
 $ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -37,29 +36,7 @@ sudo add-apt-repository ppa:kisak/kisak-mesa
 sudo apt update
 sudo apt upgrade
 ```
-
-- Hil interface issue: https://aur.archlinux.org/packages/ros-noetic-rotors-hil-interface
-
-replace with: 
-```
-git clone https://aur.archlinux.org/ros-noetic-rotors-hil-interface.git
-```
-
-#### Ubuntu 18.04 with ROS Melodic
-
-```console
-$ sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
-$ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-$ sudo apt update
-$ sudo apt install ros-melodic-desktop-full ros-melodic-joy ros-melodic-octomap-ros ros-melodic-mavlink ros-melodic-mavros
-$ sudo apt install python-wstool python-catkin-tools protobuf-compiler libgoogle-glog-dev ros-melodic-control-toolbox
-$ sudo pip install python-uinput pygame
-$ sudo rosdep init
-$ rosdep update
-$ echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
-$ source ~/.bashrc
-$ sudo apt install python-rosinstall python-rosinstall-generator build-essential
-```
+- Hil interface issue: https://aur.archlinux.org/ros-noetic-rotors-hil-interface.git
 
 ### 1.2 Set workspace
 
