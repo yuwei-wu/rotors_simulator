@@ -2,7 +2,7 @@
 RotorS Instructions for Resilient Planner
 ===============
 
-This is a customized version to use [VID-Fusion](https://github.com/ZJU-FAST-Lab/VID-Fusion) and [External Forces Resilient Planner](https://github.com/ZJU-FAST-Lab/forces_resilient_planner).
+This is a customized version to run [VID-Fusion](https://github.com/ZJU-FAST-Lab/VID-Fusion) and [External Forces Resilient Planner](https://github.com/ZJU-FAST-Lab/forces_resilient_planner).
 
 
 ## 1. Installation Instructions
@@ -180,6 +180,20 @@ In `rotors_description/urdf/hummingbird.xacro` to change the color of the rotors
     <xacro:insert_block name="body_inertia" />
   </xacro:multirotor_base_macro>
 ```
+
+### More gazebo models
+
+
+- https://github.com/engcang/gazebo_maps
+
+- https://github.com/mlherd/Dataset-of-Gazebo-Worlds-Models-and-Maps
+
+- https://github.com/osrf/gazebo_models
+
+- https://github.com/PX4/PX4-SITL_gazebo-classic/blob/main/worlds/
+
+- https://github.com/KumarRobotics/mrsl_quadrotor
+
 
 
 ## About RotorS
