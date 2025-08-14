@@ -1,0 +1,752 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+  <model name="flower_v3">
+    <static>true</static>
+
+    <!-- Base -->
+    <link name="base">
+      <pose>0 0 0 0 0 0</pose>
+      <collision name="base_collision">
+        <geometry><cylinder><radius>0.1</radius><length>0.02</length></cylinder></geometry>
+      </collision>
+      <visual name="base_visual">
+        <geometry><cylinder><radius>0.1</radius><length>0.02</length></cylinder></geometry>
+        <material>
+          <ambient>0.25 0.2 0.15 1</ambient>
+          <diffuse>0.3 0.24 0.18 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+
+    <!-- Stem -->
+    <link name="stem">
+      <pose>0 0 0.275 0 0 0</pose>
+      <collision name="stem_collision">
+        <geometry><cylinder><radius>0.012</radius><length>0.55</length></cylinder></geometry>
+      </collision>
+      <visual name="stem_visual">
+        <geometry><cylinder><radius>0.012</radius><length>0.55</length></cylinder></geometry>
+        <material>
+          <ambient>0.1 0.3 0.1 1</ambient>
+          <diffuse>0.2 0.6 0.2 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+
+    <!-- Center -->
+    <link name="center">
+      <pose>0 0 0.570 0 0 0</pose>
+      <collision name="center_collision">
+        <geometry><sphere><radius>0.035</radius></sphere></geometry>
+      </collision>
+      <visual name="center_visual">
+        <geometry><sphere><radius>0.035</radius></sphere></geometry>
+        <material>
+          <ambient>0.6 0.5 0.1 1</ambient>
+          <diffuse>0.95 0.85 0.25 1</diffuse>
+          <specular>0.15 0.15 0.15 1</specular>
+        </material>
+      </visual>
+    </link>
+
+    <!-- Petals -->
+    <link name="petal_r1_0">
+      <pose>0 0 0.5700000000000001 0 0 0.0</pose>
+      <collision name="petal_r1_0_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_0_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_1">
+      <pose>0 0 0.5700000000000001 0 0 0.39269908169872414</pose>
+      <collision name="petal_r1_1_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_1_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_2">
+      <pose>0 0 0.5700000000000001 0 0 0.7853981633974483</pose>
+      <collision name="petal_r1_2_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_2_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_3">
+      <pose>0 0 0.5700000000000001 0 0 1.1780972450961724</pose>
+      <collision name="petal_r1_3_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_3_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_4">
+      <pose>0 0 0.5700000000000001 0 0 1.5707963267948966</pose>
+      <collision name="petal_r1_4_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_4_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_5">
+      <pose>0 0 0.5700000000000001 0 0 1.9634954084936207</pose>
+      <collision name="petal_r1_5_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_5_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_6">
+      <pose>0 0 0.5700000000000001 0 0 2.356194490192345</pose>
+      <collision name="petal_r1_6_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_6_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_7">
+      <pose>0 0 0.5700000000000001 0 0 2.748893571891069</pose>
+      <collision name="petal_r1_7_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_7_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_8">
+      <pose>0 0 0.5700000000000001 0 0 3.141592653589793</pose>
+      <collision name="petal_r1_8_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_8_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_9">
+      <pose>0 0 0.5700000000000001 0 0 3.5342917352885173</pose>
+      <collision name="petal_r1_9_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_9_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_10">
+      <pose>0 0 0.5700000000000001 0 0 3.9269908169872414</pose>
+      <collision name="petal_r1_10_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_10_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_11">
+      <pose>0 0 0.5700000000000001 0 0 4.319689898685965</pose>
+      <collision name="petal_r1_11_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_11_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_12">
+      <pose>0 0 0.5700000000000001 0 0 4.71238898038469</pose>
+      <collision name="petal_r1_12_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_12_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_13">
+      <pose>0 0 0.5700000000000001 0 0 5.105088062083414</pose>
+      <collision name="petal_r1_13_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_13_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_14">
+      <pose>0 0 0.5700000000000001 0 0 5.497787143782138</pose>
+      <collision name="petal_r1_14_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_14_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r1_15">
+      <pose>0 0 0.5700000000000001 0 0 5.890486225480862</pose>
+      <collision name="petal_r1_15_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r1_15_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.55 0.2 0.3 1</ambient>
+          <diffuse>1.0 0.5 0.65 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_0">
+      <pose>0 0 0.5750000000000001 0 0 0.2617993877991494</pose>
+      <collision name="petal_r2_0_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_0_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_1">
+      <pose>0 0 0.5750000000000001 0 0 0.7853981633974483</pose>
+      <collision name="petal_r2_1_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_1_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_2">
+      <pose>0 0 0.5750000000000001 0 0 1.308996938995747</pose>
+      <collision name="petal_r2_2_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_2_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_3">
+      <pose>0 0 0.5750000000000001 0 0 1.832595714594046</pose>
+      <collision name="petal_r2_3_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_3_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_4">
+      <pose>0 0 0.5750000000000001 0 0 2.356194490192345</pose>
+      <collision name="petal_r2_4_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_4_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_5">
+      <pose>0 0 0.5750000000000001 0 0 2.8797932657906435</pose>
+      <collision name="petal_r2_5_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_5_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_6">
+      <pose>0 0 0.5750000000000001 0 0 3.4033920413889427</pose>
+      <collision name="petal_r2_6_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_6_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_7">
+      <pose>0 0 0.5750000000000001 0 0 3.9269908169872414</pose>
+      <collision name="petal_r2_7_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_7_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_8">
+      <pose>0 0 0.5750000000000001 0 0 4.45058959258554</pose>
+      <collision name="petal_r2_8_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_8_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_9">
+      <pose>0 0 0.5750000000000001 0 0 4.974188368183839</pose>
+      <collision name="petal_r2_9_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_9_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_10">
+      <pose>0 0 0.5750000000000001 0 0 5.497787143782137</pose>
+      <collision name="petal_r2_10_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_10_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="petal_r2_11">
+      <pose>0 0 0.5750000000000001 0 0 6.021385919380436</pose>
+      <collision name="petal_r2_11_collision">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="petal_r2_11_visual">
+        <geometry>
+          <box><size>0.15 0.03 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.45 0.15 0.25 1</ambient>
+          <diffuse>0.95 0.45 0.6 1</diffuse>
+          <specular>0.2 0.2 0.2 1</specular>
+        </material>
+      </visual>
+    </link>
+
+
+    <!-- Sepals -->
+    <link name="sepal_0">
+      <pose>0 0 0.56 0 0 0.39269908169872414</pose>
+      <collision name="sepal_0_collision">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+      </collision>
+      <visual name="sepal_0_visual">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+        <material>
+          <ambient>0.08 0.35 0.08 1</ambient>
+          <diffuse>0.18 0.65 0.18 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="sepal_1">
+      <pose>0 0 0.56 0 0 1.1780972450961724</pose>
+      <collision name="sepal_1_collision">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+      </collision>
+      <visual name="sepal_1_visual">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+        <material>
+          <ambient>0.08 0.35 0.08 1</ambient>
+          <diffuse>0.18 0.65 0.18 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="sepal_2">
+      <pose>0 0 0.56 0 0 1.9634954084936207</pose>
+      <collision name="sepal_2_collision">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+      </collision>
+      <visual name="sepal_2_visual">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+        <material>
+          <ambient>0.08 0.35 0.08 1</ambient>
+          <diffuse>0.18 0.65 0.18 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="sepal_3">
+      <pose>0 0 0.56 0 0 2.748893571891069</pose>
+      <collision name="sepal_3_collision">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+      </collision>
+      <visual name="sepal_3_visual">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+        <material>
+          <ambient>0.08 0.35 0.08 1</ambient>
+          <diffuse>0.18 0.65 0.18 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="sepal_4">
+      <pose>0 0 0.56 0 0 3.5342917352885173</pose>
+      <collision name="sepal_4_collision">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+      </collision>
+      <visual name="sepal_4_visual">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+        <material>
+          <ambient>0.08 0.35 0.08 1</ambient>
+          <diffuse>0.18 0.65 0.18 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="sepal_5">
+      <pose>0 0 0.56 0 0 4.319689898685965</pose>
+      <collision name="sepal_5_collision">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+      </collision>
+      <visual name="sepal_5_visual">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+        <material>
+          <ambient>0.08 0.35 0.08 1</ambient>
+          <diffuse>0.18 0.65 0.18 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="sepal_6">
+      <pose>0 0 0.56 0 0 5.105088062083414</pose>
+      <collision name="sepal_6_collision">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+      </collision>
+      <visual name="sepal_6_visual">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+        <material>
+          <ambient>0.08 0.35 0.08 1</ambient>
+          <diffuse>0.18 0.65 0.18 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="sepal_7">
+      <pose>0 0 0.56 0 0 5.890486225480862</pose>
+      <collision name="sepal_7_collision">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+      </collision>
+      <visual name="sepal_7_visual">
+        <geometry><box><size>0.07 0.014 0.003</size></box></geometry>
+        <material>
+          <ambient>0.08 0.35 0.08 1</ambient>
+          <diffuse>0.18 0.65 0.18 1</diffuse>
+          <specular>0.05 0.05 0.05 1</specular>
+        </material>
+      </visual>
+    </link>
+
+
+    <!-- Leaves -->
+    <link name="leaf_0">
+      <pose>0.050 0.000 0.220 0.000 0.100 0.000</pose>
+      <collision name="leaf_0_collision">
+        <geometry>
+          <box><size>0.15 0.02 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="leaf_0_visual">
+        <geometry>
+          <box><size>0.15 0.02 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.15 0.4 0.15 1</ambient>
+          <diffuse>0.25 0.8 0.25 1</diffuse>
+          <specular>0.08 0.08 0.08 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="leaf_1">
+      <pose>0.000 0.050 0.280 0.000 -0.100 1.571</pose>
+      <collision name="leaf_1_collision">
+        <geometry>
+          <box><size>0.15 0.02 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="leaf_1_visual">
+        <geometry>
+          <box><size>0.15 0.02 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.15 0.4 0.15 1</ambient>
+          <diffuse>0.25 0.8 0.25 1</diffuse>
+          <specular>0.08 0.08 0.08 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="leaf_2">
+      <pose>-0.050 0.000 0.340 0.000 0.100 3.142</pose>
+      <collision name="leaf_2_collision">
+        <geometry>
+          <box><size>0.15 0.02 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="leaf_2_visual">
+        <geometry>
+          <box><size>0.15 0.02 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.15 0.4 0.15 1</ambient>
+          <diffuse>0.25 0.8 0.25 1</diffuse>
+          <specular>0.08 0.08 0.08 1</specular>
+        </material>
+      </visual>
+    </link>
+    <link name="leaf_3">
+      <pose>-0.000 -0.050 0.180 0.000 -0.100 4.712</pose>
+      <collision name="leaf_3_collision">
+        <geometry>
+          <box><size>0.15 0.02 0.004</size></box>
+        </geometry>
+      </collision>
+      <visual name="leaf_3_visual">
+        <geometry>
+          <box><size>0.15 0.02 0.004</size></box>
+        </geometry>
+        <material>
+          <ambient>0.15 0.4 0.15 1</ambient>
+          <diffuse>0.25 0.8 0.25 1</diffuse>
+          <specular>0.08 0.08 0.08 1</specular>
+        </material>
+      </visual>
+    </link>
+
+
+  </model>
+</sdf>

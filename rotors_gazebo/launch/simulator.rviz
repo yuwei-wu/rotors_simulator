@@ -29,7 +29,7 @@ Panels:
   - Class: rviz/Time
     Name: Time
     SyncMode: 0
-    SyncSource: depth_image
+    SyncSource: ""
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -76,56 +76,6 @@ Visualization Manager:
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
-            drone1/base_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone1/base_link_inertia:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone1/imu_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone1/imugt_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone1/odometry_sensor1_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone1/odometry_sensorgt_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone1/rotor_0:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone1/rotor_1:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone1/rotor_2:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone1/rotor_3:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            rgb_camera_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
           Name: RobotModel
           Robot Description: /drone1/robot_description
           TF Prefix: ""
@@ -339,56 +289,6 @@ Visualization Manager:
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
-            drone2/base_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone2/base_link_inertia:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone2/imu_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone2/imugt_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone2/odometry_sensor1_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone2/odometry_sensorgt_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone2/rotor_0:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone2/rotor_1:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone2/rotor_2:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone2/rotor_3:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            rgb_camera_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
           Name: RobotModel
           Robot Description: /drone2/robot_description
           TF Prefix: ""
@@ -602,56 +502,6 @@ Visualization Manager:
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
-            drone3/base_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone3/base_link_inertia:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone3/imu_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone3/imugt_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone3/odometry_sensor1_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone3/odometry_sensorgt_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            drone3/rotor_0:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone3/rotor_1:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone3/rotor_2:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            drone3/rotor_3:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            rgb_camera_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
           Name: RobotModel
           Robot Description: /drone3/robot_description
           TF Prefix: ""
@@ -986,7 +836,7 @@ Window Geometry:
   Height: 2032
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd00000004000000000000046200000754fc0200000014fb0000001200530065006c0065006300740069006f006e00000001e10000009b000000b000fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000006e000004200000018200fffffffb0000000a0049006d00610067006500000003f90000021b0000000000000000fb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000c00430061006d00650072006100000001d1000000b50000000000000000fb0000000a0064006500700074006801000002fe000000e60000000000000000fb0000001600640065007000740068005f0069006d006100670065010000049a000001510000002600fffffffb0000000a0049006d0061006700650000000625000001390000000000000000fb0000000a0049006d00610067006501000001480000010c0000000000000000fb0000000a0056006900650077007300000001eb000000a40000013200fffffffb0000000a0049006d0061006700650100000271000000c20000000000000000fb0000000a0049006d0061006700650100000263000000e10000000000000000fb0000000a0049006d0061006700650100000590000001ce0000000000000000fb0000001600640065007000740068005f0069006d00610067006501000005f7000000cf0000002600fffffffb0000001600640065007000740068005f0069006d00610067006501000006d2000000f00000002600ffffff000000010000010f00000385fc0200000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000006100000003bfc0100000002fb0000000800540069006d00650000000000000006100000077d00fffffffb0000000800540069006d0065010000000000000450000000000000000000000a020000075400000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000002bb00000754fc0200000014fb0000001200530065006c0065006300740069006f006e00000001e10000009b000000b000fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000b0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000006e000004200000018200fffffffb0000000a0049006d00610067006500000003f90000021b0000000000000000fb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000000c00430061006d00650072006100000001d1000000b50000000000000000fb0000000a0064006500700074006801000002fe000000e60000000000000000fb0000001600640065007000740068005f0069006d006100670065010000049a000001510000002600fffffffb0000000a0049006d0061006700650000000625000001390000000000000000fb0000000a0049006d00610067006501000001480000010c0000000000000000fb0000000a0056006900650077007300000001eb000000a40000013200fffffffb0000000a0049006d0061006700650100000271000000c20000000000000000fb0000000a0049006d0061006700650100000263000000e10000000000000000fb0000000a0049006d0061006700650100000590000001ce0000000000000000fb0000001600640065007000740068005f0069006d00610067006501000005f7000000cf0000002600fffffffb0000001600640065007000740068005f0069006d00610067006501000006d2000000f00000002600ffffff000000010000010f00000385fc0200000002fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000006100000003bfc0100000002fb0000000800540069006d00650000000000000006100000077d00fffffffb0000000800540069006d0065010000000000000450000000000000000000000ba90000075400000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
