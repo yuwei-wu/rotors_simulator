@@ -166,16 +166,15 @@ In `rotors_description/urdf/hummingbird.xacro` to change the color of the rotors
 
 
 - https://github.com/engcang/gazebo_maps
-
 - https://github.com/mlherd/Dataset-of-Gazebo-Worlds-Models-and-Maps
-
 - https://github.com/osrf/gazebo_models
-
 - https://github.com/PX4/PX4-SITL_gazebo-classic/blob/main/worlds/
-
 - https://github.com/KumarRobotics/mrsl_quadrotor
-
-
+- https://github.com/leonhartyao/gazebo_models_worlds_collection
+- https://github.com/RISC-NYUAD/Aerial-Manipulator-Gazebo
+- https://github.com/FieldRobotEvent/virtual_maize_field
+- https://github.com/jsather/harvester-sim/
+- https://github.com/Dhruv2012/Autonomous-Farm-Robot/
 
 ## About RotorS
 
