@@ -162,7 +162,7 @@ In `rotors_description/urdf/hummingbird.xacro` to change the color of the rotors
   </xacro:multirotor_base_macro>
 ```
 
-### More gazebo models
+### More Gazebo models and worlds 
 
 
 - https://github.com/engcang/gazebo_maps
@@ -175,6 +175,7 @@ In `rotors_description/urdf/hummingbird.xacro` to change the color of the rotors
 - https://github.com/FieldRobotEvent/virtual_maize_field
 - https://github.com/jsather/harvester-sim/
 - https://github.com/Dhruv2012/Autonomous-Farm-Robot/
+- https://github.com/engcang/gazebo_maps
 
 ## About RotorS
 
