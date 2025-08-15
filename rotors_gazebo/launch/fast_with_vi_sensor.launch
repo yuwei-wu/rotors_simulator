@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="init_x" value="0.0"/>
+  <arg name="init_x" value="-10.0"/>
   <arg name="init_y" value="0.0"/>
   <arg name="init_z" value="0.1"/> 
   <!--arg name="mav_name" default="hummingbird"/-->
   <arg name="mav_name" default="hummingbird"/>
-  <arg name="world_name" default="watering"/>
+  <arg name="world_name" default="pd2"/>
   <arg name="enable_logging" default="false" />
   <arg name="enable_ground_truth" default="true" />
   <arg name="log_file" default="$(arg mav_name)" />
