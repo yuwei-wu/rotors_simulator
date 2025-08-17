@@ -1,0 +1,890 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="default">
+    <!-- A global light source -->
+    <!-- A global light source -->
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose frame=''>0 0 20 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.5 -1</direction>
+    </light>
+    <model name='grass_plane'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>500 500</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.5</mu>
+                <mu2>0.5</mu2>
+              </ode>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual_0'>
+          <pose>-0 0 0 0 -0 0</pose>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grass_plane/materials/scripts</uri>
+              <uri>model://grass_plane/materials/textures</uri>
+              <name>vrc/grass</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='visual_1'>
+          <pose>-20 -20 0 0 -0 0</pose>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grass_plane/materials/scripts</uri>
+              <uri>model://grass_plane/materials/textures</uri>
+              <name>vrc/grass</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='visual_2'>
+          <pose>0 -20 0 0 -0 0</pose>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grass_plane/materials/scripts</uri>
+              <uri>model://grass_plane/materials/textures</uri>
+              <name>vrc/grass</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='visual_3'>
+          <pose>-20 0 0 0 -0 0</pose>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://grass_plane/materials/scripts</uri>
+              <uri>model://grass_plane/materials/textures</uri>
+              <name>vrc/grass</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>10 10 0 0 -0 0</pose>
+    </model>
+
+    <!-- Oak trees -->
+    <include>
+      <name>oak_tree_0</name>
+      <pose>-12 8 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_1</name>
+      <pose>15 -5 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_2</name>
+      <pose>-7 -15 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_3</name>
+      <pose>18 10 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_4</name>
+      <pose>5 18 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_5</name>
+      <pose>-18 -12 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_6</name>
+      <pose>0 -20 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_7</name>
+      <pose>-20 3 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_8</name>
+      <pose>10 12 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_9</name>
+      <pose>2 -10 0 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <!-- Only one ROS interface plugin is required per world, as any other plugin can connect a Gazebo
+         topic to a ROS topic (or vise versa). -->
+    <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>
+
+    <physics name='default_physics' default='0' type='ode'>
+      <gravity>0 0 -9.8066</gravity>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>10</iters>
+          <sor>1.3</sor>
+          <use_dynamic_moi_rescaling>0</use_dynamic_moi_rescaling>
+        </solver>
+        <constraints>
+          <cfm>0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
+      <max_step_size>0.002</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>500</real_time_update_rate>
+      <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    </physics>
+
+    <!-- Existing trees -->
+    <include>
+      <name>pine_tree_0</name>
+      <pose>-10.9505 14.3749 0 0 -0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+    <include>
+      <name>pine_tree_1</name>
+      <pose>-16.4151 16.8911 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+    <include>
+      <name>pine_tree_2</name>
+      <pose>-11.5545 17.3019 0 0 -0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+    <include>
+      <name>pine_tree_3</name>
+      <pose>-8.25296 16.9721 0 0 -0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>2 2 2</scale>
+    </include>
+
+    <!-- More trees (randomized positions & scale) -->
+    <include>
+      <name>pine_tree_4</name>
+      <pose>-5 12 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.5 1.5 1.5</scale>
+    </include>
+    <include>
+      <name>pine_tree_5</name>
+      <pose>-15 5 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+    <include>
+      <name>pine_tree_6</name>
+      <pose>10 -8 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>0.8 0.8 1.2</scale>
+    </include>
+    <include>
+      <name>pine_tree_7</name>
+      <pose>18 3 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+    <include>
+      <name>pine_tree_8</name>
+      <pose>-3 -12 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.2 1.2 1.2</scale>
+    </include>
+    <include>
+      <name>pine_tree_9</name>
+      <pose>7 15 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+    <include>
+      <name>pine_tree_10</name>
+      <pose>14 -14 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.8 1.8 2.0</scale>
+    </include>
+    <include>
+      <name>pine_tree_11</name>
+      <pose>-18 -5 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+    <include>
+      <name>pine_tree_12</name>
+      <pose>0 -18 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.3 1.3 1.3</scale>
+    </include>
+    <include>
+      <name>pine_tree_13</name>
+      <pose>12 10 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.4 1.4 1.4</scale>
+    </include>
+    <include>
+      <name>pine_tree_14</name>
+      <pose>-20 2 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+    <include>
+      <name>pine_tree_15</name>
+      <pose>5 -15 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.6 1.6 1.6</scale>
+    </include>
+    <include>
+      <name>pine_tree_16</name>
+      <pose>12 -10 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+    <include>
+      <name>pine_tree_17</name>
+      <pose>16 -6 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>0.9 0.9 1.5</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_18</name>
+      <pose>-7 -19 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.1 1.1 1.4</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_19</name>
+      <pose>3 -13 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_20</name>
+      <pose>19 -4 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.7 1.7 1.9</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_21</name>
+      <pose>-14 12 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>0.9 0.9 1.2</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_22</name>
+      <pose>8 -20 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_23</name>
+      <pose>-20 -3 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.4 1.4 1.6</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_24</name>
+      <pose>2 18 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_25</name>
+      <pose>-18 -14 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.2 1.2 1.2</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_26</name>
+      <pose>15 12 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_27</name>
+      <pose>-2 20 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.5 1.5 1.7</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_28</name>
+      <pose>20 -11 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_29</name>
+      <pose>-9 7 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.3 1.3 1.4</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_30</name>
+      <pose>11 19 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_31</name>
+      <pose>-6 6 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_32</name>
+      <pose>4 -19 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_33</name>
+      <pose>17 0 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>0.8 0.8 1.1</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_34</name>
+      <pose>-17 18 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_35</name>
+      <pose>9 -2 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.6 1.6 1.8</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_36</name>
+      <pose>-4 4 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+    <include>
+      <name>pine_tree_37</name>
+      <pose>13 -17 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.2 1.2 1.5</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_38</name>
+      <pose>-12 -17 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+      <scale>1.4 1.4 1.6</scale>
+    </include>
+
+    <include>
+      <name>pine_tree_39</name>
+      <pose>6 13 0 0 0 0</pose>
+      <uri>model://pine_tree</uri>
+    </include>
+
+<model name='pine_tree_40'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <mesh>
+          <scale>1.2 1.2 1.2</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+        </mesh>
+      </geometry>
+    </collision>
+    <visual name='branch'>
+      <geometry>
+        <mesh>
+          <scale>1.2 1.2 1.2</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Branch</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Branch</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='bark'>
+      <geometry>
+        <mesh>
+          <scale>1.2 1.2 1.2</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Bark</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Bark</name>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <pose>-2.19362 -7.01589 0 0 -0 0</pose>
+</model>
+
+<model name='pine_tree_41'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <mesh>
+          <scale>0.8 0.8 0.8</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+        </mesh>
+      </geometry>
+    </collision>
+    <visual name='branch'>
+      <geometry>
+        <mesh>
+          <scale>0.8 0.8 0.8</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Branch</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Branch</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='bark'>
+      <geometry>
+        <mesh>
+          <scale>0.8 0.8 0.8</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Bark</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Bark</name>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <pose>5.872 -3.920 0 0 0 0</pose>
+</model>
+
+<model name='pine_tree_42'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <mesh>
+          <scale>2.1 2.1 2.1</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+        </mesh>
+      </geometry>
+    </collision>
+    <visual name='branch'>
+      <geometry>
+        <mesh>
+          <scale>2.1 2.1 2.1</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Branch</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Branch</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='bark'>
+      <geometry>
+        <mesh>
+          <scale>2.1 2.1 2.1</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Bark</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Bark</name>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <pose>-12.431 8.150 0 0 0 0</pose>
+</model>
+
+
+    <model name='pine_tree222'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <scale>2 2 2</scale>
+              <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='branch'>
+          <geometry>
+            <mesh>
+              <scale>2 2 2</scale>
+              <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+              <submesh>
+                <name>Branch</name>
+              </submesh>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://pine_tree/materials/scripts/</uri>
+              <uri>model://pine_tree/materials/textures/</uri>
+              <name>PineTree/Branch</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='bark'>
+          <geometry>
+            <mesh>
+              <scale>2 2 2</scale>
+              <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+              <submesh>
+                <name>Bark</name>
+              </submesh>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://pine_tree/materials/scripts/</uri>
+              <uri>model://pine_tree/materials/textures/</uri>
+              <name>PineTree/Bark</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>-2.19362 -7.01589 0 0 -0 0</pose>
+    </model>
+
+
+
+<!-- Stones / Rocks -->
+
+<include>
+  <name>stone_0</name>
+  <pose>-6 8 0.1  0 0 0</pose>
+  <uri>model://stone_01</uri>
+</include>
+<include>
+  <name>stone_01</name>
+  <pose>-6.5 8.1 0.1  0 0 -1.5</pose>
+  <uri>model://stone_02</uri>
+</include>
+<include>
+  <name>stone_02</name>
+  <pose>-6 8.5 0.1  0 0 -2</pose>
+  <uri>model://stone_01</uri>
+</include>
+
+
+<include>
+  <name>stone_1</name>
+  <pose>3 -4 0.1  0 0 0.5</pose>
+  <uri>model://stone_01</uri>
+</include>
+
+<include>
+  <name>stone_2</name>
+  <pose>12 6 0.1 0 0 0.1</pose>
+  <uri>model://stone_01</uri>
+</include>
+
+<include>
+  <name>stone_3</name>
+  <pose>-14 -3 0.1  0 0 0.2</pose>
+  <uri>model://stone_01</uri>
+</include>
+
+<include>
+  <name>stone_4</name>
+  <pose>7 12 0 0.1  0 -3.14</pose>
+  <uri>model://stone_02</uri>
+</include>
+
+<include>
+  <name>stone_5</name>
+  <pose>7 13 0 0 0 0</pose>
+  <uri>model://stone_01</uri>
+</include>
+
+    <model name='collapsed_house'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>model://collapsed_house/meshes/collapsed_house.dae</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <scale>1 1 1</scale>
+              <uri>model://collapsed_house/meshes/collapsed_house.dae</uri>
+            </mesh>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>-10.2861 -10.6966 0 0 0 -2.88969</pose>
+    </model>
+
+    <!-- Fire sources -->
+    <model name="fire_source_0">
+      <static>true</static>
+      <pose>0 5 0 0 0 0</pose>
+      <link name="fire_link">
+        <visual name="fire_marker">
+          <geometry><box><size>0.1 0.1 0.1</size></box></geometry>
+          <material>
+            <diffuse>1.0 0.3 0.0 1</diffuse>
+            <emissive>1.0 0.2 0.0 1</emissive>
+          </material>
+        </visual>
+        <light name="fire_light" type="point">
+          <pose>0 0 1 0 0 0</pose>
+          <diffuse>1 0.5 0.2 1</diffuse>
+          <specular>0.5 0.5 0.5 1</specular>
+          <attenuation><range>15</range><linear>0.5</linear><constant>0.3</constant><quadratic>0.01</quadratic></attenuation>
+        </light>
+      </link>
+    </model>
+
+    <model name="fire_source_1">
+      <static>true</static>
+      <pose>12 -8 0 0 0 0</pose>
+      <link name="fire_link">
+        <visual name="fire_marker">
+          <geometry><box><size>0.1 0.1 0.1</size></box></geometry>
+          <material>
+            <diffuse>1.0 0.3 0.0 1</diffuse>
+            <emissive>1.0 0.2 0.0 1</emissive>
+          </material>
+        </visual>
+        <light name="fire_light" type="point">
+          <pose>0 0 1 0 0 0</pose>
+          <diffuse>1 0.5 0.2 1</diffuse>
+          <specular>0.5 0.5 0.5 1</specular>
+          <attenuation><range>8</range><linear>0.5</linear><constant>0.3</constant><quadratic>0.01</quadratic></attenuation>
+        </light>
+      </link>
+    </model>
+
+    <model name="fire_source_2">
+      <static>true</static>
+      <pose>-8 -2 0 0 0 0</pose>
+      <link name="fire_link">
+        <visual name="fire_marker">
+          <geometry><box><size>0.1 0.1 0.1</size></box></geometry>
+          <material>
+            <diffuse>1.0 0.3 0.0 1</diffuse>
+            <emissive>1.0 0.2 0.0 1</emissive>
+          </material>
+        </visual>
+        <light name="fire_light" type="point">
+          <pose>0 0 1 0 0 0</pose>
+          <diffuse>1 0.5 0.2 1</diffuse>
+          <specular>0.5 0.5 0.5 1</specular>
+          <attenuation><range>15</range><linear>0.5</linear><constant>0.3</constant><quadratic>0.01</quadratic></attenuation>
+        </light>
+      </link>
+    </model>
+
+    <model name="fire_source_3">
+      <static>true</static>
+      <pose>-15 10 0 0 0 0</pose>
+      <link name="fire_link">
+        <visual name="fire_marker">
+          <geometry><box><size>0.1 0.1 0.1</size></box></geometry>
+          <material>
+            <diffuse>1.0 0.3 0.0 1</diffuse>
+            <emissive>1.0 0.2 0.0 1</emissive>
+          </material>
+        </visual>
+        <light name="fire_light" type="point">
+          <pose>0 0 1 0 0 0</pose>
+          <diffuse>1 0.6 0.3 1</diffuse>
+          <specular>0.8 0.8 0.8 1</specular>
+          <attenuation>
+            <range>20</range>         <!-- from 8 → 20, lights a much bigger area -->
+            <linear>0.2</linear>      <!-- softer falloff -->
+            <constant>0.5</constant>  <!-- keeps close area bright -->
+            <quadratic>0.005</quadratic> <!-- gentler fade over distance -->
+          </attenuation>
+        </light>
+      </link>
+    </model>
+
+    <model name="fire_source_4">
+      <static>true</static>
+      <pose>-5 10 0 0 0 0</pose>
+      <link name="fire_link">
+        <visual name="fire_marker">
+          <geometry><box><size>0.1 0.1 0.1</size></box></geometry>
+          <material>
+            <diffuse>1.0 0.3 0.0 1</diffuse>
+            <emissive>1.0 0.2 0.0 1</emissive>
+          </material>
+        </visual>
+        <light name="fire_light" type="point">
+          <pose>0 0 1 0 0 0</pose>
+          <diffuse>1 0.6 0.3 1</diffuse>
+          <specular>0.8 0.8 0.8 1</specular>
+          <attenuation>
+            <range>20</range>         <!-- from 8 → 20, lights a much bigger area -->
+            <linear>0.2</linear>      <!-- softer falloff -->
+            <constant>0.5</constant>  <!-- keeps close area bright -->
+            <quadratic>0.005</quadratic> <!-- gentler fade over distance -->
+          </attenuation>
+        </light>
+      </link>
+    </model>
+
+    <model name="fire_source_5">
+      <static>true</static>
+      <pose>-6 8 0 0 0 0</pose>
+      <link name="fire_link">
+        <visual name="fire_marker">
+          <geometry><box><size>0.1 0.1 0.1</size></box></geometry>
+          <material>
+            <diffuse>1.0 0.3 0.0 1</diffuse>
+            <emissive>1.0 0.2 0.0 1</emissive>
+          </material>
+        </visual>
+        <light name="fire_light" type="point">
+          <pose>0 0 1 0 0 0</pose>
+          <diffuse>1 0.6 0.3 1</diffuse>
+          <specular>0.8 0.8 0.8 1</specular>
+          <attenuation>
+            <range>25</range>         <!-- from 8 → 20, lights a much bigger area -->
+            <linear>0.2</linear>      <!-- softer falloff -->
+            <constant>0.5</constant>  <!-- keeps close area bright -->
+            <quadratic>0.005</quadratic> <!-- gentler fade over distance -->
+          </attenuation>
+        </light>
+      </link>
+    </model>
+
+  </world>
+</sdf>

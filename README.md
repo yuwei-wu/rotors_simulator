@@ -175,6 +175,10 @@ In `rotors_description/urdf/hummingbird.xacro` to change the color of the rotors
 - https://github.com/FieldRobotEvent/virtual_maize_field
 - https://github.com/jsather/harvester-sim/
 - https://github.com/Dhruv2012/Autonomous-Farm-Robot/
+- https://github.com/clearpathrobotics/cpr_gazebo
+- https://github.com/LTU-RAI/gazebo_cave_world
+- https://github.com/kubja/gazebo-vegetation
+- https://github.com/LCAS/aoc_tomato_farm
 
 ## About RotorS
 
