@@ -100,7 +100,7 @@
     </physics>
 
 
-<model name='maize_01'>
+    <model name='maize_01'>
       <pose>2.7227 2.66725 0.05 0 -0 0</pose>
       <link name='maize_01_link'>
         <inertial>

@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<sdf version="1.7">
+<!--
+This SDF file was automatically generated using a template modified 
+and authored by Adwait Naik. The moment of interia is not supposed to be changed.
+-->
+    <model name="pitcher_base">
+      <pose>1.0 2.0 3.0 0 0 0</pose> 
+      <link name="link">
+        <inertial>
+          <inertia>
+           <ixx>1.3427327160192555e-05</ixx>
+           <ixy>8.839744882107692e-22</ixy>
+           <ixz>-1.5752498176756463e-21</ixz>
+           <iyy>1.326831085149032e-05</iyy>
+           <iyz>-1.3566857513327304e-21</iyz>
+           <izz>4.702625186734818e-06</izz>
+          </inertia>
+          <mass>0.0025490222330232276</mass>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+          	<mesh>
+             <uri>model://Pitcher_Base/textured.dae</uri>
+            </mesh>
+          </geometry>
+        </collision>
+
+        <visual name="visual">
+          <geometry>
+          	<mesh>
+            <uri>model://Pitcher_Base/textured.dae</uri>
+	        </mesh>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+</sdf>

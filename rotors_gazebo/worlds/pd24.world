@@ -1,0 +1,509 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="default">
+    <!-- A global light source -->
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose frame=''>0 0 20 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.5 -1</direction>
+    </light>
+    <!-- A ground plane -->
+  
+    <model name='ground_plane'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>1 1</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>1 1</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Residential</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+      </link>
+      <pose frame=''>0 0 0.0 0 -0 0</pose>
+    </model>
+
+
+
+    <model name='ground_plane_2'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>3 3</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>3 3</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Residential</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+      </link>
+      <pose frame=''>-5 7 0.0 0 -0 0</pose>
+    </model>
+
+
+
+    <model name='ground_plane_3'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>3 3</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <cast_shadows>0</cast_shadows>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>3 3</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Residential</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+      </link>
+      <pose frame=''>10 1 0.0 0 -0 0</pose>
+    </model>
+
+
+<model name='ground_plane_4'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>1 1</size>
+        </plane>
+      </geometry>
+    </collision>
+    <visual name='visual'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>1 1</size>
+        </plane>
+      </geometry>
+      <material>
+            <script>
+              <uri>model://sand_plane/materials/scripts</uri>
+              <uri>model://sand_plane/materials/textures</uri>
+              <name>vrc/sand</name>
+            </script>
+      </material>
+    </visual>
+  </link>
+  <pose>-12 -6 0 0 0 0</pose>
+</model>
+
+<model name='ground_plane_5'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>3 3</size>
+        </plane>
+      </geometry>
+    </collision>
+    <visual name='visual'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>3 3</size>
+        </plane>
+      </geometry>
+      <material>
+            <script>
+              <uri>model://sand_plane/materials/scripts</uri>
+              <uri>model://sand_plane/materials/textures</uri>
+              <name>vrc/sand</name>
+            </script>
+      </material>
+    </visual>
+  </link>
+  <pose>6 -9 0 0 0 0</pose>
+</model>
+
+<model name='ground_plane_6'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>1 1</size>
+        </plane>
+      </geometry>
+    </collision>
+    <visual name='visual'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>1 1</size>
+        </plane>
+      </geometry>
+      <material>
+            <script>
+              <uri>model://sand_plane/materials/scripts</uri>
+              <uri>model://sand_plane/materials/textures</uri>
+              <name>vrc/sand</name>
+            </script>
+      </material>
+    </visual>
+  </link>
+  <pose>15 4 0 0 0 0</pose>
+</model>
+
+<model name='ground_plane_7'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>3 3</size>
+        </plane>
+      </geometry>
+    </collision>
+    <visual name='visual'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>3 3</size>
+        </plane>
+      </geometry>
+      <material>
+            <script>
+              <uri>model://sand_plane/materials/scripts</uri>
+              <uri>model://sand_plane/materials/textures</uri>
+              <name>vrc/sand</name>
+            </script>
+      </material>
+    </visual>
+  </link>
+  <pose>-18 10 0 0 0 0</pose>
+</model>
+
+<model name='ground_plane_8'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>1 1</size>
+        </plane>
+      </geometry>
+    </collision>
+    <visual name='visual'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>1 1</size>
+        </plane>
+      </geometry>
+      <material>
+            <script>
+              <uri>model://sand_plane/materials/scripts</uri>
+              <uri>model://sand_plane/materials/textures</uri>
+              <name>vrc/sand</name>
+            </script>
+      </material>
+    </visual>
+  </link>
+  <pose>8 18 0 0 0 0</pose>
+</model>
+
+<model name='ground_plane_9'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>3 3</size>
+        </plane>
+      </geometry>
+    </collision>
+    <visual name='visual'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>3 3</size>
+        </plane>
+      </geometry>
+      <material>
+            <script>
+              <uri>model://sand_plane/materials/scripts</uri>
+              <uri>model://sand_plane/materials/textures</uri>
+              <name>vrc/sand</name>
+            </script>
+      </material>
+    </visual>
+  </link>
+  <pose>-7 14 0 0 0 0</pose>
+</model>
+
+<model name='ground_plane_10'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>1 1</size>
+        </plane>
+      </geometry>
+    </collision>
+    <visual name='visual'>
+      <geometry>
+        <plane>
+          <normal>0 0 1</normal>
+          <size>1 1</size>
+        </plane>
+      </geometry>
+      <material>
+            <script>
+              <uri>model://sand_plane/materials/scripts</uri>
+              <uri>model://sand_plane/materials/textures</uri>
+              <name>vrc/sand</name>
+            </script>
+      </material>
+    </visual>
+  </link>
+  <pose>2 -15 0 0 0 0</pose>
+</model>
+
+
+    <!-- Only one ROS interface plugin is required per world, as any other plugin can connect a Gazebo
+         topic to a ROS topic (or vise versa). -->
+    <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>
+
+    <physics name='default_physics' default='0' type='ode'>
+      <gravity>0 0 -9.8066</gravity>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>10</iters>
+          <sor>1.3</sor>
+          <use_dynamic_moi_rescaling>0</use_dynamic_moi_rescaling>
+        </solver>
+        <constraints>
+          <cfm>0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
+      <max_step_size>0.002</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>500</real_time_update_rate>
+      <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    </physics>
+
+    <model name='ocean'>
+      <static>1</static>
+      <link name='ocean_link'>
+        <visual name='ocean_visual1'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <uri>model://ocean/mesh.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://ocean/materials/scripts/ocean.material</uri>
+              <name>Waves_GLSL</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='ocean_below'>
+          <pose>0 0 0 0 -0 0</pose>
+          <geometry>
+            <mesh>
+              <uri>model://ocean/mesh_below.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://ocean/materials/scripts/ocean.material</uri>
+              <name>Waves_GLSL</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='north'>
+          <pose>250 0 -3.5 3.14159 -1.57079 3.14159</pose>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>7 500</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://ocean/materials/scripts/ocean.material</uri>
+              <name>Seabox</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='south'>
+          <pose>-250 0 -3.5 3.14159 1.57079 3.14159</pose>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>7 500</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://ocean/materials/scripts/ocean.material</uri>
+              <name>Seabox</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='west'>
+          <pose>0 250 -3.5 1.5708 -0 0</pose>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>500 7</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://ocean/materials/scripts/ocean.material</uri>
+              <name>Seabox</name>
+            </script>
+          </material>
+        </visual>
+        <visual name='east'>
+          <pose>0 -250 -3.5 -1.5708 0 0</pose>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>500 7</size>
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>model://ocean/materials/scripts/ocean.material</uri>
+              <name>Seabox</name>
+            </script>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>0.0 0.0 -0.5 0 -0 0</pose>
+    </model>
+  </world>
+</sdf>

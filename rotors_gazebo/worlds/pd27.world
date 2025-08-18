@@ -1,0 +1,537 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <world name="default">
+    <!-- A global light source -->
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose frame=''>0 0 20 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>0.5 -0.5 -1</direction>
+    </light>
+
+
+    <scene>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+      <shadows>1</shadows>
+    </scene>
+    <!-- Only one ROS interface plugin is required per world, as any other plugin can connect a Gazebo
+         topic to a ROS topic (or vise versa). -->
+    <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>
+
+    <physics name='default_physics' default='0' type='ode'>
+      <gravity>0 0 -9.8066</gravity>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>10</iters>
+          <sor>1.3</sor>
+          <use_dynamic_moi_rescaling>0</use_dynamic_moi_rescaling>
+        </solver>
+        <constraints>
+          <cfm>0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
+      <max_step_size>0.002</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>500</real_time_update_rate>
+      <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    </physics>
+
+    <model name='yosemite_001'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <heightmap>
+              <uri>model://yosemite/materials/textures/yosemite.png</uri>
+              <size>200 200 25</size>
+              <pos>0 0 -1</pos>
+              <texture>
+                <size>10</size>
+                <diffuse>__default__</diffuse>
+                <normal>__default__</normal>
+              </texture>
+              <blend>
+                <min_height>0</min_height>
+                <fade_dist>0</fade_dist>
+              </blend>
+            </heightmap>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>0.2</mu>
+                <mu2>0.2</mu2>
+              </ode>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <heightmap>
+              <texture>
+                <diffuse>file://media/materials/textures/dirt_diffusespecular.png</diffuse>
+                <normal>file://media/materials/textures/flat_normal.png</normal>
+                <size>50</size>
+              </texture>
+              <texture>
+                <diffuse>file://media/materials/textures/terrain_detail.jpg</diffuse>
+                <normal>file://media/materials/textures/flat_normal.png</normal>
+                <size>75</size>
+              </texture>
+              <texture>
+                <diffuse>file://yosemite/materials/textures/texture_forest.png</diffuse>
+                <normal>file://media/materials/textures/flat_normal.png</normal>
+                <size>100</size>
+              </texture>
+              <texture>
+                <diffuse>file://yosemite/materials/textures/texture_mountains.png</diffuse>
+                <normal>file://media/materials/textures/flat_normal.png</normal>
+                <size>30</size>
+              </texture>
+              <blend>
+                <min_height>0</min_height>
+                <fade_dist>5</fade_dist>
+              </blend>
+              <blend>
+                <min_height>9</min_height>
+                <fade_dist>5</fade_dist>
+              </blend>
+              <blend>
+                <min_height>23</min_height>
+                <fade_dist>5</fade_dist>
+              </blend>
+              <uri>model://yosemite/materials/textures/yosemite.png</uri>
+              <size>200 200 25</size>
+              <pos>0 0 -1</pos>
+            </heightmap>
+          </geometry>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>0 0 0 0 0 0</pose>
+    </model>
+
+
+<model name='pine_tree_42'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <mesh>
+          <scale>2.1 2.1 2.1</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+        </mesh>
+      </geometry>
+    </collision>
+    <visual name='branch'>
+      <geometry>
+        <mesh>
+          <scale>2.1 2.1 2.1</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Branch</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Branch</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='bark'>
+      <geometry>
+        <mesh>
+          <scale>2.1 2.1 2.1</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Bark</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Bark</name>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <pose>-16.104034 31.221880 11 0 0 0</pose>
+</model>
+
+<model name='pine_tree_41'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <mesh>
+          <scale>2.1 2.1 2.1</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+        </mesh>
+      </geometry>
+    </collision>
+    <visual name='branch'>
+      <geometry>
+        <mesh>
+          <scale>1.5 1.5 1.5</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Branch</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Branch</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='bark'>
+      <geometry>
+        <mesh>
+          <scale>1.5 1.5 1.5</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Bark</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Bark</name>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <pose>-12 36 11 0 0 0</pose>
+</model>
+
+<model name='pine_tree_40'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <mesh>
+          <scale>2.1 2.1 2.1</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+        </mesh>
+      </geometry>
+    </collision>
+    <visual name='branch'>
+      <geometry>
+        <mesh>
+          <scale>1.5 1.5 1.5</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Branch</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Branch</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='bark'>
+      <geometry>
+        <mesh>
+          <scale>1.5 1.5 1.5</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Bark</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Bark</name>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <pose>-12 33 11 0 0 0</pose>
+</model>
+
+
+<model name='pine_tree_39'>
+  <static>1</static>
+  <link name='link'>
+    <collision name='collision'>
+      <geometry>
+        <mesh>
+          <scale>2.1 2.1 2.1</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+        </mesh>
+      </geometry>
+    </collision>
+    <visual name='branch'>
+      <geometry>
+        <mesh>
+          <scale>1.5 1.5 1.5</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Branch</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Branch</name>
+        </script>
+      </material>
+    </visual>
+    <visual name='bark'>
+      <geometry>
+        <mesh>
+          <scale>1.5 1.5 1.5</scale>
+          <uri>model://pine_tree/meshes/pine_tree.dae</uri>
+          <submesh><name>Bark</name></submesh>
+        </mesh>
+      </geometry>
+      <material>
+        <script>
+          <uri>model://pine_tree/materials/scripts/</uri>
+          <uri>model://pine_tree/materials/textures/</uri>
+          <name>PineTree/Bark</name>
+        </script>
+      </material>
+    </visual>
+  </link>
+  <pose>-10 32.5 10 0 0 0</pose>
+</model>
+
+
+    <!-- Oak trees -->
+    <include>
+      <name>oak_tree_0</name>
+      <pose>1 28 12 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_1</name>
+      <pose>15 27 14 0 0 1</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_2</name>
+      <pose>-9 -25 13 0 0 2</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_3</name>
+      <pose>23 31 14 0 0 -3</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_4</name>
+      <pose>5 18  12 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_5</name>
+      <pose>-18 19 12 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_6</name>
+      <pose>0 -30 12 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_7</name>
+      <pose>-40 10 10.527661 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_8</name>
+      <pose>17 18 12 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+    <include>
+      <name>oak_tree_9</name>
+      <pose>31 -5.3 11 0 0 0</pose>
+      <uri>model://oak_tree</uri>
+    </include>
+
+
+<!-- 
+    <include>
+      <uri>model://yosemite</uri>
+    </include> -->
+    
+<!--     
+    
+    <model name="grass_takeoff_plane">
+      <static>true</static>
+      <link name='link'>
+      <collision name='collision'>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>1000 1000</size>
+          </plane>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>0.2</mu>
+              <mu2>.2</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+      <visual name='visual_1'>
+        <pose>-375 -125 0 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>250 250</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://grass_plane/materials/scripts</uri>
+            <uri>model://grass_plane/materials/textures</uri>
+            <name>vrc/grass</name>
+          </script>
+        </material>
+      </visual>
+      <visual name='visual_2'>
+        <pose>-375 125 0 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>250 250</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://grass_plane/materials/scripts</uri>
+            <uri>model://grass_plane/materials/textures</uri>
+            <name>vrc/grass</name>
+          </script>
+        </material>
+      </visual>
+      <visual name='visual_3'>
+        <pose>-125 -125 0 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>250 250</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://grass_plane/materials/scripts</uri>
+            <uri>model://grass_plane/materials/textures</uri>
+            <name>vrc/grass</name>
+          </script>
+        </material>
+      </visual>
+      <visual name='visual_4'>
+        <pose>-125 125 0 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>250 250</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://grass_plane/materials/scripts</uri>
+            <uri>model://grass_plane/materials/textures</uri>
+            <name>vrc/grass</name>
+          </script>
+        </material>
+      </visual>
+      <visual name='visual_5'>
+        <pose>125 -125 0 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>250 250</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://grass_plane/materials/scripts</uri>
+            <uri>model://grass_plane/materials/textures</uri>
+            <name>vrc/grass</name>
+          </script>
+        </material>
+      </visual>
+      <visual name='visual_6'>
+        <pose>125 125 0 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>250 250</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://grass_plane/materials/scripts</uri>
+            <uri>model://grass_plane/materials/textures</uri>
+            <name>vrc/grass</name>
+          </script>
+        </material>
+      </visual>
+      <visual name='visual_7'>
+        <pose>375 125 0 0 0 0</pose>
+        <cast_shadows>false</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>250 250</size>
+          </plane>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://grass_plane/materials/scripts</uri>
+            <uri>model://grass_plane/materials/textures</uri>
+            <name>vrc/grass</name>
+          </script>
+        </material>
+      </visual>
+      </link>
+    </model> -->
+  </world>
+</sdf>
