@@ -20,15 +20,14 @@
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="-4.0"/>
     <arg name="init_y" value="-3.0"/>
-    <arg name="init_z" value="7.5"/>
+    <arg name="init_z" value="27"/>
   </include>
-
   <include file="$(find rotors_gazebo)/launch/mav_single.launch">
     <arg name="mav_id" value="drone2"/>
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="0.0"/>
     <arg name="init_y" value="-3.0"/>
-    <arg name="init_z" value="6.5"/>
+    <arg name="init_z" value="15.5"/>
   </include>
 
   <include file="$(find rotors_gazebo)/launch/mav_single.launch">
@@ -36,7 +35,7 @@
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="4.0"/>
     <arg name="init_y" value="-3.0"/>
-    <arg name="init_z" value="7.0"/>
+    <arg name="init_z" value="15.0"/>
   </include>
 
   
