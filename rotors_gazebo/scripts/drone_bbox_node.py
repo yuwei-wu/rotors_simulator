@@ -37,7 +37,7 @@ class DroneProcessor:
             self.lock = threading.Lock()
 
             #get parameters
-            self.time_step = rospy.get_param('~time_step', 0.16)
+            self.time_step = rospy.get_param('~time_step', 0.18)
             self.drone_id = rospy.get_param('~drone_id', 1)
             self.target_num = rospy.get_param('~target_num', 3)
             self.win_size = rospy.get_param('~win_size', 10)
@@ -63,9 +63,10 @@ class DroneProcessor:
             self.bbox_data = torch.zeros((1, self.target_num, self.win_size * 4), dtype=torch.float32)
 
             # Setup publishers
-            self.pred_pub = rospy.Publisher(f"drone{self.drone_id}/target_bbox", Float32MultiArray, queue_size=10)
+            self.bbox_pub = rospy.Publisher(f"drone{self.drone_id}/target_bbox", Float32MultiArray, queue_size=10)
+            self.pred_pub = rospy.Publisher(f"drone{self.drone_id}/pred_traj", Float32MultiArray, queue_size=10)
 
-            self.marker_pub = rospy.Publisher(f"drone{self.drone_id}/target_bbox_markers", MarkerArray, queue_size=10)
+            self.marker_pub = rospy.Publisher(f"drone{self.drone_id}/pred_traj_markers", MarkerArray, queue_size=10)
 
             # Setup subscribers
             self.setup_subscribers()
@@ -198,14 +199,14 @@ class DroneProcessor:
                 # rospy.loginfo(f"Drone {self.drone_id} processed image at {timestamp}, saved to {img_filename}")
 
             # Convert img_xywhn to numpy array for logging
-            bbox = img_xywhn.cpu().numpy().flatten()
+            bbox = img_xywhn.cpu().numpy().flatten().tolist()  # Shape: (target_num*4,)
 
             # Log bbox data
             if self.logging:
                 # Log bounding boxes to CSV
                 with open(self.log_file_bbox, "a") as file:
                     writer = csv.writer(file)
-                    row = [timestamp] + bbox.tolist()
+                    row = [timestamp] + bbox
                     writer.writerow(row)
 
         except Exception as e:
@@ -215,7 +216,12 @@ class DroneProcessor:
         return bbox, pred_traj
     
     def publish_pred_traj(self, bbox, pred_traj):
+        # Publish predicted trajectory
+        # bbox shape: (target_num*4,), e.g., (12,) for 3 targets
+        target_bbox_msg = Float32MultiArray(data=bbox)
+        self.bbox_pub.publish(target_bbox_msg)
 
+        # pred_traj shape: (target_num, pred_win_size, 2),
         data = pred_traj.flatten().tolist()
         #packet = [predicted window size, target num, 1 if target is real, else 0, predicted trajectory points...]
         packet = [self.pred_win_size, self.target_num]
@@ -272,10 +278,10 @@ class DroneProcessor:
         rospy.loginfo(f"Drone {self.drone_id} finished processing at {timestamp}")
 
     def publish_pred_markers(self, pred_traj, timestamp):
+        # Publish visualization markers for RViz
+        # pred_traj shape: (target_num, pred_win_size, 2), e,g, (3, 1, 2)
         marker_array = MarkerArray()
         marker_id = 0
-        # pred_traj (3, 20, 2)
-
 
         for i in range(self.target_num):
             # Check if trajectory is valid (not all zeros)
@@ -363,7 +369,7 @@ class DroneProcessor:
             for j in range(self.pred_win_size):
                 point = Point()
                 point.x = traj_points[j, 0].item()
-                point.y = - traj_points[j, 1].item()
+                point.y = traj_points[j, 1].item()
                 point.z = 1.5
                 traj_marker.points.append(point)
 

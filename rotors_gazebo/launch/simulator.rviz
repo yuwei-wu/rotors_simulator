@@ -1053,7 +1053,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /drone1/target_bbox_markers
+      Marker Topic: /drone1/pred_traj_markers
       Name: targetbox1
       Namespaces:
         target_0_predicted_traj: true
@@ -1066,7 +1066,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /drone2/target_bbox_markers
+      Marker Topic: /drone2/pred_traj_markers
       Name: targetbox2
       Namespaces:
         target_0_predicted_traj: true
@@ -1079,7 +1079,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/MarkerArray
       Enabled: true
-      Marker Topic: /drone3/target_bbox_markers
+      Marker Topic: /drone3/pred_traj_markers
       Name: targetbox3
       Namespaces:
         target_0_predicted_traj: true
