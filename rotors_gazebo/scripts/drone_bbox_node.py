@@ -17,10 +17,12 @@ from PIL import Image as PILImage
 from std_msgs.msg import Float32MultiArray
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
+import time
 
 from model_utils import load_yolo_model, yolo_detect
 from model_utils import load_traj_model, traj_pred
 
+last_call_time = 0.0 # Global rate limiting variable
 
 transform = transforms.Compose([
     transforms.Resize((640, 640)),  # Resize to model's input
@@ -35,13 +37,16 @@ class DroneProcessor:
             self.lock = threading.Lock()
 
             #get parameters
+            self.time_step = rospy.get_param('~time_step', 0.16)
             self.drone_id = rospy.get_param('~drone_id', 1)
             self.target_num = rospy.get_param('~target_num', 3)
-            self.win_size = rospy.get_param('~win_size', 40)
-            self.pred_win_size = rospy.get_param('~pred_win_size', 20)
+            self.win_size = rospy.get_param('~win_size', 10)
+            self.pred_win_size = rospy.get_param('~pred_win_size', 1)
+            self.adain = rospy.get_param('~adain', False)
+            self.height_tgt = rospy.get_param('~height_tgt', False)
             self.pred_model_path = rospy.get_param('~pred_model_path', './pred_model_ckpt')  # Default path if not set
             self.log_path = rospy.get_param('~log_path', './logs')
-            self.logging = rospy.get_param('~logging', True) # Whether or not to fire logging
+            self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
 
             yolo_model_name = os.path.join(self.pred_model_path, "best_yolo.pt")
             traj_model_name = os.path.join(self.pred_model_path, "best_model.pth")
@@ -50,7 +55,8 @@ class DroneProcessor:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self.yolo_model = load_yolo_model(yolo_model_name, self.device)
             self.traj_model = load_traj_model(self.win_size, self.pred_win_size, 
-                                            self.target_num, self.device, traj_model_name)
+                                              self.target_num, self.adain, self.height_tgt,
+                                              self.device, traj_model_name)
             
             #initialize odom/bbox data arrays
             self.odom_data = torch.zeros((1, self.win_size * 12), dtype=torch.float32)
@@ -229,6 +235,12 @@ class DroneProcessor:
         # rospy.loginfo(f"Drone {self.drone_id} published predicted trajectory at {timestamp}")
     
     def synchronized_callback(self, ground_truth_msg, *car_msgs):
+        global last_call_time
+        now = rospy.Time.now().to_sec()
+        if now - last_call_time < self.time_step: # Rate limiting
+            return
+        last_call_time = now
+
         image_msg = car_msgs[-1]  # The last message is the image
         car_msgs = car_msgs[:-1]  # All but the last are car odometry
 

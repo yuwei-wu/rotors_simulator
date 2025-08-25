@@ -74,11 +74,13 @@ def sort_detections(result, n_target, device):
     return detections, detect_mask
 
 
-def load_traj_model(win_size, pred_win_size, target_num, device, ckpt=None):
+def load_traj_model(win_size, pred_win_size, target_num, adain, height_tgt, device, ckpt=None):
     model = TransformerTrajectoryPredictor(
             win_size,
             pred_win_size,
             target_num,
+            adain,
+            height_tgt,
             device,
         )
     model = model.to(device)
@@ -97,11 +99,12 @@ def traj_pred(model, odom_data, bbox_data, target_num, win_size, pred_win_size, 
     # Shape of bbox_data: (1, target_num, win_size * 4)
     # Move the data to the device
     drone_odometry = odom_data.to(device)
-    yolo_detect_data = bbox_data.permute(1, 0, 2) # (n_target, 1, win_size * 4)
+    yolo_detect_data = bbox_data.permute(2, 0, 1) # (n_target, 1, win_size * 4)
     yolo_detect_data = yolo_detect_data.reshape(target_num, -1, win_size, 4).to(device) # (n_target, 1, win_size, 4)
 
     # Get the new reference point for each sample
     drone_odometry = drone_odometry.reshape(-1, win_size, 12)  # Shape: [1, win_size, 12]
+    height = drone_odometry[:, :, 2].mean(dim=1, keepdim=True).clone()  # Shape: [bsz, 1]
     new_refer_point = drone_odometry[:, -1, :2].clone()  # Shape: [1, 2]
     #print('new reference point', new_refer_point)
 
@@ -109,7 +112,7 @@ def traj_pred(model, odom_data, bbox_data, target_num, win_size, pred_win_size, 
     drone_odometry[:, :, :2] -= new_refer_point.unsqueeze(1)  # Subtract the new reference point from the first two columns
     # drone_odometry Shape: [1, win_size, 12]
 
-    out, mask = model(drone_odometry, yolo_detect_data)
+    out, mask = model(drone_odometry, yolo_detect_data, height)
     # print('out shape:', out.shape) # (n_target, 1, pred_win_size * 2)
     out = out.reshape(target_num, -1, pred_win_size, 2)
     out += new_refer_point.unsqueeze(0).unsqueeze(2)  # Add the new reference point to the predicted trajectory
@@ -118,35 +121,47 @@ def traj_pred(model, odom_data, bbox_data, target_num, win_size, pred_win_size, 
     return out.cpu().numpy()  # Convert to numpy for further processing 
 
 
+def safe_div(denom, mask):
+    # Safe division: when mask is zero, return zero; otherwise, do normal division
+    safe_div = torch.where(mask > 0,
+                           denom / (mask + 1e-6),
+                           torch.zeros_like(denom))
+    return safe_div
+
+
 class TransformerTrajectoryPredictor(nn.Module):
-    def __init__(self, win_size, pred_win_size, n_target, device):
+    def __init__(self, win_size, pred_win_size, n_target, adain, height_tgt, 
+                 device):
         super(TransformerTrajectoryPredictor, self).__init__()
         
         self.win_size = win_size
         self.pred_win_size = pred_win_size
         self.n_target = n_target
-        #self.yolo_model = yolo_model # Only client model will share one YOLO model
+        #self.alpha = args.alpha
+        #self.beta = args.beta
+        #self.mu = args.mu
         self.device = device
+        #self.args = args
 
-        # Note: the parameters here need to be mannually adjusted 
-        # according to the best performed model
         self.transformer = TrajectoryTransformer(d_model=16, 
                                                  nhead=4,
                                                  num_encoder_layers=2,
                                                  num_decoder_layers=2,
                                                  dim_feedforward=32,
                                                  dropout=0.1,
-                                                 pred_window_size=pred_win_size)
+                                                 pred_window_size=pred_win_size,
+                                                 adain=adain,
+                                                 height_tgt=height_tgt)
 
     
-    def forward(self, x_drone_odometry, x_xywhn):
+    def forward(self, x_drone_odometry, x_xywhn, height=None):
         # x_drone_odometry: [bsz, win_size, 12]
         # x_xywhn: [n_target, bsz, win_size, 4]
         bsz = x_drone_odometry.shape[0]  # Batch size
 
         # Step 1: Get the mask of shape (n_target, bsz)
         img_mask = x_xywhn.view(self.n_target, bsz, -1).sum(-1) > 0 # Shape: (n_target, bsz)
-        # print('image mask of all targets', img_mask)  # (n_target, bsz)
+        #print('image mask of all targets', img_mask)  # (n_target, bsz)
         
         # Step 2: Prepare odometry and image tensor data
         # Repeat odometry for each target → shape: (n_target, bsz, win_size, 12)
@@ -158,135 +173,35 @@ class TransformerTrajectoryPredictor(nn.Module):
 
         # Step 5: Run the MLP on the combined features for predicted trajectory
         # Transformer expects input of shape (bsz, win_size, n_target, 16)
-        pred_trajectory = self.transformer(combined)  # Shape: (bsz, n_target, pred_win_size, 2)
+        pred_trajectory = self.transformer(combined, height)  # Shape: (bsz, n_target, pred_win_size, 2)
         #print('predicted trajectory shape ', pred_trajectory.shape) # [(n_target, bsz, pred_win_size * 2]
 
         return pred_trajectory, img_mask
     
 
-    def train_one_epoch(self, dataloader, optimizer, client_id, epoch):
-        self.transformer.train()
-        
-        all_train_loss_per_target = torch.zeros(self.n_target).to(self.device)
-        all_mask_per_target = torch.zeros(self.n_target).to(self.device)
-        for _, _, drone_odometry, yolo_detect, target_pos in tqdm(dataloader, desc=f'Client {client_id} Epoch {epoch}'):
-            # drone_odometry: [bsz, win_size * 12]
-            # yolo_detect: [bsz, win_size * 4, n_target]
-            # target_pos: [bsz, pred_win_size * 2, n_target]
-            
-            # Move the data to the device
-            drone_odometry = drone_odometry.to(self.device)
-            yolo_detect = yolo_detect.permute(2, 0, 1) # (n_target, bsz, win_size * 4)
-            yolo_detect = yolo_detect.reshape(self.n_target, -1, self.win_size, 4).to(self.device) # (n_target, bsz, win_size, 4)
-            target_pos = target_pos.permute(2, 0, 1).to(self.device) # (n_target, bsz, pred_win_size * 2)
+class AdaIN(nn.Module):
+    def __init__(self, d_model, latent_dim=1):
+        super(AdaIN, self).__init__()
+        self.style = nn.Linear(latent_dim, 2 * d_model)
 
-            # Get the new reference point for each sample
-            drone_odometry = drone_odometry.reshape(-1, self.win_size, 12)  # Shape: [bsz, win_size, 12]
-            new_refer_point = drone_odometry[:, -1, :2].clone()  # Shape: [bsz, 2]
-            #print('new reference point', new_refer_point)
+    def forward(self, x, height):
+        # Suppose batch_size = bsz * n_target
+        # x: (seq_len, batch_size, d_model)
+        # height: (batch_size, latent_dim)
+        style = self.style(height).unsqueeze(0)  # (1, batch, 2*d_model)
+        gamma, beta = style.chunk(2, dim=-1) # each shape of (1, batch_size, d_model)
 
-            # Convert the drone odometry to the new reference point
-            drone_odometry[:, :, :2] -= new_refer_point.unsqueeze(1)  # Subtract the new reference point from the first two columns
-            # drone_odometry Shape: [bsz, win_size, 12]
+        mean = x.mean(dim=1, keepdim=True)
+        std = x.std(dim=1, keepdim=True) + 1e-5
 
-            # Convert the target position to the new reference point
-            target_pos = target_pos.reshape(self.n_target, -1, self.pred_win_size, 2)  # Shape: (n_target, bsz, pred_win_size, 2)
-            target_pos -= new_refer_point.unsqueeze(0).unsqueeze(2)  # Subtract the new reference point from the first two columns
-            target_pos = target_pos.reshape(self.n_target, -1, self.pred_win_size*2) # Shape: (n_target, bsz, pred_win_size, 2)
-
-            optimizer.zero_grad()
-            out, mask = self(drone_odometry, yolo_detect)
-            # Use the most commonly used MSE loss
-            loss = F.mse_loss(out, target_pos, reduction='none')  # Shape: [target_num, bsz, pred_win_size * 2]
-            masked_loss = loss.sum(-1) * mask  # Shape: [target_num, bsz]
-            train_loss_per_target = masked_loss.sum(-1)  # Shape: [target_num]
-            mask_per_target = mask.sum(-1)  # Shape: [target_num]
-
-            #print('train_loss_per_target', train_loss_per_target)
-            #print('mask_per_target', mask_per_target)
-
-            # Note: different from evaluation, the mask here can have all zeros for a target
-            # Therefore we use safe_div: when mask is zero, train loss is also zero; otherwise, do normal division
-            # In this way, we ensure the gradient is zero when there is no detection for a target
-            safe_div = torch.where(
-                mask_per_target > 0,
-                train_loss_per_target / (mask_per_target + 1e-6),
-                torch.zeros_like(train_loss_per_target)
-            )
-            train_loss = safe_div.sum()
-            #print('safe_div', safe_div)
-            #print('train loss', train_loss)
-            train_loss.backward()
-            optimizer.step()
-            
-            # Append to all losses for logging purposes
-            all_train_loss_per_target += train_loss_per_target.detach()
-            all_mask_per_target += mask_per_target.detach()
-
-        # Obtain the final training loss for logging
-        safe_div = torch.where(
-                all_mask_per_target > 0,
-                all_train_loss_per_target / (all_mask_per_target + 1e-6),
-                torch.zeros_like(all_train_loss_per_target)
-            )
-        train_loss_per_target = safe_div.cpu().numpy()
-        # Different from training, in logging we compute mean loss over all valid targets
-        # Valid targets => those with non-zero losses
-        train_loss = float(train_loss_per_target[train_loss_per_target > .0].mean())
-        
-        return train_loss / len(dataloader.dataset), train_loss_per_target / len(dataloader.dataset)  # Return for logging
+        x_norm = (x - mean) / std
+        return gamma * x_norm + beta
     
-    
-    def evaluate(self, dataloader):
-        self.transformer.eval()
-
-        test_loss_per_target = torch.zeros(self.n_target).to(self.device)
-        mask_per_target = torch.zeros(self.n_target).to(self.device)
-        with torch.no_grad():
-            for _, _, drone_odometry, yolo_detect, target_pos in tqdm(dataloader, desc='Evaluating'):
-                # drone_odometry: [bsz, win_size * 12]
-                # yolo_detect: [bsz, win_size * 4, n_target]
-                # target_pos: [bsz, pred_win_size * 2, n_target]
-
-                # Move the data to the device
-                drone_odometry = drone_odometry.to(self.device)
-                yolo_detect = yolo_detect.permute(2, 0, 1) # (n_target, bsz, win_size * 4)
-                yolo_detect = yolo_detect.reshape(self.n_target, -1, self.win_size, 4).to(self.device) # (n_target, bsz, win_size, 4)
-                target_pos = target_pos.permute(2, 0, 1).to(self.device) # (n_target, bsz, pred_win_size * 2)
-
-                # Get the new reference point for each sample
-                drone_odometry = drone_odometry.reshape(-1, self.win_size, 12)  # Shape: [bsz, win_size, 12]
-                new_refer_point = drone_odometry[:, -1, :2].clone()  # Shape: [bsz, 2]
-                #print('new reference point', new_refer_point)
-
-                # Convert the drone odometry to the new reference point
-                drone_odometry[:, :, :2] -= new_refer_point.unsqueeze(1)  # Subtract the new reference point from the first two columns
-                # drone_odometry Shape: [bsz, win_size, 12]
-
-                # Convert the target position to the new reference point
-                target_pos = target_pos.reshape(self.n_target, -1, self.pred_win_size, 2)  # Shape: (n_target, bsz, pred_win_size, 2)
-                target_pos -= new_refer_point.unsqueeze(0).unsqueeze(2)  # Subtract the new reference point from the first two columns
-                target_pos = target_pos.reshape(self.n_target, -1, self.pred_win_size*2) # Shape: (n_target, bsz, pred_win_size, 2)
-
-                out, mask = self(drone_odometry, yolo_detect)
-                # Use the most commonly used MSE loss
-                loss = F.mse_loss(out, target_pos, reduction='none')  # Shape: [target_num, bsz, pred_win_size * 2]
-                masked_loss = loss.sum(-1) * mask  # Shape: [target_num, bsz]
-                test_loss_per_target += masked_loss.sum(-1)  # Shape: [target_num]
-                mask_per_target += mask.sum(-1)  # Shape: [target_num]
-
-        test_loss_per_target = test_loss_per_target / (mask_per_target + 1e-6)  # Average the loss over all detections per target
-        test_loss_per_target = test_loss_per_target.cpu().numpy()
-        # We compute mean loss over all valid targets
-        # Valid targets => those with non-zero losses
-        test_loss = float(test_loss_per_target[test_loss_per_target > .0].mean())
-
-        return test_loss / len(dataloader.dataset), test_loss_per_target / len(dataloader.dataset)  # Return for logging
-
 
 class TrajectoryTransformer(nn.Module):
     def __init__(self, input_dim=16, d_model=32, nhead=4, num_encoder_layers=2, num_decoder_layers=2,
-                 dim_feedforward=64, dropout=0.1, pred_window_size=20):
+                 dim_feedforward=64, dropout=0.1, pred_window_size=20, latent_dim=1, adain=False, 
+                 height_tgt=False):
         super(TrajectoryTransformer, self).__init__()
 
         self.d_model = d_model
@@ -313,11 +228,22 @@ class TrajectoryTransformer(nn.Module):
                                                    dim_feedforward=dim_feedforward, dropout=dropout)
         self.decoder = nn.TransformerDecoder(decoder_layer, num_layers=num_decoder_layers)
 
+        # Adaptive Instance Normalization Layer
+        self.adain = None
+        self.latent_dim = latent_dim
+        if adain:
+            self.adain = AdaIN(d_model, latent_dim)
+
         # Project back to (x, y)
         self.output_proj = nn.Linear(d_model, 2)
 
-    def forward(self, x):
+        self.height_proj = None
+        if height_tgt:
+            self.height_proj = nn.Linear(latent_dim, d_model)
+
+    def forward(self, x, height):
         # x: (batch_size, window_size, n_target, input_dim)
+        # height: (batch_size, 1), where latent_dim=1 
         batch_size, window_size, n_target, input_dim = x.shape
 
         # Reshape to (batch_size * n_target, window_size, input_dim)
@@ -327,7 +253,7 @@ class TrajectoryTransformer(nn.Module):
         x = self.input_embed(x)
         x = self.positional_encoding(x)
 
-        # Transformer expects (seq_len, batch, d_model)
+        # Transformer expects (seq_len, B*n_target, d_model)
         x = x.permute(1, 0, 2)
 
         # Encode
@@ -336,8 +262,17 @@ class TrajectoryTransformer(nn.Module):
         # Prepare target query for decoder
         tgt = self.query_embed.unsqueeze(1).repeat(1, memory.shape[1], 1)  # (pred_window_size, B*n_target, d_model)
 
+        height = height.repeat(1, n_target).reshape(-1, self.latent_dim)  # (B*n_target, 1)
+        if self.height_proj:
+            height_embed = self.height_proj(height)  # (B * n_target, d_model)
+            tgt += height_embed.unsqueeze(0).repeat(self.pred_window_size, 1, 1)
+
         # Decode
         output = self.decoder(tgt, memory)  # (pred_window_size, B*n_target, d_model)
+
+        # Apply AdaIN after decoder attention output
+        if self.adain:
+            output = self.adain(output, height)
 
         # Project back to (x, y)
         output = self.output_proj(output)  # (pred_window_size, B*n_target, 2)
@@ -368,3 +303,4 @@ class PositionalEncoding(nn.Module):
         # x: (B, seq_len, d_model)
         x = x + self.pe[:, :x.size(1), :]
         return x
+    
