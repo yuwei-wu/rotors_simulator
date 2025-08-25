@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="init_x" value="0.0"/>
+  <arg name="init_y" value="0.0"/>
+  <arg name="init_z" value="0.1"/> 
+  <!--arg name="mav_name" default="hummingbird"/-->
+  <arg name="mav_name" default="hummingbird"/>
+  <arg name="world_name" default="pd22"/>
+  <arg name="enable_logging" default="false" />
+  <arg name="enable_ground_truth" default="true" />
+  <arg name="log_file" default="$(arg mav_name)" />
+  <arg name="debug" default="false"/>
+  <arg name="gui" default="true"/>
+  <arg name="paused" default="true"/>
+  <!-- The following line causes gzmsg and gzerr messages to be printed to the console
+      (even when Gazebo is started through roslaunch) -->
+  <arg name="verbose" default="false"/>
+
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
+
+
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rotors_gazebo)/worlds/$(arg world_name).world" />
+    <!-- <arg name="debug" value="true"/> -->
+    <arg name="paused" value="true"/>
+    <!-- <arg name="gui" value="false"/> -->
+    <!-- <arg name="verbose" value="true"/> -->
+  </include>
+
+  <!-- ROBOTS -->
+  <arg name="agent0"       default="scarab40"/>
+  <arg name="agent1"       default="scarab41"/>
+  <arg name="agent2"       default="scarab42"/>
+  <arg name="id0"       default="0"/>
+  <arg name="id1"       default="1"/>
+  <arg name="id2"       default="2"/>
+  <arg name="spawn_x0" default="5.0"/>
+  <arg name="spawn_y0" default="3.0"/>
+  <arg name="spawn_x1" default="2.0"/>
+  <arg name="spawn_y1" default="2.0"/>
+  <arg name="spawn_x2" default="-2.0"/>
+  <arg name="spawn_y2" default="-3.0"/>
+
+
+  <!-- start rviz -->
+  <node name="rviz0" pkg="rviz" type="rviz"
+        args="-d $(find scarab)/rviz/$(arg agent0).rviz"/>
+
+  <node name="rviz1" pkg="rviz" type="rviz"
+        args="-d $(find scarab)/rviz/$(arg agent1).rviz"/>
+
+
+
+  <include file="$(find scarab)/launch/scarab_sim.launch">
+    <arg name="agent"   value="$(arg agent0)"/>
+    <arg name="id"   value="$(arg id0)"/>
+    <arg name="spawn_x" value="$(arg spawn_x0)"/>
+    <arg name="spawn_y" value="$(arg spawn_y0)"/>
+  </include>
+
+  <include file="$(find scarab)/launch/scarab_sim.launch">
+    <arg name="agent"   value="$(arg agent1)"/>
+    <arg name="id"   value="$(arg id1)"/>
+    <arg name="spawn_x" value="$(arg spawn_x1)"/>
+    <arg name="spawn_y" value="$(arg spawn_y1)"/>
+  </include>
+
+
+</launch>

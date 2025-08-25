@@ -3,10 +3,10 @@
 
   <arg name="init_x" value="0.0"/>
   <arg name="init_y" value="0.0"/>
-  <arg name="init_z" value="0.1"/> 
+  <arg name="init_z" value="1.0"/> 
   <!--arg name="mav_name" default="hummingbird"/-->
   <arg name="mav_name" default="hummingbird"/>
-  <arg name="world_name" default="pd27"/>
+  <arg name="world_name" default="pd22"/>
   <arg name="enable_logging" default="false" />
   <arg name="enable_ground_truth" default="true" />
   <arg name="log_file" default="$(arg mav_name)" />
