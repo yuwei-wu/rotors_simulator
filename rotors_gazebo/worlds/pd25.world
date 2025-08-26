@@ -7,6 +7,13 @@
     <!-- Only one ROS interface plugin is required per world, as any other plugin can connect a Gazebo
          topic to a ROS topic (or vise versa). -->
     <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>
+    
+    <scene>
+      <ambient>1 1 1 1</ambient>
+      <background>0.9 0.9 0.9 1</background>
+      <shadows>1</shadows>
+      <origin_visual>0</origin_visual>
+    </scene>
 
     <model name='gd1'>
       <static>1</static>

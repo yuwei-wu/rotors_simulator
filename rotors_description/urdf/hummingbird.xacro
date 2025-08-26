@@ -61,7 +61,7 @@ for Quadrocopter Control by Jian Wang et al.) -->
     body_width="${body_width}"
     body_height="${body_height}"
     use_mesh_file="${use_mesh_file}"
-    color="Grey"  
+    color="Black"
     mesh_file="${mesh_file}">
     <xacro:insert_block name="body_inertia" />
   </xacro:multirotor_base_macro>
@@ -82,7 +82,7 @@ for Quadrocopter Control by Jian Wang et al.) -->
     motor_number="0"
     rotor_drag_coefficient="${rotor_drag_coefficient}"
     rolling_moment_coefficient="${rolling_moment_coefficient}"
-    color="Red"
+    color="Purple"
     use_own_mesh="false"
     mesh="">
     <origin xyz="${arm_length} 0 ${rotor_offset_top}" rpy="0 0 0" />

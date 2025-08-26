@@ -16,7 +16,14 @@
       <direction>-0.5 0.5 -1</direction>
     </light>
     <!-- A ground plane -->
-  
+    <scene>
+      <ambient>1 1 1 1</ambient>
+      <background>0.9 0.9 0.9 1</background>
+      <shadows>1</shadows>
+      <origin_visual>0</origin_visual>
+    </scene>
+
+
     <model name='ground_plane'>
       <static>1</static>
       <link name='link'>

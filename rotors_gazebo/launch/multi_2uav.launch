@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- General arguments -->
+  <arg name="world_name" default="pd29"/>
+  <arg name="enable_logging" default="false" />
+  <arg name="enable_ground_truth" default="true" />
+
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rotors_gazebo)/worlds/$(arg world_name).world" />
+    <!-- <arg name="debug" value="true"/> -->
+    <arg name="paused" value="true"/>
+    <!-- <arg name="gui" value="false"/> -->
+    <!-- <arg name="verbose" value="true"/> -->
+  </include>
+
+
+  <!-- Drone 1 -->
+  <include file="$(find rotors_gazebo)/launch/mav_single.launch">
+    <arg name="mav_id" value="hummingbird1"/>
+    <arg name="mav_name" value="hummingbird"/>
+    <arg name="init_x" value="0.0"/>
+    <arg name="init_y" value="0.0"/>
+    <arg name="init_z" value="1.0"/>
+    <arg name="model"  default="$(find rotors_description)/urdf/mav_with_vi_sensor.gazebo"/>
+
+  </include>
+
+  <include file="$(find rotors_gazebo)/launch/mav_single.launch">
+    <arg name="mav_id" value="hummingbird2"/>
+    <arg name="mav_name" value="hummingbird"/>
+    <arg name="init_x" value="0.0"/>
+    <arg name="init_y" value="-1.0"/>
+    <arg name="init_z" value="1.0"/>
+    <arg name="model"  default="$(find rotors_description)/urdf/mav_with_vi_sensor.gazebo"/>
+
+  </include>
+
+
+  <!-- RViz -->
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator.rviz"/>
+
+
+</launch>
