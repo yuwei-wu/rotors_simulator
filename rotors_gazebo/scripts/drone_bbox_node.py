@@ -184,7 +184,7 @@ class DroneProcessor:
             image_tensor = image_tensor.unsqueeze(0).to(self.device)  # Shape: (1, 3, 640, 640)
             # Perform YOLO detection
             img_xywhn, detect_masks = yolo_detect(self.yolo_model, image_tensor, self.target_num, self.device)
-            self.bbox_data = torch.cat((self.bbox_data[:, :, :(self.win_size-1)*4], img_xywhn.cpu()), dim=2)
+            self.bbox_data = torch.cat((self.bbox_data[:, :, 4:], img_xywhn.cpu()), dim=2)
 
             # Perform trajectory prediction
             pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data, 
@@ -260,8 +260,8 @@ class DroneProcessor:
 
             #process ground truth
             odom = self.process_odom(timestamp, ground_truth_msg, self.log_file_odom)
-            odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)   
-            self.odom_data = torch.cat((self.odom_data[:, :(self.win_size-1)*12], odom), dim=1)
+            odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)
+            self.odom_data = torch.cat((self.odom_data[:, 12:], odom), dim=1)
 
             #process car odom   
             for i, car_msg in enumerate(car_msgs, 1):

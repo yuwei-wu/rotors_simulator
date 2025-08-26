@@ -98,8 +98,9 @@ def traj_pred(model, odom_data, bbox_data, target_num, win_size, pred_win_size, 
     # Shape of odom_data: (1, win_size * 12)
     # Shape of bbox_data: (1, target_num, win_size * 4)
     # Move the data to the device
+
     drone_odometry = odom_data.to(device)
-    yolo_detect_data = bbox_data.permute(2, 0, 1) # (n_target, 1, win_size * 4)
+    yolo_detect_data = bbox_data.permute(1, 0, 2) # (n_target, 1, win_size * 4)
     yolo_detect_data = yolo_detect_data.reshape(target_num, -1, win_size, 4).to(device) # (n_target, 1, win_size, 4)
 
     # Get the new reference point for each sample
@@ -112,6 +113,7 @@ def traj_pred(model, odom_data, bbox_data, target_num, win_size, pred_win_size, 
     drone_odometry[:, :, :2] -= new_refer_point.unsqueeze(1)  # Subtract the new reference point from the first two columns
     # drone_odometry Shape: [1, win_size, 12]
 
+    #print('height', height)
     out, mask = model(drone_odometry, yolo_detect_data, height)
     # print('out shape:', out.shape) # (n_target, 1, pred_win_size * 2)
     out = out.reshape(target_num, -1, pred_win_size, 2)
