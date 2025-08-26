@@ -23,6 +23,7 @@ from model_utils import load_yolo_model, yolo_detect
 from model_utils import load_traj_model, traj_pred
 
 last_call_time = 0.0 # Global rate limiting variable
+#traj_marker_color = 
 
 transform = transforms.Compose([
     transforms.Resize((640, 640)),  # Resize to model's input
@@ -38,7 +39,7 @@ class DroneProcessor:
 
             #get parameters
             self.time_step = rospy.get_param('~time_step', 0.18)
-            self.drone_id = rospy.get_param('~drone_id', 1)
+            self.drone_id = rospy.get_param('~drone_id', 2)
             self.target_num = rospy.get_param('~target_num', 3)
             self.win_size = rospy.get_param('~win_size', 10)
             self.pred_win_size = rospy.get_param('~pred_win_size', 1)
@@ -185,7 +186,6 @@ class DroneProcessor:
             # Perform YOLO detection
             img_xywhn, detect_masks = yolo_detect(self.yolo_model, image_tensor, self.target_num, self.device)
             self.bbox_data = torch.cat((self.bbox_data[:, :, 4:], img_xywhn.cpu()), dim=2)
-            # print('img_xywhn', img_xywhn)
 
             # Perform trajectory prediction
             pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data, 
@@ -202,6 +202,9 @@ class DroneProcessor:
 
             # Convert img_xywhn to numpy array for logging
             bbox = img_xywhn.cpu().numpy().flatten().tolist()  # Shape: (target_num*4,)
+            detect_masks = detect_masks.cpu().numpy().flatten().tolist() # Shape: (target_num,)
+            #print('bbox', bbox)
+            #print('detect_masks', detect_masks)
 
             # Log bbox data
             if self.logging:
@@ -215,25 +218,26 @@ class DroneProcessor:
             rospy.logerr(f"Drone {self.drone_id}: Failed to convert image: {e}")
             return None, None, None
 
-        return bbox, pred_traj
+        return bbox, detect_masks, pred_traj
     
-    def publish_pred_traj(self, bbox, pred_traj):
+    def publish_pred_traj(self, bbox, detect_masks, pred_traj):
         # Publish predicted trajectory
         # bbox shape: (target_num*4,), e.g., (12,) for 3 targets
         target_bbox_msg = Float32MultiArray(data=bbox)
         self.bbox_pub.publish(target_bbox_msg)
 
-        # pred_traj shape: (target_num, pred_win_size, 2),
+        # pred_traj shape: (target_num, pred_win_size, 2)
         data = pred_traj.flatten().tolist()
         #packet = [predicted window size, target num, 1 if target is real, else 0, predicted trajectory points...]
         packet = [self.pred_win_size, self.target_num]
         traj_packet = []
-        for i in range(self.target_num): #check if target is real
-            if all(b == 0 for b in bbox[i*4:i*4+4]): #if all bbox values are zero, target not real
-                packet.append(0)
-            else: #target is real, sending pred traj info
+        for i in range(self.target_num):
+            if detect_masks[i]: # if detected
                 packet.append(1)
                 traj_packet.extend(data[i*self.pred_win_size*2:(i+1)*self.pred_win_size*2]) #flattened pred traj for target i
+            else: # if target is not detected
+                packet.append(0)
+                
         packet.extend(traj_packet) #add flattened pred traj to packet
 
         # print('packet', packet)
@@ -270,22 +274,25 @@ class DroneProcessor:
                 self.process_odom(timestamp, car_msg, self.log_file_target[i])
 
             #process image
-            bbox, pred_traj = self.process_image(image_msg, timestamp)
+            bbox, detect_masks, pred_traj = self.process_image(image_msg, timestamp)
 
             # # Log bounding boxes
-            self.publish_pred_traj(bbox, pred_traj) #all three targets, zeros out if less than target num
+            self.publish_pred_traj(bbox, detect_masks, pred_traj) #all three targets, zeros out if less than target num
 
-            self.publish_pred_markers(pred_traj, timestamp)
+            self.publish_pred_markers(detect_masks, pred_traj, timestamp)
             
         rospy.loginfo(f"Drone {self.drone_id} finished processing at {timestamp}")
 
-    def publish_pred_markers(self, pred_traj, timestamp):
+    def publish_pred_markers(self, detect_masks, pred_traj, timestamp):
         # Publish visualization markers for RViz
         # pred_traj shape: (target_num, pred_win_size, 2), e,g, (3, 1, 2)
         marker_array = MarkerArray()
         marker_id = 0
 
         for i in range(self.target_num):
+            if not detect_masks[i]:
+                continue # Skip if target not detected
+
             # Check if trajectory is valid (not all zeros)
             traj_points = pred_traj[i]  # Shape: (pred_win_size, 2)
 
