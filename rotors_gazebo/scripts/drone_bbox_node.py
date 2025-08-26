@@ -185,10 +185,12 @@ class DroneProcessor:
             # Perform YOLO detection
             img_xywhn, detect_masks = yolo_detect(self.yolo_model, image_tensor, self.target_num, self.device)
             self.bbox_data = torch.cat((self.bbox_data[:, :, 4:], img_xywhn.cpu()), dim=2)
+            # print('img_xywhn', img_xywhn)
 
             # Perform trajectory prediction
             pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data, 
                                   self.target_num, self.win_size, self.pred_win_size, self.device)
+            # print('pred_traj', pred_traj)
 
             # Save the image
             if self.logging:
@@ -302,7 +304,7 @@ class DroneProcessor:
                 cube_marker.action = Marker.ADD
 
                 cube_marker.pose.position.x = x
-                cube_marker.pose.position.y = -y
+                cube_marker.pose.position.y = y
                 cube_marker.pose.position.z = 0.5  # height off the ground
                 cube_marker.pose.orientation.w = 1.0
 
