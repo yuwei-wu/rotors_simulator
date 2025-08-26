@@ -23,7 +23,14 @@ from model_utils import load_yolo_model, yolo_detect
 from model_utils import load_traj_model, traj_pred
 
 last_call_time = 0.0 # Global rate limiting variable
-#traj_marker_color = 
+traj_marker_colors = [
+    (0.7, 0.0, 0.7, 1.0),  # Purple
+    (0.0, 0.7, 0.7, 1.0),  # Cyan
+    (0.7, 0.7, 0.0, 1.0),  # Yellow
+    (1.0, 0.0, 0.0, 1.0),  # Red
+    (0.0, 1.0, 0.0, 1.0),  # Green
+    (0.0, 0.0, 1.0, 1.0),  # Blue
+]
 
 transform = transforms.Compose([
     transforms.Resize((640, 640)),  # Resize to model's input
@@ -285,6 +292,8 @@ class DroneProcessor:
 
     def publish_pred_markers(self, detect_masks, pred_traj, timestamp):
         # Publish visualization markers for RViz
+        global traj_marker_colors
+
         # pred_traj shape: (target_num, pred_win_size, 2), e,g, (3, 1, 2)
         marker_array = MarkerArray()
         marker_id = 0
@@ -319,10 +328,10 @@ class DroneProcessor:
                 cube_marker.scale.y = 0.1
                 cube_marker.scale.z = 1.0
 
-                cube_marker.color.r = 0.7
-                cube_marker.color.g = 0.0
-                cube_marker.color.b = 0.7
-                cube_marker.color.a = 0.5
+                cube_marker.color.r = traj_marker_colors[self.drone_id][0]
+                cube_marker.color.g = traj_marker_colors[self.drone_id][1]
+                cube_marker.color.b = traj_marker_colors[self.drone_id][2]
+                cube_marker.color.a = traj_marker_colors[self.drone_id][3]
 
                 #cube_marker.lifetime = rospy.Duration(1.0)
                 marker_array.markers.append(cube_marker)
@@ -368,10 +377,10 @@ class DroneProcessor:
 
             traj_marker.pose.orientation.w = 1.0
 
-            traj_marker.color.r = 0.7
-            traj_marker.color.g = 0.0
-            traj_marker.color.b = 0.7
-            traj_marker.color.a = 1.0
+            traj_marker.color.r = traj_marker_colors[self.drone_id][0]
+            traj_marker.color.g = traj_marker_colors[self.drone_id][1]
+            traj_marker.color.b = traj_marker_colors[self.drone_id][2]
+            traj_marker.color.a = traj_marker_colors[self.drone_id][3]
 
             #traj_marker.lifetime = rospy.Duration(2.0)
 
