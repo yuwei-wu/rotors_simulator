@@ -6,7 +6,7 @@
   <arg name="init_z" value="1.0"/> 
   <!--arg name="mav_name" default="hummingbird"/-->
   <arg name="mav_name" default="hummingbird"/>
-  <arg name="world_name" default="pd12"/>
+  <arg name="world_name" default="pd22"/>
   <arg name="enable_logging" default="false" />
   <arg name="enable_ground_truth" default="true" />
   <arg name="log_file" default="$(arg mav_name)" />
@@ -30,6 +30,44 @@
     <!-- <arg name="verbose" value="true"/> -->
   </include>
 
+
+  <!-- Short-term hack to support the original front_laser:=true argument for spawning
+       the simulator. This will be removed in favour of using the config:=x arg instead. -->
+  <arg name="front_laser" default="false" />
+  <arg name="default_config" value="front_laser" if="$(arg front_laser)" />
+  <arg name="default_config" value="base" unless="$(arg front_laser)" />
+  <!-- Configuration of Jackal which you would like to simulate.
+       See jackal_description for details. -->
+  <arg name="config" default="$(arg default_config)" />
+  <!-- Optionally enable teleop for the simulation -->
+  <arg name="joystick" default="false" />
+
+  <!-- Spawn Jackal 1 -->
+  <group ns="jackal1">
+    <include file="$(find jackal_gazebo)/launch/spawn_jackal.launch">
+      <arg name="x" value="0" />
+      <arg name="y" value="3" />
+      <arg name="z" value="0.0" />
+      <arg name="yaw" value="0" />
+      <arg name="config" value="$(arg config)" />
+      <arg name="joystick" value="$(arg joystick)" />
+    </include>
+  </group>
+
+  <!-- Spawn Jackal 2 -->
+  <group ns="jackal2">
+    <include file="$(find jackal_gazebo)/launch/spawn_jackal.launch">
+      <arg name="x" value="2" />
+      <arg name="y" value="3" />
+      <arg name="z" value="0.0" />
+      <arg name="yaw" value="0" />
+      <arg name="config" value="$(arg config)" />
+      <arg name="joystick" value="$(arg joystick)" />
+    </include>
+  </group>
+
+
+  
   <group ns="$(arg mav_name)">
     <include file="$(find rotors_gazebo)/launch/spawn_mav.launch">
       <arg name="mav_name" value="$(arg mav_name)" />

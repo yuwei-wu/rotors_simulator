@@ -73,7 +73,13 @@
       <shadows>1</shadows>
       <origin_visual>0</origin_visual>
     </scene>
-
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>-1.73747 -8.6823 9.41167 -0 0.871642 1.2082</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
     <!-- Only one ROS interface plugin is required per world, as any other plugin can connect a Gazebo
          topic to a ROS topic (or vise versa). -->
     <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>
@@ -699,7 +705,7 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <pose>-7.02554 11 0 0 -0 0</pose>
+      <pose>12.8189 0.248938 0 0 -0 0.662951</pose>
     </model>
 
 
@@ -1606,7 +1612,7 @@
         <enable_wind>0</enable_wind>
         <kinematic>0</kinematic>
       </link>
-      <pose>-10.4598 4.97569 0 0 -0 0</pose>
+      <pose>12.3755 4.97569 -0 0 -0 0</pose>
     </model>
     <model name='oak_tree_2'>
       <static>1</static>
@@ -1974,7 +1980,7 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose>-3.5 -2.8 0 0 -0 0</pose>
+      <pose>-3.0 -3.2 0 0 -0 0</pose>
     </model>
 
 

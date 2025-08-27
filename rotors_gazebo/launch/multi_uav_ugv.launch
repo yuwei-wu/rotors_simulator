@@ -3,7 +3,7 @@
 
   <arg name="init_x" value="0.0"/>
   <arg name="init_y" value="0.0"/>
-  <arg name="init_z" value="0.1"/> 
+  <arg name="init_z" value="1.0"/> 
   <!--arg name="mav_name" default="hummingbird"/-->
   <arg name="mav_name" default="hummingbird"/>
   <arg name="world_name" default="pd22"/>
@@ -30,36 +30,27 @@
     <!-- <arg name="verbose" value="true"/> -->
   </include>
 
-  <!-- ROBOTS -->
-  <arg name="agent0"       default="scarab40"/>
-  <arg name="agent1"       default="scarab41"/>
-  <arg name="agent2"       default="scarab42"/>
-  <arg name="id0"       default="0"/>
-  <arg name="id1"       default="1"/>
-  <arg name="id2"       default="2"/>
-  <arg name="spawn_x0" default="5.0"/>
-  <arg name="spawn_y0" default="3.0"/>
-  <arg name="spawn_x1" default="2.0"/>
-  <arg name="spawn_y1" default="2.0"/>
-  <arg name="spawn_x2" default="-2.0"/>
-  <arg name="spawn_y2" default="-3.0"/>
 
+  <!-- Short-term hack to support the original front_laser:=true argument for spawning
+       the simulator. This will be removed in favour of using the config:=x arg instead. -->
+  <arg name="front_laser" default="false" />
+  <arg name="default_config" value="front_laser" if="$(arg front_laser)" />
+  <arg name="default_config" value="base" unless="$(arg front_laser)" />
+  <!-- Configuration of Jackal which you would like to simulate.
+       See jackal_description for details. -->
+  <arg name="config" default="$(arg default_config)" />
+  <!-- Optionally enable teleop for the simulation -->
+  <arg name="joystick" default="false" />
 
-  <include file="$(find scarab)/launch/scarab_sim.launch">
-    <arg name="agent"   value="$(arg agent0)"/>
-    <arg name="id"   value="$(arg id0)"/>
-    <arg name="spawn_x" value="$(arg spawn_x0)"/>
-    <arg name="spawn_y" value="$(arg spawn_y0)"/>
+  <!-- Spawn Jackal -->
+  <include file="$(find jackal_gazebo)/launch/spawn_jackal.launch">
+    <arg name="x" value="-1.5" />
+    <arg name="y" value="0" />
+    <arg name="z" value="0.5" />
+    <arg name="yaw" value="0" />
+    <arg name="config" value="$(arg config)" />
+    <arg name="joystick" value="$(arg joystick)" />
   </include>
-
-  <include file="$(find scarab)/launch/scarab_sim.launch">
-    <arg name="agent"   value="$(arg agent1)"/>
-    <arg name="id"   value="$(arg id1)"/>
-    <arg name="spawn_x" value="$(arg spawn_x1)"/>
-    <arg name="spawn_y" value="$(arg spawn_y1)"/>
-  </include>
-
-
 
   <group ns="$(arg mav_name)">
     <include file="$(find rotors_gazebo)/launch/spawn_mav.launch">

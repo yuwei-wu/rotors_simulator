@@ -1,0 +1,6 @@
+robot_id,x,y,z
+u1,2,0,1      # uav-detect-mov at p2
+u1,2,4,1      # move-uav to p3
+u1,2,4,1      # uav-detect-clear at p3
+g1,2,0,0      # push passes through p2
+g1,2,4.2,0      # push ends at p3

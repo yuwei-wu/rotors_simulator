@@ -19,7 +19,12 @@
     <include>
       <uri>model://ground_plane</uri>
     </include>
-
+    <scene>
+      <ambient>0.8 0.8 0.8 1</ambient>
+      <background>0.9 0.9 0.9 1</background>
+      <shadows>1</shadows>
+      <origin_visual>0</origin_visual>
+    </scene>
     <!-- Only one ROS interface plugin is required per world, as any other plugin can connect a Gazebo
          topic to a ROS topic (or vise versa). -->
     <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>
@@ -45,7 +50,57 @@
       <real_time_update_rate>500</real_time_update_rate>
       <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
     </physics>
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>5.17055 -1.16747 8.94101 0 1.10764 2.2282</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
 
+
+    <model name='maze'>
+      <static>1</static>
+      <link name='link'>
+        <collision name='collision'>
+          <geometry>
+            <mesh>
+              <uri>model://maze/meshes/map.obj</uri>
+            </mesh>
+          </geometry>
+          <max_contacts>10</max_contacts>
+          <surface>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+            <friction>
+              <torsional>
+                <ode/>
+              </torsional>
+              <ode/>
+            </friction>
+          </surface>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://maze/meshes/map.obj</uri>
+            </mesh>
+          </geometry>
+          <material>
+            <ambient>0.48 0.48 0.48 1</ambient>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <emissive>0 0 0 1</emissive>
+          </material>
+        </visual>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <pose>-7 -2.9 0 0 -0 0</pose>
+    </model>
 
     <model name='brick_box_0'>
       <static>0</static>
@@ -77,18 +132,18 @@
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
       </link>
-      <pose frame=''>-6 2.5 0 -0 0</pose>
+      <pose frame=''>-6.2 2.5 0 -0 0</pose>
     </model>
 
 
     <model name='bb4'>
-      <static>1</static>
+      <static>0</static>
       <link name='chassis'>
         <pose frame=''>0 0 0 0 -0 0</pose>
         <collision name='collision'>
           <geometry>
             <box>
-              <size>1 1 1</size>
+              <size>0.2 0.2 0.2</size>
             </box>
           </geometry>
           <max_contacts>10</max_contacts>
@@ -97,7 +152,7 @@
           <geometry>
             <mesh>
               <uri>model://brick_box_3/meshes/simple_box.dae</uri>
-              <scale>1 1 1</scale>
+              <scale>0.2 0.2 0.2</scale>
             </mesh>
           </geometry>
           <material>
@@ -111,7 +166,7 @@
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
       </link>
-      <pose frame=''>3 -2 0 0 -0 0</pose>
+      <pose frame=''>2 0.5 0.1 0 -0 0</pose>
     </model>
 
 
@@ -158,7 +213,7 @@
         <self_collide>0</self_collide>
         <kinematic>0</kinematic>
       </link>
-      <pose frame=''>3 5 0 0 -0 0</pose>
+      <pose frame=''>1.8 5.5 0 0 -0 0</pose>
     </model>
 
   </world>

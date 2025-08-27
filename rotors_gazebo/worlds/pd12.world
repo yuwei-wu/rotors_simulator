@@ -1,0 +1,144 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <world name="default">
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose frame=''>0 0 20 0 -0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.5 -1</direction>
+    </light>
+
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <scene>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+      <shadows>1</shadows>
+    </scene>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>51.9906361</latitude_deg>
+      <longitude_deg>4.3767874</longitude_deg>
+      <elevation>45.110</elevation>
+      <heading_deg>180</heading_deg><!-- Temporary fix for issue https://bitbucket.org/osrf/gazebo/issues/2022/default-sphericalcoordinates-frame-should -->
+    </spherical_coordinates>
+    
+    <plugin name="ros_interface_plugin" filename="librotors_gazebo_ros_interface_plugin.so"/>
+
+    <physics name='default_physics' default='0' type='ode'>
+      <gravity>0 0 -9.8066</gravity>
+      <ode>
+        <solver>
+          <type>quick</type>
+          <iters>10</iters>
+          <sor>1.3</sor>
+          <use_dynamic_moi_rescaling>0</use_dynamic_moi_rescaling>
+        </solver>
+        <constraints>
+          <cfm>0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
+      </ode>
+      <max_step_size>0.002</max_step_size>
+      <real_time_factor>1</real_time_factor>
+      <real_time_update_rate>500</real_time_update_rate>
+      <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
+    </physics>
+    
+    
+    <include>
+      <uri>model://fetchit_warehouse</uri>
+      <name>fetchit_warehouse</name>
+      <pose>0 0 -0.005 0 0 0</pose>
+    </include>
+
+    <include>
+      <uri>model://caddy_green</uri>
+      <name>caddy_green1</name>
+      <pose>4.609024 -3.594681 0.814290 0 0 0</pose>
+    </include>
+
+    <!-- GearBox Assembly Parts -->
+    <include>
+      <uri>model://gearbox_bolt</uri>
+      <name>gearbox_bolt1</name>
+      <pose>3.604571 -2.373102 0.81 0 0 0</pose>
+    </include>
+    
+    <include>
+      <uri>model://gearbox_bolt</uri>
+      <name>gearbox_bolt2</name>
+      <pose>3.609393 -2.302640 0.81 0 0 0</pose>
+    </include>
+    
+    <include>
+      <uri>model://gearbox_bottom</uri>
+      <name>gearbox_bottom1</name>
+      <pose>2.497005 -4.123425 0.877855 0 0 1.57</pose>
+    </include>
+    
+    <include>
+      <uri>model://gearbox_top</uri>
+      <name>gearbox_top1</name>
+      <pose>2.497005 -4.123425 0.977855 0 0 1.57</pose>
+    </include>
+
+    
+    <!-- Pick Places -->
+    <!-- <include>
+      <uri>model://fetchit_table</uri>
+      <name>screw_bin_pick_station</name>
+      <pose>3.54929 -2.27837 0.0 0 0 0</pose>
+    </include> -->
+<!-- 
+     <include>
+      <uri>model://fetchit_table</uri>
+      <name>kit_station</name>
+      <pose>4.73491 -3.41284 0.0 0 0 -1.57</pose>
+    </include>
+
+    <include>
+      <uri>model://fetchit_table</uri>
+      <name>gearbox_pick_station</name>
+      <pose>2.47048 -4.10962 0.0 0 0 1.57</pose>
+    </include> -->
+
+    <include>
+      <uri>model://dropoff_box</uri>
+      <name>dropoff_box1</name>
+      <pose>2.445290 -2.956990 0.011069 0 0 0</pose>
+    </include>
+
+<!-- 
+    <include>
+      <uri>model://100mmbin</uri>
+      <name>100mmbin1</name>
+      <pose>2.497005 -4.123425 0.801 0 0 1.57</pose>
+    </include>
+
+    <include>
+      <uri>model://50mmbin</uri>
+      <name>50mmbin</name>
+      <pose>3.597790 -2.3 0.801 0 0 0</pose>
+    </include> -->
+
+    <!-- Lights -->
+    <!--
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    -->
+
+  </world>
+</sdf>

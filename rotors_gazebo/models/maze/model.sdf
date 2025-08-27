@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="maze">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <mesh>
+            <uri>model://maze/meshes/map.obj</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>model://maze/meshes/map.obj</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.48 0.48 0.48 1.0</ambient>
+          <diffuse>0.8 0.8 0.8 1.0</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+          <emissive>0 0 0 1</emissive>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
