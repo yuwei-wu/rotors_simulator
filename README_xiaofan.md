@@ -37,20 +37,16 @@ python3 src/rotors_simulator/rotors_gazebo/scripts/my_logger.py
 
 ### Integration
 I am using Python 3.8 to run the detection model. The requirements can be found in `rotors_gazebo/scripts/requirements.txt`.
-To run the YOLO detection, you need to download the `best_yolo.pt` from [here](https://drive.google.com/file/d/13hKl5SC1ntilpZSolp6-cfXE_w6vSSQH/view?usp=sharing) and the `best_model.pth` from [here](https://drive.google.com/file/d/1BcnYvoRmn2784whT3mFO7aKgoJ9nPx3D/view?usp=sharing). Put both models under `rotors_gazebo/scripts/`.
+To run the YOLO detection, you need to download the `best_yolo.pt` from [here](https://drive.google.com/file/d/13hKl5SC1ntilpZSolp6-cfXE_w6vSSQH/view?usp=sharing) and the `best_model.pth` from [here](https://drive.google.com/file/d/1tC1POn3bKJMiN3hDJFuS1JfeggC3f_0n/view?usp=sharing). Put both models under `rotors_gazebo/pred_model_ckpt/`.
 
-Run the following command under `rotors_gazebo/scripts/`:
-```bash
-python3 data_logger.py
-```
-Line 148 of this script will give the predicted trajectory.
-
-Open two other terminals to run the following:
+Open three terminals to run the following:
 ```bash
 # One terminal running ros simulation
 roslaunch rotors_gazebo mav_swarm.launch
 # One terminal running Yuwei's planner
 python3 tracker_server.py
+# One terminal running multi-thred yolo detection and trajectory prediction
+roslaunch rotors_gazebo multi_drone.launch
 ```
 
 ### File Locations
@@ -65,14 +61,5 @@ python3 tracker_server.py
 ### Other Important Settings
 * Target speed is set in https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/models/car_199/model.sdf
 * Target initial location is set in https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/worlds/agriculture.world
-
-
-### Runing multi-threaded version
-* run this instead of data_logger.py
-```bash
-#Separate terminal
-roslaunch rotors_gazebo multi_drone.launch\
-```
-
 * File for multi_drone.launch: https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/launch/multi_drone.launch
 * File for drone_bbox_node.py: https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/scripts/drone_bbox_node.py

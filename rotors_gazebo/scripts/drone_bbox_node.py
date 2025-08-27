@@ -328,10 +328,10 @@ class DroneProcessor:
                 cube_marker.scale.y = 0.1
                 cube_marker.scale.z = 1.0
 
-                cube_marker.color.r = traj_marker_colors[self.drone_id][0]
-                cube_marker.color.g = traj_marker_colors[self.drone_id][1]
-                cube_marker.color.b = traj_marker_colors[self.drone_id][2]
-                cube_marker.color.a = traj_marker_colors[self.drone_id][3]
+                cube_marker.color.r = traj_marker_colors[self.drone_id-1][0]
+                cube_marker.color.g = traj_marker_colors[self.drone_id-1][1]
+                cube_marker.color.b = traj_marker_colors[self.drone_id-1][2]
+                cube_marker.color.a = traj_marker_colors[self.drone_id-1][3]
 
                 #cube_marker.lifetime = rospy.Duration(1.0)
                 marker_array.markers.append(cube_marker)
@@ -377,10 +377,10 @@ class DroneProcessor:
 
             traj_marker.pose.orientation.w = 1.0
 
-            traj_marker.color.r = traj_marker_colors[self.drone_id][0]
-            traj_marker.color.g = traj_marker_colors[self.drone_id][1]
-            traj_marker.color.b = traj_marker_colors[self.drone_id][2]
-            traj_marker.color.a = traj_marker_colors[self.drone_id][3]
+            traj_marker.color.r = traj_marker_colors[self.drone_id-1][0]
+            traj_marker.color.g = traj_marker_colors[self.drone_id-1][1]
+            traj_marker.color.b = traj_marker_colors[self.drone_id-1][2]
+            traj_marker.color.a = traj_marker_colors[self.drone_id-1][3]
 
             #traj_marker.lifetime = rospy.Duration(2.0)
 
