@@ -1,0 +1,5 @@
+robot_id,x,y,z
+u1,-8,-2,1      # move-uav to p3
+u1,-11,0,1      # move-uav to p3
+u1,-6.5,8,1      # move-uav to p3
+g1,-3,8,0      # push ends at p3
