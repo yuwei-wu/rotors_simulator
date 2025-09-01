@@ -5,6 +5,10 @@
 #include <gazebo/physics/physics.hh>
 #include <ignition/math/Vector3.hh>
 
+// Define random generator (e.g., in your class header)
+std::default_random_engine generator;
+std::normal_distribution<double> distribution(0.0, 0.0); // Mean 0, Stddev 0.0 (adjust as 1.0 for random walk)
+
 namespace gazebo
 {
   void MovingTargetPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
@@ -55,8 +59,18 @@ namespace gazebo
 
     if (timeDelta > 0 && this->isMoving)
     {
-      // Update position based on velocity
-      ignition::math::Vector3d newPosition = currentPose.Pos() + this->velocity * timeDelta;
+      // Generate random walk perturbation
+      ignition::math::Vector3d randomPerturbation(
+          distribution(generator),
+          distribution(generator),
+          0.0);  // Random in x, y
+
+      // Scale perturbation with timestep so it's smooth
+      ignition::math::Vector3d newPosition =
+          currentPose.Pos() + (this->velocity + randomPerturbation) * timeDelta;
+
+      gzdbg << "Moving target to new position: " << newPosition << std::endl;
+
       this->model->SetWorldPose(ignition::math::Pose3d(newPosition, currentPose.Rot()));
       currentPose = this->model->WorldPose();  // Update currentPose after moving
     }
