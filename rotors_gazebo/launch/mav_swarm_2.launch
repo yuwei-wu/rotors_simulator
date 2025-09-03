@@ -18,9 +18,9 @@
   <include file="$(find rotors_gazebo)/launch/mav_single.launch">
     <arg name="mav_id" value="drone1"/>
     <arg name="mav_name" value="hummingbird"/>
-    <arg name="init_x" value="-4.0"/>
+    <arg name="init_x" value="20.0"/>
     <arg name="init_y" value="-3.0"/>
-    <arg name="init_z" value="27.0"/>
+    <arg name="init_z" value="28.0"/>
   </include>
 
   <include file="$(find rotors_gazebo)/launch/mav_single.launch">
@@ -28,13 +28,21 @@
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="0.0"/>
     <arg name="init_y" value="-3.0"/>
-    <arg name="init_z" value="15.5"/>
+    <arg name="init_z" value="16.0"/>
   </include>
 
   <include file="$(find rotors_gazebo)/launch/mav_single.launch">
     <arg name="mav_id" value="drone3"/>
     <arg name="mav_name" value="hummingbird"/>
-    <arg name="init_x" value="4.0"/>
+    <arg name="init_x" value="15.0"/>
+    <arg name="init_y" value="-3.0"/>
+    <arg name="init_z" value="15.5"/>
+  </include>
+
+  <include file="$(find rotors_gazebo)/launch/mav_single.launch">
+    <arg name="mav_id" value="drone4"/>
+    <arg name="mav_name" value="hummingbird"/>
+    <arg name="init_x" value="30.0"/>
     <arg name="init_y" value="-3.0"/>
     <arg name="init_z" value="15.0"/>
   </include>
@@ -54,7 +62,7 @@
         args="-sdf -model car_6 -database car_6 -x 45  -y -5  -z 0.5"/> -->
 
   <!-- RViz -->
-  <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator.rviz"/>
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator_2.rviz"/>
 
 
 </launch>
