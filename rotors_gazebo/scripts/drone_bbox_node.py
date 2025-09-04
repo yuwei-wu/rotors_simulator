@@ -98,7 +98,7 @@ class DroneProcessor:
         image_topic = f"/drone{self.drone_id}/rgb_camera/rgb_camera/image_raw"
         
         # Shared car topics
-        car_topics = [f"/car_{i}/odometry" for i in range(1, self.target_num+1)]
+        car_topics = [f"/car_{i}/odometry_throttled" for i in range(1, self.target_num+1)]
         
         # Create subscribers
         #odom_sub = message_filters.Subscriber(odom_topic, Odometry)

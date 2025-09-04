@@ -66,4 +66,14 @@
   <node pkg="topic_tools" type="throttle" name="odom_throttle3"
         args="messages /drone3/ground_truth/odometry 30.0 /drone3/ground_truth/odometry_throttled" output="screen" />
 
+  <!-- Throttle target to 30 Hz -->
+  <node pkg="topic_tools" type="throttle" name="target1_throttle"
+        args="messages /car_1/odometry 30.0 /car_1/odometry_throttled" output="screen" />
+
+  <node pkg="topic_tools" type="throttle" name="target2_throttle"
+        args="messages /car_2/odometry 30.0 /car_2/odometry_throttled" output="screen" />
+
+  <node pkg="topic_tools" type="throttle" name="target3_throttle"
+        args="messages /car_3/odometry 30.0 /car_3/odometry_throttled" output="screen" />
+
 </launch>
