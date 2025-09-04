@@ -4,7 +4,7 @@
     <arg name="win_size" default="10"/>
     <arg name="pred_win_size" default="1"/>
     <arg name="pred_model_path" default="$(find rotors_gazebo)/pred_model_ckpt/"/>
-    <arg name="logging" default="true"/>
+    <arg name="logging" default="false"/>
 
     <!-- Drone 1 Processor -->
     <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone1_processor" output="screen">
@@ -13,7 +13,7 @@
         <param name="win_size" value="$(arg win_size)"/>
         <param name="pred_win_size" value="$(arg pred_win_size)"/>
         <param name="pred_model_path" value="$(arg pred_model_path)"/>
-        <param name="log_path" value="$(find rotors_gazebo)/exp1_logs/"/>
+        <param name="log_path" value="$(find rotors_gazebo)/exp2_logs/"/>
         <param name="logging" value="$(arg logging)"/>
     </node>
     
@@ -24,7 +24,7 @@
         <param name="win_size" value="$(arg win_size)"/>
         <param name="pred_win_size" value="$(arg pred_win_size)"/>
         <param name="pred_model_path" value="$(arg pred_model_path)"/>
-        <param name="log_path" value="$(find rotors_gazebo)/exp1_logs/"/>
+        <param name="log_path" value="$(find rotors_gazebo)/exp2_logs/"/>
         <param name="logging" value="$(arg logging)"/>
     </node>
     
@@ -35,7 +35,18 @@
         <param name="win_size" value="$(arg win_size)"/>
         <param name="pred_win_size" value="$(arg pred_win_size)"/>
         <param name="pred_model_path" value="$(arg pred_model_path)"/>
-        <param name="log_path" value="$(find rotors_gazebo)/exp1_logs/"/>
+        <param name="log_path" value="$(find rotors_gazebo)/exp2_logs/"/>
+        <param name="logging" value="$(arg logging)"/>
+    </node>
+
+    <!-- Drone 4 Processor -->
+    <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone3_processor" output="screen">
+        <param name="drone_id" value="4"/>
+        <param name="target_num" value="$(arg target_num)"/>
+        <param name="win_size" value="$(arg win_size)"/>
+        <param name="pred_win_size" value="$(arg pred_win_size)"/>
+        <param name="pred_model_path" value="$(arg pred_model_path)"/>
+        <param name="log_path" value="$(find rotors_gazebo)/exp2_logs/"/>
         <param name="logging" value="$(arg logging)"/>
     </node>
 

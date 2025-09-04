@@ -54,6 +54,7 @@ class DroneProcessor:
             self.height_tgt = rospy.get_param('~height_tgt', False)
             self.pred_model_path = rospy.get_param('~pred_model_path', './pred_model_ckpt')  # Default path if not set
             self.log_path = rospy.get_param('~log_path', './logs')
+            self.log_path = os.path.join(self.log_path, f'trial_{self.drone_id-1}')
             self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
 
             yolo_model_name = os.path.join(self.pred_model_path, "best_yolo.pt")
@@ -119,7 +120,7 @@ class DroneProcessor:
         self.log_file_target = {}
         for i in range(self.target_num):
             self.log_file_target[i+1] = f"{self.log_path}/target_{i+1}.csv"
-        self.log_image_dir = f"{self.log_path}/images"
+        self.log_image_dir = f"{self.log_path}/drone_images"
         self.log_file_bbox = f"{self.log_path}/drone_bbox.csv"
 
         if self.logging:
