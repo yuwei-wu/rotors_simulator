@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="world_name" default="agriculture"/>
+  <arg name="world_name" default="agri2"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
@@ -56,5 +56,14 @@
   <!-- RViz -->
   <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator.rviz"/>
 
+  <!-- Throttle odom to 30 Hz -->
+  <node pkg="topic_tools" type="throttle" name="odom_throttle1"
+        args="messages /drone1/ground_truth/odometry 30.0 /drone1/ground_truth/odometry_throttled" output="screen" />
+
+  <node pkg="topic_tools" type="throttle" name="odom_throttle2"
+        args="messages /drone2/ground_truth/odometry 30.0 /drone2/ground_truth/odometry_throttled" output="screen" />
+
+  <node pkg="topic_tools" type="throttle" name="odom_throttle3"
+        args="messages /drone3/ground_truth/odometry 30.0 /drone3/ground_truth/odometry_throttled" output="screen" />
 
 </launch>

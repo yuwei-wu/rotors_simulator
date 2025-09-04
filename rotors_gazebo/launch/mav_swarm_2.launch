@@ -64,5 +64,24 @@
   <!-- RViz -->
   <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator_2.rviz"/>
 
+  <!-- Throttle odom to 30 Hz -->
+  <node pkg="topic_tools" type="throttle" name="odom_throttle1"
+        args="messages /drone1/ground_truth/odometry 30.0 /drone1/ground_truth/odometry_throttled" output="screen" />
+
+  <node pkg="topic_tools" type="throttle" name="odom_throttle2"
+        args="messages /drone2/ground_truth/odometry 30.0 /drone2/ground_truth/odometry_throttled" output="screen" />
+
+  <node pkg="topic_tools" type="throttle" name="odom_throttle3"
+        args="messages /drone3/ground_truth/odometry 30.0 /drone3/ground_truth/odometry_throttled" output="screen" />
+
+  <node pkg="topic_tools" type="throttle" name="odom_throttle4"
+        args="messages /drone4/ground_truth/odometry 30.0 /drone4/ground_truth/odometry_throttled" output="screen" />
+
+  <node pkg="topic_tools" type="throttle" name="odom_throttle5"
+        args="messages /drone5/ground_truth/odometry 30.0 /drone5/ground_truth/odometry_throttled" output="screen" />
+
+  <node pkg="topic_tools" type="throttle" name="odom_throttle6"
+        args="messages /drone6/ground_truth/odometry 30.0 /drone6/ground_truth/odometry_throttled" output="screen" />
+
 
 </launch>

@@ -94,7 +94,7 @@ class DroneProcessor:
     def setup_subscribers(self):
         # Drone-specific topics
         #odom_topic = f"/drone{self.drone_id}/odometry_sensor1/odometry"
-        ground_truth_topic = f"/drone{self.drone_id}/ground_truth/odometry"
+        ground_truth_topic = f"/drone{self.drone_id}/ground_truth/odometry_throttled"
         image_topic = f"/drone{self.drone_id}/rgb_camera/rgb_camera/image_raw"
         
         # Shared car topics
