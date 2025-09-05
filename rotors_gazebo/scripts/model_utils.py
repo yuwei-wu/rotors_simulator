@@ -36,40 +36,46 @@ def yolo_detect(yolo_model, x_images, n_target, device):
 
 
 def sort_detections(result, n_target, device):
-    # Given a detection result, sort the detections based on the number of detection
+    """
+    Sort YOLO detections by confidence and assign at most one detection per class.
+    
+    Args:
+        result: YOLO result object with result.boxes.xyxy, result.boxes.conf, result.boxes.cls
+        n_target: number of target classes
+        device: torch device
+    
+    Returns:
+        detections: tensor (n_target, 4) of bounding boxes for assigned detections
+        detect_mask: tensor (n_target,) bool, True if detection exists for that class
+    """
     n_detections = len(result.boxes)
     detections = torch.zeros((n_target, 4), device=device)
     detect_mask = torch.zeros((n_target), dtype=torch.bool, device=device)
-    # print('n_detections', n_detections)
 
     if n_detections == 0:
-        #print('0 detections found')
         return detections, detect_mask
-    
-    cls_index = result.boxes.cls.int()  # Get the class indices of the detections
-    if n_detections <= n_target:
-        # Fill in the detecting tensor with the xywhn values
-        detections[cls_index] = result.boxes.xywhn  # Fill the detections tensor with the xywhn values
-        detect_mask[cls_index] = 1  # Mark the detected targets
 
-    else: # Redundant detections exist
-        # The output boxes are automatically sorted by confidence score in ultralytics YOLO
-        # Fill the detections tensor with the sorted boxes
-        #print(n_detections, 'detections found, but only', n_target, 'targets are needed')
-        for cls_id in range(n_target):
-            # Get indices where cls_id is found in sorted_cls
-            indices = torch.nonzero(cls_index == cls_id, as_tuple=False)
+    # Extract YOLO outputs
+    cls_index = result.boxes.cls.int()    # class indices
+    conf = result.boxes.conf              # confidences
+    boxes = result.boxes.xywhn            # bounding boxes
 
-            # Get the first index if it exists, and move it to CPU
-            first_index = indices[0].item() if indices.numel() > 0 else -1
-            #print('detections for cls_id', cls_id, 'first_index', first_index)
+    # Sort detections by confidence (descending) - This is down automatically by ultralytics
+    #sorted_idx = torch.argsort(conf, descending=True)
 
-            # Fill the detections tensor with the first detection of the cls_id
-            if first_index > -1:
-                detections[cls_id] = result.boxes.xywhn[first_index]
-                detect_mask[cls_id] = 1  # Mark the detected targets
-    
-    # print(detections)
+    for idx in range(len(cls_index)):
+        cl = cls_index[idx].item()
+        c = conf[idx].item()
+
+        # Skip if below confidence threshold
+        if c < 0.6:
+            break
+
+        # Assign detection only if this class has no detection yet
+        if cl < n_target and not detect_mask[cl]:
+            detections[cl] = boxes[idx]
+            detect_mask[cl] = 1
+        # Otherwise, ignore (keep only the most confident detection for this class)
 
     return detections, detect_mask
 

@@ -116,12 +116,12 @@ class DroneProcessor:
 
     def setup_logging(self):
         # Log file name
-        self.log_file_odom = f"{self.log_path}/drone_log.csv"
+        self.log_file_odom = f"{self.log_path}/drone_ground_truth.csv"
         self.log_file_target = {}
         for i in range(self.target_num):
-            self.log_file_target[i+1] = f"{self.log_path}/target_{i+1}.csv"
+            self.log_file_target[i+1] = f"{self.log_path}/target_{i+1}_log.csv"
         self.log_image_dir = f"{self.log_path}/drone_images"
-        self.log_file_bbox = f"{self.log_path}/drone_bbox.csv"
+        self.log_file_bbox = f"{self.log_path}/yolo_detect.csv"
 
         if self.logging:
             # Create log directory if it doesn't exist
