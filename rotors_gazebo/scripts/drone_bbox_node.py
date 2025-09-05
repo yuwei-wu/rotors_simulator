@@ -40,7 +40,7 @@ transform = transforms.Compose([
 class DroneProcessor:
     def __init__(self):
         try:
-        
+
             #setup threading lock
             self.lock = threading.Lock()
 
@@ -63,10 +63,10 @@ class DroneProcessor:
             #initialize models
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             self.yolo_model = load_yolo_model(yolo_model_name, self.device)
-            self.traj_model = load_traj_model(self.win_size, self.pred_win_size, 
+            self.traj_model = load_traj_model(self.win_size, self.pred_win_size,
                                               self.target_num, self.adain, self.height_tgt,
                                               self.device, traj_model_name)
-            
+
             #initialize odom/bbox data arrays
             self.odom_data = torch.zeros((1, self.win_size * 12), dtype=torch.float32)
             self.bbox_data = torch.zeros((1, self.target_num, self.win_size * 4), dtype=torch.float32)
@@ -84,7 +84,7 @@ class DroneProcessor:
             self.setup_logging()
 
             rospy.loginfo(f"Drone {self.drone_id} processor initialized")
-            
+
         except Exception as e:
             rospy.logerr(f"Initialization failed: {str(e)}")
             import traceback
@@ -96,16 +96,16 @@ class DroneProcessor:
         #odom_topic = f"/drone{self.drone_id}/odometry_sensor1/odometry"
         ground_truth_topic = f"/drone{self.drone_id}/ground_truth/odometry_throttled"
         image_topic = f"/drone{self.drone_id}/rgb_camera/rgb_camera/image_raw"
-        
+
         # Shared car topics
         car_topics = [f"/car_{i}/odometry_throttled" for i in range(1, self.target_num+1)]
-        
+
         # Create subscribers
         #odom_sub = message_filters.Subscriber(odom_topic, Odometry)
         ground_truth_sub = message_filters.Subscriber(ground_truth_topic, Odometry)
         image_sub = message_filters.Subscriber(image_topic, Image)
         car_subs = [message_filters.Subscriber(topic, Odometry) for topic in car_topics]
-        
+
         # Synchronize
         self.ts = message_filters.ApproximateTimeSynchronizer(
             [ground_truth_sub, *car_subs, image_sub],
@@ -116,7 +116,7 @@ class DroneProcessor:
 
     def setup_logging(self):
         # Log file name
-        self.log_file_odom = f"{self.log_path}/drone_odom.csv"
+        self.log_file_odom = f"{self.log_path}/drone_log.csv"
         self.log_file_target = {}
         for i in range(self.target_num):
             self.log_file_target[i+1] = f"{self.log_path}/target_{i+1}.csv"
@@ -126,13 +126,13 @@ class DroneProcessor:
         if self.logging:
             # Create log directory if it doesn't exist
             os.makedirs(self.log_path, exist_ok=True)
-                
+
             # Initialize CSV files
             self.init_csv_file(self.log_file_odom, "odom")
             for i in range(self.target_num):
                 self.init_csv_file(self.log_file_target[i+1], "odom")
             self.init_csv_file(self.log_file_bbox, "pred", self.target_num)
-            
+
             # Image directory
             os.makedirs(self.log_image_dir, exist_ok=True)
 
@@ -168,7 +168,7 @@ class DroneProcessor:
         data = [timestamp, x, y, z, roll, pitch, yaw,
                 linear_velocity.x, linear_velocity.y, linear_velocity.z,
                 angular_velocity.x, angular_velocity.y, angular_velocity.z]
-        
+
         if self.logging:
             with open(log_filename, "a") as file:
                 writer = csv.writer(file)
@@ -196,7 +196,7 @@ class DroneProcessor:
             self.bbox_data = torch.cat((self.bbox_data[:, :, 4:], img_xywhn.cpu()), dim=2)
 
             # Perform trajectory prediction
-            pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data, 
+            pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data,
                                   self.target_num, self.win_size, self.pred_win_size, self.device)
             # print('pred_traj', pred_traj)
 
@@ -227,7 +227,7 @@ class DroneProcessor:
             return None, None, None
 
         return bbox, detect_masks, pred_traj
-    
+
     def publish_pred_traj(self, bbox, detect_masks, pred_traj):
         # Publish predicted trajectory
         # bbox shape: (target_num*4,), e.g., (12,) for 3 targets
@@ -245,7 +245,7 @@ class DroneProcessor:
                 traj_packet.extend(data[i*self.pred_win_size*2:(i+1)*self.pred_win_size*2]) #flattened pred traj for target i
             else: # if target is not detected
                 packet.append(0)
-                
+
         packet.extend(traj_packet) #add flattened pred traj to packet
 
         # print('packet', packet)
@@ -253,7 +253,7 @@ class DroneProcessor:
         pred_traj_msg = Float32MultiArray(data=packet) #TODO - check this
         self.pred_pub.publish(pred_traj_msg)
         # rospy.loginfo(f"Drone {self.drone_id} published predicted trajectory at {timestamp}")
-    
+
     def synchronized_callback(self, ground_truth_msg, *car_msgs):
         global last_call_time
         now = rospy.Time.now().to_sec()
@@ -265,7 +265,7 @@ class DroneProcessor:
         car_msgs = car_msgs[:-1]  # All but the last are car odometry
 
         rospy.loginfo(f"Drone {self.drone_id} received synchronized messages at {rospy.get_time()}")
-    
+
         with self.lock: #ensure thread saftey
             timestamp = rospy.get_time()
             # try:
@@ -277,7 +277,7 @@ class DroneProcessor:
             odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)
             self.odom_data = torch.cat((self.odom_data[:, 12:], odom), dim=1)
 
-            #process car odom   
+            #process car odom
             for i, car_msg in enumerate(car_msgs, 1):
                 self.process_odom(timestamp, car_msg, self.log_file_target[i])
 
@@ -288,7 +288,7 @@ class DroneProcessor:
             self.publish_pred_traj(bbox, detect_masks, pred_traj) #all three targets, zeros out if less than target num
 
             self.publish_pred_markers(detect_masks, pred_traj, timestamp)
-            
+
         rospy.loginfo(f"Drone {self.drone_id} finished processing at {timestamp}")
 
     def publish_pred_markers(self, detect_masks, pred_traj, timestamp):
