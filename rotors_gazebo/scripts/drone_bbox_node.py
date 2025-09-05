@@ -57,7 +57,7 @@ class DroneProcessor:
             self.log_path = os.path.join(self.log_path, f'trial_{self.drone_id-1}')
             self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
 
-            yolo_model_name = os.path.join(self.pred_model_path, "best_yolo.pt")
+            yolo_model_name = os.path.join(self.pred_model_path, "best_yolo_t6.pt")
             traj_model_name = os.path.join(self.pred_model_path, "best_model.pth")
 
             #initialize models
