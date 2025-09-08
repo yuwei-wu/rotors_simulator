@@ -17,10 +17,10 @@ from PIL import Image as PILImage
 from std_msgs.msg import Float32MultiArray
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
-import time
 
 from model_utils import load_yolo_model, yolo_detect
 from model_utils import load_traj_model, traj_pred
+from model_publisher import TrainingManager
 
 last_call_time = 0.0 # Global rate limiting variable
 traj_marker_colors = [
@@ -56,6 +56,8 @@ class DroneProcessor:
             self.log_path = rospy.get_param('~log_path', './logs')
             self.log_path = os.path.join(self.log_path, f'trial_{self.drone_id-1}')
             self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
+            self.learning = rospy.get_param('~learning', 'frozen') # 'frozen', 'centralized', 'dronefl'
+            self.train_interval = rospy.get_param('~train_interval', 100) # The sample interval to fire training
 
             yolo_model_name = os.path.join(self.pred_model_path, "best_yolo_t6.pt")
             traj_model_name = os.path.join(self.pred_model_path, "best_model.pth")
@@ -70,18 +72,23 @@ class DroneProcessor:
             #initialize odom/bbox data arrays
             self.odom_data = torch.zeros((1, self.win_size * 12), dtype=torch.float32)
             self.bbox_data = torch.zeros((1, self.target_num, self.win_size * 4), dtype=torch.float32)
+            
+            # sample count for firing simultaneous training
+            self.sample_cnt = 0
+            self.train_runs = 0
 
             # Setup publishers
-            self.bbox_pub = rospy.Publisher(f"drone{self.drone_id}/target_bbox", Float32MultiArray, queue_size=10)
-            self.pred_pub = rospy.Publisher(f"drone{self.drone_id}/pred_traj", Float32MultiArray, queue_size=10)
-
-            self.marker_pub = rospy.Publisher(f"drone{self.drone_id}/pred_traj_markers", MarkerArray, queue_size=10)
+            self.setup_publishers()
 
             # Setup subscribers
             self.setup_subscribers()
 
             # Setup logging
             self.setup_logging()
+
+            # Communication with the FL
+            if self.learning != 'frozen':
+                self.train_manager = TrainingManager()
 
             rospy.loginfo(f"Drone {self.drone_id} processor initialized")
 
@@ -90,6 +97,7 @@ class DroneProcessor:
             import traceback
             rospy.logerr(traceback.format_exc())
             raise  # Re-raise to see error in terminal
+        
 
     def setup_subscribers(self):
         # Drone-specific topics
@@ -113,6 +121,17 @@ class DroneProcessor:
             slop=0.1
         )
         self.ts.registerCallback(self.synchronized_callback)
+        
+        # Model receiving callback
+        rospy.Subscriber("/model_weights", Float32MultiArray, self.receive_weights_callback)
+
+
+    def setup_publishers(self):
+        self.bbox_pub = rospy.Publisher(f"drone{self.drone_id}/target_bbox", Float32MultiArray, queue_size=10)
+        self.pred_pub = rospy.Publisher(f"drone{self.drone_id}/pred_traj", Float32MultiArray, queue_size=10)
+
+        self.marker_pub = rospy.Publisher(f"drone{self.drone_id}/pred_traj_markers", MarkerArray, queue_size=10)
+
 
     def setup_logging(self):
         # Log file name
@@ -135,6 +154,7 @@ class DroneProcessor:
 
             # Image directory
             os.makedirs(self.log_image_dir, exist_ok=True)
+            
 
     def init_csv_file(self, filename, type_, target_num=None):
         with open(filename, "w") as file:
@@ -148,6 +168,7 @@ class DroneProcessor:
                 for i in range(target_num):
                     header.extend([f'target_{i}_x', f'target_{i}_y', f'target_{i}_w', f'target_{i}_h'])
                 writer.writerow(header)
+
 
     def process_odom(self, timestamp, msg, log_filename):
         # Extract position
@@ -178,8 +199,9 @@ class DroneProcessor:
 
         return data[1:] # Return position and orientation for further processing if needed
 
+
     def process_image(self, image_msg, timestamp):
-        #TODO - this seems to have issues when no targets are within field? but only for drone 1? little confusing
+
         bridge = CvBridge()
         try:
             # Convert the ROS image message to an OpenCV image
@@ -228,6 +250,7 @@ class DroneProcessor:
 
         return bbox, detect_masks, pred_traj
 
+
     def publish_pred_traj(self, bbox, detect_masks, pred_traj):
         # Publish predicted trajectory
         # bbox shape: (target_num*4,), e.g., (12,) for 3 targets
@@ -250,9 +273,10 @@ class DroneProcessor:
 
         # print('packet', packet)
 
-        pred_traj_msg = Float32MultiArray(data=packet) #TODO - check this
+        pred_traj_msg = Float32MultiArray(data=packet)
         self.pred_pub.publish(pred_traj_msg)
         # rospy.loginfo(f"Drone {self.drone_id} published predicted trajectory at {timestamp}")
+
 
     def synchronized_callback(self, ground_truth_msg, *car_msgs):
         global last_call_time
@@ -290,6 +314,24 @@ class DroneProcessor:
             self.publish_pred_markers(detect_masks, pred_traj, timestamp)
 
         rospy.loginfo(f"Drone {self.drone_id} finished processing at {timestamp}")
+        self.sample_cnt += 1
+        
+        # Fire training from Drone 1 if not in the frozen mode
+        print('current sample cnt', self.sample_cnt)
+        print(self.learning)
+        print(self.train_runs * self.train_interval)
+        print(self.train_manager.train_running)
+        if self.drone_id == 1 and \
+            self.learning != 'frozen' and \
+            self.sample_cnt >= (self.train_runs + 1) * self.train_interval and \
+            not self.train_manager.check_train_running():
+            
+            print('current train runs', self.train_runs)
+            print('training interval', self.train_interval)
+            
+            self.train_manager.publish_training_start()
+            self.train_runs += 1
+
 
     def publish_pred_markers(self, detect_masks, pred_traj, timestamp):
         # Publish visualization markers for RViz
@@ -396,7 +438,31 @@ class DroneProcessor:
 
         self.marker_pub.publish(marker_array)
 
+    
+    def receive_weights_callback(self, msg):
+        """
+        A subscriber callback that loads received weights into the given model.
+        
+        Args:
+            msg: Received message containing the weights
+        """
+        rospy.loginfo(f"Received {len(msg.data)} weights. Loading into model...")
 
+        weights = np.array(msg.data, dtype=np.float32)
+        idx = 0
+
+        # Iterate through model parameters and assign values
+        with self.lock:
+            with torch.no_grad():
+                for param in self.traj_model.parameters():
+                    numel = param.numel()
+                    new_values = weights[idx: idx + numel].reshape(param.shape)
+                    param.copy_(torch.from_numpy(new_values))
+                    idx += numel
+
+        rospy.loginfo("Model weights updated successfully.")
+        
+    
 
 if __name__ == "__main__":
     rospy.init_node("drone_processor", anonymous=True)
