@@ -4,7 +4,7 @@
     <arg name="win_size" default="10"/>
     <arg name="pred_win_size" default="1"/>
     <arg name="pred_model_path" default="$(find rotors_gazebo)/pred_model_ckpt/"/>
-    <arg name="logging" default="true"/>
+    <arg name="logging" default="false"/>
 
     <!-- Drone 1 Processor -->
     <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone1_processor" output="screen">

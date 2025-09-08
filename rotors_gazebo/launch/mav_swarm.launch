@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="world_name" default="agri2"/>
+  <arg name="world_name" default="agri3"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
@@ -19,7 +19,7 @@
     <arg name="mav_id" value="drone1"/>
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="-4.0"/>
-    <arg name="init_y" value="-3.0"/>
+    <arg name="init_y" value="-5.0"/>
     <arg name="init_z" value="27.0"/>
   </include>
 
@@ -27,7 +27,7 @@
     <arg name="mav_id" value="drone2"/>
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="0.0"/>
-    <arg name="init_y" value="-3.0"/>
+    <arg name="init_y" value="-5.0"/>
     <arg name="init_z" value="15.5"/>
   </include>
 
@@ -35,7 +35,7 @@
     <arg name="mav_id" value="drone3"/>
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="4.0"/>
-    <arg name="init_y" value="-3.0"/>
+    <arg name="init_y" value="-5.0"/>
     <arg name="init_z" value="15.0"/>
   </include>
 
