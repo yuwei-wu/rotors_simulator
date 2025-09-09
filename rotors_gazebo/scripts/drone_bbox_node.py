@@ -57,7 +57,7 @@ class DroneProcessor:
             self.log_path = os.path.join(self.log_path, f'trial_{self.drone_id-1}')
             self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
             self.learning = rospy.get_param('~learning', 'frozen') # 'frozen', 'centralized', 'dronefl'
-            self.train_interval = rospy.get_param('~train_interval', 100) # The sample interval to fire training
+            self.train_warmup = rospy.get_param('~train_warmup', 150) # The sample interval to fire training
 
             yolo_model_name = os.path.join(self.pred_model_path, "best_yolo_t6.pt")
             traj_model_name = os.path.join(self.pred_model_path, "best_model.pth")
@@ -141,6 +141,7 @@ class DroneProcessor:
             self.log_file_target[i+1] = f"{self.log_path}/target_{i+1}_log.csv"
         self.log_image_dir = f"{self.log_path}/drone_images"
         self.log_file_bbox = f"{self.log_path}/yolo_detect.csv"
+        self.log_model_update = f"{self.log_path}/model_update.txt"
 
         if self.logging:
             # Create log directory if it doesn't exist
@@ -317,20 +318,15 @@ class DroneProcessor:
         self.sample_cnt += 1
         
         # Fire training from Drone 1 if not in the frozen mode
-        print('current sample cnt', self.sample_cnt)
-        print(self.learning)
-        print(self.train_runs * self.train_interval)
-        print(self.train_manager.train_running)
-        if self.drone_id == 1 and \
-            self.learning != 'frozen' and \
-            self.sample_cnt >= (self.train_runs + 1) * self.train_interval and \
-            not self.train_manager.check_train_running():
-            
+        if self.drone_id == 1 and self.learning != 'frozen':
+            print('current sample cnt', self.sample_cnt)
             print('current train runs', self.train_runs)
-            print('training interval', self.train_interval)
-            
-            self.train_manager.publish_training_start()
-            self.train_runs += 1
+            print(self.train_manager.train_running)
+            if self.sample_cnt >= self.train_warmup and \
+                not self.train_manager.check_train_running():
+                
+                self.train_manager.publish_training_start()
+                self.train_runs += 1
 
 
     def publish_pred_markers(self, detect_masks, pred_traj, timestamp):
@@ -450,7 +446,7 @@ class DroneProcessor:
 
         weights = np.array(msg.data, dtype=np.float32)
         idx = 0
-
+        
         # Iterate through model parameters and assign values
         with self.lock:
             with torch.no_grad():
@@ -461,6 +457,11 @@ class DroneProcessor:
                     idx += numel
 
         rospy.loginfo("Model weights updated successfully.")
+        self.train_manager.reset_train_running()
+        
+        # Log model update time
+        with open(self.log_model_update, "a+") as f:
+            f.write(str(rospy.Time.now().to_sec()) + '\n')
         
     
 
