@@ -1,0 +1,495 @@
+#!/usr/bin/env python3
+import rospy
+import csv
+import cv2
+import os
+import numpy as np
+from sensor_msgs.msg import Image
+from nav_msgs.msg import Odometry
+from std_msgs.msg import Header
+from tf.transformations import euler_from_quaternion
+from cv_bridge import CvBridge
+import message_filters
+import torch
+import threading
+from torchvision import transforms
+from PIL import Image as PILImage
+from std_msgs.msg import Float32MultiArray
+from visualization_msgs.msg import Marker, MarkerArray
+from geometry_msgs.msg import Point
+
+from model_utils import load_yolo_model, yolo_detect
+from model_utils import load_traj_model, traj_pred
+from model_publisher import TrainingManager
+
+last_call_time = 0.0 # Global rate limiting variable
+traj_marker_colors = [
+    (0.7, 0.0, 0.7, 1.0),  # Purple
+    (0.0, 0.7, 0.7, 1.0),  # Cyan
+    (0.7, 0.7, 0.0, 1.0),  # Yellow
+    (1.0, 0.0, 0.0, 1.0),  # Red
+    (0.0, 1.0, 0.0, 1.0),  # Green
+    (0.0, 0.0, 1.0, 1.0),  # Blue
+]
+
+transform = transforms.Compose([
+    transforms.Resize((640, 640)),  # Resize to model's input
+    transforms.ToTensor(),  # Convert to tensor (already done in dataset)
+])
+
+class CentralDroneProcessor:
+    def __init__(self):
+        try:
+
+            #setup threading lock
+            self.lock = threading.Lock()
+
+            #get parameters
+            self.time_step = rospy.get_param('~time_step', 0.18)
+            self.drone_id = rospy.get_param('~drone_id', 1) # Use drone_id=1 to align with old implementations
+            self.robot_num = rospy.get_param('~robot_num', 3)
+            self.target_num = rospy.get_param('~target_num', 3)
+            self.win_size = rospy.get_param('~win_size', 10)
+            self.pred_win_size = rospy.get_param('~pred_win_size', 1)
+            #self.adain = rospy.get_param('~adain', False)
+            #self.height_tgt = rospy.get_param('~height_tgt', False)
+            self.pred_model_path = rospy.get_param('~pred_model_path', './pred_model_ckpt')  # Default path if not set
+            self.log_path = rospy.get_param('~log_path', './logs')
+            self.robot_paths = [os.path.join(self.log_path, f'trial_{r}') for r in range(self.robot_num)]  # 'trial_{i}'
+            self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
+            self.learning = rospy.get_param('~learning', 'frozen') # 'frozen', 'centralized', 'dronefl'
+            if self.learning == 'frozen':
+                self.logging = False  # No data logging in frozen
+            self.train_warmup = rospy.get_param('~train_warmup', 150) # The sample interval to fire training
+
+            #yolo_model_name = os.path.join(self.pred_model_path, "best_yolo_t6.pt")
+            #traj_model_name = os.path.join(self.pred_model_path, "best_model.pth")
+
+            #initialize models
+            #self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            #self.yolo_model = load_yolo_model(yolo_model_name, self.device)
+            #self.traj_model = load_traj_model(self.win_size, self.pred_win_size,
+            #                                  self.target_num, self.adain, self.height_tgt,
+            #                                  self.device, traj_model_name)
+
+            #initialize odom/bbox data arrays
+            self.odom_data = torch.zeros((1, self.robot_num, self.win_size * 12), dtype=torch.float32)
+            self.image_data = torch.zeros((1, self.robot_num, self.win_size, 3, 640, 640), dtype=torch.float32)
+            
+            # sample count for firing simultaneous training
+            self.sample_cnt = 0
+            self.train_runs = 0
+
+            # Setup publishers
+            self.setup_publishers()
+
+            # Setup subscribers
+            self.setup_subscribers()
+
+            # Setup logging
+            self.setup_logging()
+
+            # Communication with the FL
+            if self.learning != 'frozen':
+                self.train_manager = TrainingManager()
+
+            rospy.loginfo(f"Drone {self.drone_id} processor initialized")
+
+        except Exception as e:
+            rospy.logerr(f"Initialization failed: {str(e)}")
+            import traceback
+            rospy.logerr(traceback.format_exc())
+            raise  # Re-raise to see error in terminal
+        
+
+    def setup_subscribers(self):
+        # Drone-specific topics
+        #odom_topic = f"/drone{self.drone_id}/odometry_sensor1/odometry"
+        ground_truth_topics = [f"/drone{i}/ground_truth/odometry_throttled" for i in range(1, self.robot_num+1)]
+        image_topics = [f"/drone{i}/rgb_camera/rgb_camera/image_raw" for i in range(1, self.robot_num+1)]
+
+        # Shared car topics
+        car_topics = [f"/car_{i}/odometry_throttled" for i in range(1, self.target_num+1)]
+
+        # Create subscribers
+        #odom_sub = message_filters.Subscriber(odom_topic, Odometry)
+        ground_truth_subs = [message_filters.Subscriber(topic, Odometry) for topic in ground_truth_topics]
+        image_subs = [message_filters.Subscriber(topic, Image) for topic in image_topics]
+        car_subs = [message_filters.Subscriber(topic, Odometry) for topic in car_topics]
+
+        # Synchronize
+        self.ts = message_filters.ApproximateTimeSynchronizer(
+            [*ground_truth_subs, *car_subs, *image_subs],
+            queue_size=50,
+            slop=0.1
+        )
+        self.ts.registerCallback(self.synchronized_callback)
+        
+        # Model receiving callback
+        rospy.Subscriber("/model_weights", Float32MultiArray, self.receive_weights_callback)
+
+
+    def setup_publishers(self):
+        #self.bbox_pub = rospy.Publisher(f"drone{self.drone_id}/target_bbox", Float32MultiArray, queue_size=10)
+        self.pred_pub = rospy.Publisher(f"drone1/pred_traj", Float32MultiArray, queue_size=10)
+
+        self.marker_pub = rospy.Publisher(f"drone1/pred_traj_markers", MarkerArray, queue_size=10)
+
+
+    def setup_logging(self):
+        # Log file name
+        self.log_file_odom = [f"{path}/drone_ground_truth.csv" for path in self.robot_paths]
+        self.log_file_target = {}
+        for i in range(self.robot_num):
+            self.log_file_target[i] = [f"{self.robot_paths[i]}/target_{j}_log.csv" for j in range(1, self.target_num+1)]
+        self.log_image_dir = [f"{path}/drone_images" for path in self.robot_paths]
+        #self.log_file_bbox = f"{self.log_path}/yolo_detect.csv"
+        self.log_model_update = f"{self.log_path}/model_update.txt"
+
+        if self.logging:
+            # Create log directory if it doesn't exist
+            os.makedirs(self.log_path, exist_ok=True)
+            
+            for i in range(self.robot_num):
+                os.makedirs(self.robot_paths[i], exist_ok=True)  # Create 'trial_{i}'
+
+                # Initialize CSV files
+                self.init_csv_file(self.log_file_odom[i], "odom")
+                for j in range(1, self.target_num+1):
+                    self.init_csv_file(self.log_file_target[i][j], "odom")
+                #self.init_csv_file(self.log_file_bbox, "pred", self.target_num)
+
+                # Image directory
+                os.makedirs(self.log_image_dir[i], exist_ok=True)
+            
+
+    def init_csv_file(self, filename, type_, target_num=None):
+        with open(filename, "w") as file:
+            writer = csv.writer(file)
+            if type_ == "odom":
+                writer.writerow(["Timestamp", "X", "Y", "Z", "Roll", "Pitch", "Yaw",
+                               "Linear_Vel_X", "Linear_Vel_Y", "Linear_Vel_Z",
+                               "Angular_Vel_X", "Angular_Vel_Y", "Angular_Vel_Z"])
+            elif type_ == "pred":
+                header = ['timestamp']
+                for i in range(target_num):
+                    header.extend([f'target_{i}_x', f'target_{i}_y', f'target_{i}_w', f'target_{i}_h'])
+                writer.writerow(header)
+
+
+    def process_odom(self, timestamp, msgs, log_filename):
+        """Process the odometry messages
+
+        msgs is a list of self.robot_num messages
+        log_filename is also a list of self.robot_num filenames
+        """
+        cur_odom = np.zeros((self.robot_num, 12))
+        for i in range(self.robot_num):
+            # Extract position
+            position = msgs[i].pose.pose.position
+            x, y, z = position.x, position.y, position.z
+
+            # Extract orientation (quaternion to Euler angles)
+            orientation = msgs[i].pose.pose.orientation
+            quaternion = (orientation.x, orientation.y, orientation.z, orientation.w)
+            roll, pitch, yaw = euler_from_quaternion(quaternion)
+
+            # Extract velocity
+            velocity = msgs[i].twist.twist
+            linear_velocity = velocity.linear
+            angular_velocity = velocity.angular
+
+            # # Log data
+            data = [timestamp, x, y, z, roll, pitch, yaw,
+                    linear_velocity.x, linear_velocity.y, linear_velocity.z,
+                    angular_velocity.x, angular_velocity.y, angular_velocity.z]
+
+            if self.logging:
+                with open(log_filename[i], "a") as file:
+                    writer = csv.writer(file)
+                    writer.writerow(data)
+
+            # rospy.loginfo(f"Drone {self.drone_id} processed odometry at {timestamp}: {data}")
+            cur_odom[i, :] = data[1:]
+
+        return cur_odom  # (robot_num, 12)
+
+
+    def process_image(self, image_msg, timestamp):
+        """Process the image messages
+
+        msgs is a list of self.robot_num messages
+        """
+
+        bridge = CvBridge()
+        try:
+            for i in range(self.robot_num):
+                # Convert the ROS image message to an OpenCV image
+                cv_image = bridge.imgmsg_to_cv2(image_msg[i], "bgr8")
+                image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+                pil_image = PILImage.fromarray(image_rgb)
+
+                image_tensor = transform(pil_image)
+
+                # Add batch dimension and move to device
+                #image_tensor = image_tensor.unsqueeze(0).to(self.device)  # Shape: (1, 3, 640, 640)
+                # Perform YOLO detection
+                #img_xywhn, detect_masks = yolo_detect(self.yolo_model, image_tensor, self.target_num, self.device)
+                #self.bbox_data = torch.cat((self.bbox_data[:, :, 4:], img_xywhn.cpu()), dim=2)
+
+                # Perform trajectory prediction
+                #pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data,
+                #                      self.target_num, self.win_size, self.pred_win_size, self.device)
+                # print('pred_traj', pred_traj)
+
+                # Save the image
+                if self.logging:
+                    # Get the current timestamp for unique filenames
+                    img_filename = os.path.join(self.log_image_dir, "{:.6f}.png".format(timestamp))
+                    cv2.imwrite(img_filename, cv_image)
+
+                    # rospy.loginfo(f"Drone {self.drone_id} processed image at {timestamp}, saved to {img_filename}")
+
+                # Convert img_xywhn to numpy array for logging
+                #bbox = img_xywhn.cpu().numpy().flatten().tolist()  # Shape: (target_num*4,)
+                #detect_masks = detect_masks.cpu().numpy().flatten().tolist() # Shape: (target_num,)
+                #print('bbox', bbox)
+                #print('detect_masks', detect_masks)
+
+                # Log bbox data
+                # if self.logging:
+                #     # Log bounding boxes to CSV
+                #     with open(self.log_file_bbox, "a") as file:
+                #         writer = csv.writer(file)
+                #         row = [timestamp] + bbox
+                #         writer.writerow(row)
+
+        except Exception as e:
+            rospy.logerr(f"Drone {self.drone_id}: Failed to convert image: {e}")
+            return None, None, None
+
+        return #bbox, detect_masks, pred_traj
+
+
+    def publish_pred_traj(self, bbox, detect_masks, pred_traj):
+        # Publish predicted trajectory
+        # bbox shape: (target_num*4,), e.g., (12,) for 3 targets
+        target_bbox_msg = Float32MultiArray(data=bbox)
+        self.bbox_pub.publish(target_bbox_msg)
+
+        # pred_traj shape: (target_num, pred_win_size, 2)
+        data = pred_traj.flatten().tolist()
+        #packet = [predicted window size, target num, 1 if target is real, else 0, predicted trajectory points...]
+        packet = [self.pred_win_size, self.target_num]
+        traj_packet = []
+        for i in range(self.target_num):
+            if detect_masks[i]: # if detected
+                packet.append(1)
+                traj_packet.extend(data[i*self.pred_win_size*2:(i+1)*self.pred_win_size*2]) #flattened pred traj for target i
+            else: # if target is not detected
+                packet.append(0)
+
+        packet.extend(traj_packet) #add flattened pred traj to packet
+
+        # print('packet', packet)
+
+        pred_traj_msg = Float32MultiArray(data=packet)
+        self.pred_pub.publish(pred_traj_msg)
+        # rospy.loginfo(f"Drone {self.drone_id} published predicted trajectory at {timestamp}")
+
+
+    def synchronized_callback(self, msgs):
+        global last_call_time
+        now = rospy.Time.now().to_sec()
+        if now - last_call_time < self.time_step: # Rate limiting
+            return
+        last_call_time = now
+
+        ground_truth_msgs = msgs[:self.robot_num]
+        car_msgs = msgs[self.robot_num:self.robot_num+self.target_num]
+        image_msgs = msgs[self.robot_num+self.target_num:]
+
+        rospy.loginfo(f"Drone {self.drone_id} received synchronized messages at {rospy.get_time()}")
+
+        with self.lock: #ensure thread saftey
+            timestamp = rospy.get_time()
+            # try:
+            #process odom
+            #odom = self.process_odom(timestamp, odom_msg, f"{self.log_path}/odom.csv")
+
+            #process ground truth
+            odom = self.process_odom(timestamp, ground_truth_msgs, self.log_file_odom)
+            odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)
+            self.odom_data = torch.cat((self.odom_data[:, 12:], odom), dim=1)
+
+            #process car odom
+            for i, car_msg in enumerate(car_msgs, 1):
+                self.process_odom(timestamp, car_msg, self.log_file_target[i])
+
+            #process image
+            self.process_image(image_msgs, timestamp)
+
+            # # Log bounding boxes
+            #self.publish_pred_traj(bbox, detect_masks, pred_traj) #all three targets, zeros out if less than target num
+
+            #self.publish_pred_markers(detect_masks, pred_traj, timestamp)
+
+        rospy.loginfo(f"Drone {self.drone_id} finished processing at {timestamp}")
+        self.sample_cnt += 1
+        
+        # Fire training from Drone 1 if not in the frozen mode
+        if self.learning != 'frozen':
+            print('current sample cnt', self.sample_cnt)
+            print('current train runs', self.train_runs)
+            print(self.train_manager.train_running)
+            if self.sample_cnt >= self.train_warmup and \
+                not self.train_manager.check_train_running():
+                
+                self.train_manager.publish_training_start()
+                self.train_runs += 1
+
+
+    def publish_pred_markers(self, detect_masks, pred_traj, timestamp):
+        # Publish visualization markers for RViz
+        global traj_marker_colors
+
+        # pred_traj shape: (target_num, pred_win_size, 2), e,g, (3, 1, 2)
+        marker_array = MarkerArray()
+        marker_id = 0
+
+        for i in range(self.target_num):
+            if not detect_masks[i]:
+                continue # Skip if target not detected
+
+            # Check if trajectory is valid (not all zeros)
+            traj_points = pred_traj[i]  # Shape: (pred_win_size, 2)
+
+            # Draw cubes and spheres at each predicted position
+            for j in range(self.pred_win_size):
+                x, y = traj_points[j].tolist()
+
+                # Cube marker at trajectory point
+                cube_marker = Marker()
+                cube_marker.header.frame_id = "world"
+                cube_marker.header.stamp = rospy.Time.now()
+                cube_marker.ns = f"target_{i}_traj_cubes"
+                cube_marker.id = marker_id
+                marker_id += 1
+                cube_marker.type = Marker.CUBE
+                cube_marker.action = Marker.ADD
+
+                cube_marker.pose.position.x = x
+                cube_marker.pose.position.y = y
+                cube_marker.pose.position.z = 0.5  # height off the ground
+                cube_marker.pose.orientation.w = 1.0
+
+                cube_marker.scale.x = 0.1
+                cube_marker.scale.y = 0.1
+                cube_marker.scale.z = 1.0
+
+                cube_marker.color.r = traj_marker_colors[self.drone_id-1][0]
+                cube_marker.color.g = traj_marker_colors[self.drone_id-1][1]
+                cube_marker.color.b = traj_marker_colors[self.drone_id-1][2]
+                cube_marker.color.a = traj_marker_colors[self.drone_id-1][3]
+
+                #cube_marker.lifetime = rospy.Duration(1.0)
+                marker_array.markers.append(cube_marker)
+
+                # Sphere marker at trajectory point center
+                # sphere_marker = Marker()
+                # sphere_marker.header.frame_id = "world"
+                # sphere_marker.header.stamp = rospy.Time.now()
+                # sphere_marker.ns = f"target_{i}_traj_spheres"
+                # sphere_marker.id = marker_id + 500
+                # marker_id += 1
+                # sphere_marker.type = Marker.SPHERE
+                # sphere_marker.action = Marker.ADD
+
+                # sphere_marker.pose.position.x = x
+                # sphere_marker.pose.position.y = y
+                # sphere_marker.pose.position.z = 0.5
+                # sphere_marker.pose.orientation.w = 1.0
+
+                # sphere_marker.scale.x = 0.1
+                # sphere_marker.scale.y = 0.1
+                # sphere_marker.scale.z = 0.1
+
+                # sphere_marker.color.r = 0.0
+                # sphere_marker.color.g = 1.0
+                # sphere_marker.color.b = 0.0
+                # sphere_marker.color.a = 1.0
+
+                # sphere_marker.lifetime = rospy.Duration(1.0)
+                # marker_array.markers.append(sphere_marker)
+
+            # Draw the trajectory line
+            traj_marker = Marker()
+            traj_marker.header.frame_id = "world"
+            traj_marker.header.stamp = rospy.Time.now()
+            traj_marker.ns = f"target_{i}_predicted_traj"
+            traj_marker.id = marker_id + 1000
+            marker_id += 1
+            traj_marker.type = Marker.LINE_STRIP
+            traj_marker.action = Marker.ADD
+
+            traj_marker.scale.x = 0.05  # line width
+
+            traj_marker.pose.orientation.w = 1.0
+
+            traj_marker.color.r = traj_marker_colors[self.drone_id-1][0]
+            traj_marker.color.g = traj_marker_colors[self.drone_id-1][1]
+            traj_marker.color.b = traj_marker_colors[self.drone_id-1][2]
+            traj_marker.color.a = traj_marker_colors[self.drone_id-1][3]
+
+            #traj_marker.lifetime = rospy.Duration(2.0)
+
+            for j in range(self.pred_win_size):
+                point = Point()
+                point.x = traj_points[j, 0].item()
+                point.y = traj_points[j, 1].item()
+                point.z = 1.5
+                traj_marker.points.append(point)
+
+            marker_array.markers.append(traj_marker)
+
+        self.marker_pub.publish(marker_array)
+
+    
+    def receive_weights_callback(self, msg):
+        """
+        A subscriber callback that loads received weights into the given model.
+        
+        Args:
+            msg: Received message containing the weights
+        """
+        rospy.loginfo(f"Received {len(msg.data)} weights. Loading into model...")
+
+        weights = np.array(msg.data, dtype=np.float32)
+        idx = 0
+        
+        # Iterate through model parameters and assign values
+        with self.lock:
+            with torch.no_grad():
+                for param in self.traj_model.parameters():
+                    numel = param.numel()
+                    new_values = weights[idx: idx + numel].reshape(param.shape)
+                    param.copy_(torch.from_numpy(new_values))
+                    idx += numel
+
+        rospy.loginfo("Model weights updated successfully.")
+        self.train_manager.reset_train_running()
+        
+        # Log model update time
+        with open(self.log_model_update, "a+") as f:
+            f.write(str(rospy.Time.now().to_sec()) + '\n')
+        
+    
+
+if __name__ == "__main__":
+    rospy.init_node("drone_processor", anonymous=True)
+
+    try:
+        processor = CentralDroneProcessor()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        pass
