@@ -53,7 +53,7 @@ def traj_pred(model, odom_data, image_data, target_num, win_size, pred_win_size,
 
 
     # Add the predicted trajectory with the reference point
-    print('out shape:', out.shape) # (n_target, bsz, pred_win_size * 2)
+    # print('out shape:', out.shape) # (n_target, bsz, pred_win_size * 2)
     out = out.reshape(target_num, -1, pred_win_size, 2)
     out += new_refer_point.unsqueeze(0).unsqueeze(2)  # Add the new reference point to the predicted trajectory
     out = out.reshape(target_num, -1, pred_win_size * 2)  # Shape: (n_target, bsz, pred_win_size * 2)
