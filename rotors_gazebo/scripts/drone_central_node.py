@@ -18,8 +18,7 @@ from std_msgs.msg import Float32MultiArray
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Point
 
-from model_utils import load_yolo_model, yolo_detect
-from model_utils import load_traj_model, traj_pred
+from central_model_utils import load_traj_model, traj_pred
 from model_publisher import TrainingManager
 
 last_call_time = 0.0 # Global rate limiting variable
@@ -56,21 +55,23 @@ class CentralDroneProcessor:
             self.pred_model_path = rospy.get_param('~pred_model_path', './pred_model_ckpt')  # Default path if not set
             self.log_path = rospy.get_param('~log_path', './logs')
             self.robot_paths = [os.path.join(self.log_path, f'trial_{r}') for r in range(self.robot_num)]  # 'trial_{i}'
-            self.logging = rospy.get_param('~logging', True) # Whether or not to fire logging
+            self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
             self.learning = rospy.get_param('~learning', 'frozen') # 'frozen', 'centralized', 'dronefl'
             #if self.learning == 'frozen':
             #    self.logging = False  # No data logging in frozen
             self.train_warmup = rospy.get_param('~train_warmup', 150) # The sample interval to fire training
 
-            #yolo_model_name = os.path.join(self.pred_model_path, "best_yolo_t6.pt")
-            #traj_model_name = os.path.join(self.pred_model_path, "best_model.pth")
+            if self.robot_num == 3:
+                traj_model_name = os.path.join(self.pred_model_path, "best_central_r3.pth")
+            elif self.robot_num == 4:
+                traj_model_name = os.path.join(self.pred_model_path, "best_central_r4.pth")
+            else:
+                raise NotImplementedError(f"Do not have centralized pretrained model with robot num {self.robot_num}")
 
             #initialize models
-            #self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            #self.yolo_model = load_yolo_model(yolo_model_name, self.device)
-            #self.traj_model = load_traj_model(self.win_size, self.pred_win_size,
-            #                                  self.target_num, self.adain, self.height_tgt,
-            #                                  self.device, traj_model_name)
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.traj_model = load_traj_model(self.win_size, self.pred_win_size,
+                                              self.target_num, self.device, traj_model_name)
 
             #initialize odom/bbox data arrays
             self.odom_data = torch.zeros((1, self.robot_num, self.win_size * 12), dtype=torch.float32)
@@ -145,11 +146,6 @@ class CentralDroneProcessor:
         self.log_image_dir = [f"{path}/drone_images" for path in self.robot_paths]
         #self.log_file_bbox = f"{self.log_path}/yolo_detect.csv"
         self.log_model_update = f"{self.log_path}/model_update.txt"
-        print(self.log_file_odom)
-        print(self.log_file_target)
-        print(self.log_image_dir)
-        print(self.log_model_update)
-        print(self.logging)
 
         if self.logging:
             # Create log directory if it doesn't exist
@@ -197,7 +193,7 @@ class CentralDroneProcessor:
         linear_velocity = velocity.linear
         angular_velocity = velocity.angular
 
-        # # Log data
+        # Log data
         data = [timestamp, x, y, z, roll, pitch, yaw,
                 linear_velocity.x, linear_velocity.y, linear_velocity.z,
                 angular_velocity.x, angular_velocity.y, angular_velocity.z]
@@ -212,46 +208,6 @@ class CentralDroneProcessor:
         return data[1:] # Return position and orientation for further processing if needed
     
 
-    # def process_odom_msgs(self, timestamp, msgs, log_filename):
-    #     """Process the odometry messages
-
-    #     msgs is a list of self.robot_num messages
-    #     log_filename is also a list of self.robot_num filenames
-    #     """
-    #     print('call!')
-    #     print(len(msgs))
-    #     cur_odom = np.zeros((self.robot_num, 12))
-    #     for i in range(self.robot_num):
-    #         # Extract position
-    #         position = msgs[i].pose.pose.position
-    #         x, y, z = position.x, position.y, position.z
-
-    #         # Extract orientation (quaternion to Euler angles)
-    #         orientation = msgs[i].pose.pose.orientation
-    #         quaternion = (orientation.x, orientation.y, orientation.z, orientation.w)
-    #         roll, pitch, yaw = euler_from_quaternion(quaternion)
-
-    #         # Extract velocity
-    #         velocity = msgs[i].twist.twist
-    #         linear_velocity = velocity.linear
-    #         angular_velocity = velocity.angular
-
-    #         # # Log data
-    #         data = [timestamp, x, y, z, roll, pitch, yaw,
-    #                 linear_velocity.x, linear_velocity.y, linear_velocity.z,
-    #                 angular_velocity.x, angular_velocity.y, angular_velocity.z]
-
-    #         if self.logging:
-    #             with open(log_filename[i], "a") as file:
-    #                 writer = csv.writer(file)
-    #                 writer.writerow(data)
-
-    #         # rospy.loginfo(f"Drone {self.drone_id} processed odometry at {timestamp}: {data}")
-    #         cur_odom[i, :] = data[1:]
-
-        return cur_odom  # (robot_num, 12)
-
-
     def process_image(self, timestamp, image_msg, log_dir):
 
         bridge = CvBridge()
@@ -261,18 +217,10 @@ class CentralDroneProcessor:
             image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
             pil_image = PILImage.fromarray(image_rgb)
 
-            image_tensor = transform(pil_image)
+            image_tensor = transform(pil_image)  # Shape (3, 640, 640)
 
             # Add batch dimension and move to device
-            #image_tensor = image_tensor.unsqueeze(0).to(self.device)  # Shape: (1, 3, 640, 640)
-            # Perform YOLO detection
-            #img_xywhn, detect_masks = yolo_detect(self.yolo_model, image_tensor, self.target_num, self.device)
-            #self.bbox_data = torch.cat((self.bbox_data[:, :, 4:], img_xywhn.cpu()), dim=2)
-
-            # Perform trajectory prediction
-            #pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data,
-            #                      self.target_num, self.win_size, self.pred_win_size, self.device)
-            # print('pred_traj', pred_traj)
+            image_tensor = image_tensor.unsqueeze(0).unsqueeze(0)  # Shape: (1, 1, 3, 640, 640)
 
             # Save the image
             if self.logging:
@@ -282,32 +230,15 @@ class CentralDroneProcessor:
 
                 # rospy.loginfo(f"Drone {self.drone_id} processed image at {timestamp}, saved to {img_filename}")
 
-            # Convert img_xywhn to numpy array for logging
-            #bbox = img_xywhn.cpu().numpy().flatten().tolist()  # Shape: (target_num*4,)
-            #detect_masks = detect_masks.cpu().numpy().flatten().tolist() # Shape: (target_num,)
-            #print('bbox', bbox)
-            #print('detect_masks', detect_masks)
-
-            # Log bbox data
-            # if self.logging:
-            #     # Log bounding boxes to CSV
-            #     with open(self.log_file_bbox, "a") as file:
-            #         writer = csv.writer(file)
-            #         row = [timestamp] + bbox
-            #         writer.writerow(row)
 
         except Exception as e:
             rospy.logerr(f"Drone {self.drone_id}: Failed to convert image: {e}")
-            return None, None, None
+            return None
 
-        return #bbox, detect_masks, pred_traj
+        return image_tensor
 
 
-    def publish_pred_traj(self, bbox, detect_masks, pred_traj):
-        # Publish predicted trajectory
-        # bbox shape: (target_num*4,), e.g., (12,) for 3 targets
-        target_bbox_msg = Float32MultiArray(data=bbox)
-        self.bbox_pub.publish(target_bbox_msg)
+    def publish_pred_traj(self, pred_traj):
 
         # pred_traj shape: (target_num, pred_win_size, 2)
         data = pred_traj.flatten().tolist()
@@ -315,15 +246,13 @@ class CentralDroneProcessor:
         packet = [self.pred_win_size, self.target_num]
         traj_packet = []
         for i in range(self.target_num):
-            if detect_masks[i]: # if detected
-                packet.append(1)
-                traj_packet.extend(data[i*self.pred_win_size*2:(i+1)*self.pred_win_size*2]) #flattened pred traj for target i
-            else: # if target is not detected
-                packet.append(0)
+            # Should always be valid
+            packet.append(1)
+            traj_packet.extend(data[i*self.pred_win_size*2:(i+1)*self.pred_win_size*2]) #flattened pred traj for target i
 
         packet.extend(traj_packet) #add flattened pred traj to packet
 
-        # print('packet', packet)
+        print('packet', packet)
 
         pred_traj_msg = Float32MultiArray(data=packet)
         self.pred_pub.publish(pred_traj_msg)
@@ -345,15 +274,12 @@ class CentralDroneProcessor:
 
         with self.lock: #ensure thread saftey
             timestamp = rospy.get_time()
-            # try:
-            #process odom
-            #odom = self.process_odom(timestamp, odom_msg, f"{self.log_path}/odom.csv")
 
             #process ground truth
             for i in range(self.robot_num):
                 odom = self.process_odom(timestamp, ground_truth_msgs[i], self.log_file_odom[i])
                 odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)
-                #self.odom_data = torch.cat((self.odom_data[:, 12:], odom), dim=1)
+                self.odom_data[:, i] = torch.cat((self.odom_data[:, i, 12:], odom), dim=-1)
 
             #process car odom
             for j, car_msg in enumerate(car_msgs):
@@ -363,12 +289,18 @@ class CentralDroneProcessor:
 
             #process image
             for i in range(self.robot_num):
-                self.process_image(timestamp, image_msgs[i], self.log_image_dir[i])
+                img = self.process_image(timestamp, image_msgs[i], self.log_image_dir[i]) # Shape (1, 1, 3, 640, 640)
+                self.image_data[:, i] = torch.cat((self.image_data[:, i, 1:],
+                                                   img), dim=1)
+                
+            # Trajectory prediction
+            pred_traj = traj_pred(self.traj_model, self.odom_data, self.image_data, 
+                                  self.target_num, self.win_size, self.pred_win_size, self.device)
 
             # # Log bounding boxes
-            #self.publish_pred_traj(bbox, detect_masks, pred_traj) #all three targets, zeros out if less than target num
+            self.publish_pred_traj(pred_traj) 
 
-            #self.publish_pred_markers(detect_masks, pred_traj, timestamp)
+            self.publish_pred_markers(pred_traj, timestamp)
 
         rospy.loginfo(f"Drone {self.drone_id} finished processing at {timestamp}")
         self.sample_cnt += 1
@@ -385,7 +317,7 @@ class CentralDroneProcessor:
                 self.train_runs += 1
 
 
-    def publish_pred_markers(self, detect_masks, pred_traj, timestamp):
+    def publish_pred_markers(self, pred_traj, timestamp):
         # Publish visualization markers for RViz
         global traj_marker_colors
 
@@ -394,8 +326,6 @@ class CentralDroneProcessor:
         marker_id = 0
 
         for i in range(self.target_num):
-            if not detect_masks[i]:
-                continue # Skip if target not detected
 
             # Check if trajectory is valid (not all zeros)
             traj_points = pred_traj[i]  # Shape: (pred_win_size, 2)
