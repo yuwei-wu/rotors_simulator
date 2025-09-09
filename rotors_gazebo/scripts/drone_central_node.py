@@ -56,10 +56,10 @@ class CentralDroneProcessor:
             self.pred_model_path = rospy.get_param('~pred_model_path', './pred_model_ckpt')  # Default path if not set
             self.log_path = rospy.get_param('~log_path', './logs')
             self.robot_paths = [os.path.join(self.log_path, f'trial_{r}') for r in range(self.robot_num)]  # 'trial_{i}'
-            self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
+            self.logging = rospy.get_param('~logging', True) # Whether or not to fire logging
             self.learning = rospy.get_param('~learning', 'frozen') # 'frozen', 'centralized', 'dronefl'
-            if self.learning == 'frozen':
-                self.logging = False  # No data logging in frozen
+            #if self.learning == 'frozen':
+            #    self.logging = False  # No data logging in frozen
             self.train_warmup = rospy.get_param('~train_warmup', 150) # The sample interval to fire training
 
             #yolo_model_name = os.path.join(self.pred_model_path, "best_yolo_t6.pt")
@@ -145,6 +145,11 @@ class CentralDroneProcessor:
         self.log_image_dir = [f"{path}/drone_images" for path in self.robot_paths]
         #self.log_file_bbox = f"{self.log_path}/yolo_detect.csv"
         self.log_model_update = f"{self.log_path}/model_update.txt"
+        print(self.log_file_odom)
+        print(self.log_file_target)
+        print(self.log_image_dir)
+        print(self.log_model_update)
+        print(self.logging)
 
         if self.logging:
             # Create log directory if it doesn't exist
@@ -155,7 +160,7 @@ class CentralDroneProcessor:
 
                 # Initialize CSV files
                 self.init_csv_file(self.log_file_odom[i], "odom")
-                for j in range(1, self.target_num+1):
+                for j in range(self.target_num):
                     self.init_csv_file(self.log_file_target[i][j], "odom")
                 #self.init_csv_file(self.log_file_bbox, "pred", self.target_num)
 
@@ -177,92 +182,119 @@ class CentralDroneProcessor:
                 writer.writerow(header)
 
 
-    def process_odom(self, timestamp, msgs, log_filename):
-        """Process the odometry messages
+    def process_odom(self, timestamp, msg, log_filename):
+        # Extract position
+        position = msg.pose.pose.position
+        x, y, z = position.x, position.y, position.z
 
-        msgs is a list of self.robot_num messages
-        log_filename is also a list of self.robot_num filenames
-        """
-        cur_odom = np.zeros((self.robot_num, 12))
-        for i in range(self.robot_num):
-            # Extract position
-            position = msgs[i].pose.pose.position
-            x, y, z = position.x, position.y, position.z
+        # Extract orientation (quaternion to Euler angles)
+        orientation = msg.pose.pose.orientation
+        quaternion = (orientation.x, orientation.y, orientation.z, orientation.w)
+        roll, pitch, yaw = euler_from_quaternion(quaternion)
 
-            # Extract orientation (quaternion to Euler angles)
-            orientation = msgs[i].pose.pose.orientation
-            quaternion = (orientation.x, orientation.y, orientation.z, orientation.w)
-            roll, pitch, yaw = euler_from_quaternion(quaternion)
+        # Extract velocity
+        velocity = msg.twist.twist
+        linear_velocity = velocity.linear
+        angular_velocity = velocity.angular
 
-            # Extract velocity
-            velocity = msgs[i].twist.twist
-            linear_velocity = velocity.linear
-            angular_velocity = velocity.angular
+        # # Log data
+        data = [timestamp, x, y, z, roll, pitch, yaw,
+                linear_velocity.x, linear_velocity.y, linear_velocity.z,
+                angular_velocity.x, angular_velocity.y, angular_velocity.z]
 
-            # # Log data
-            data = [timestamp, x, y, z, roll, pitch, yaw,
-                    linear_velocity.x, linear_velocity.y, linear_velocity.z,
-                    angular_velocity.x, angular_velocity.y, angular_velocity.z]
-
-            if self.logging:
-                with open(log_filename[i], "a") as file:
-                    writer = csv.writer(file)
-                    writer.writerow(data)
+        if self.logging:
+            with open(log_filename, "a") as file:
+                writer = csv.writer(file)
+                writer.writerow(data)
 
             # rospy.loginfo(f"Drone {self.drone_id} processed odometry at {timestamp}: {data}")
-            cur_odom[i, :] = data[1:]
+
+        return data[1:] # Return position and orientation for further processing if needed
+    
+
+    # def process_odom_msgs(self, timestamp, msgs, log_filename):
+    #     """Process the odometry messages
+
+    #     msgs is a list of self.robot_num messages
+    #     log_filename is also a list of self.robot_num filenames
+    #     """
+    #     print('call!')
+    #     print(len(msgs))
+    #     cur_odom = np.zeros((self.robot_num, 12))
+    #     for i in range(self.robot_num):
+    #         # Extract position
+    #         position = msgs[i].pose.pose.position
+    #         x, y, z = position.x, position.y, position.z
+
+    #         # Extract orientation (quaternion to Euler angles)
+    #         orientation = msgs[i].pose.pose.orientation
+    #         quaternion = (orientation.x, orientation.y, orientation.z, orientation.w)
+    #         roll, pitch, yaw = euler_from_quaternion(quaternion)
+
+    #         # Extract velocity
+    #         velocity = msgs[i].twist.twist
+    #         linear_velocity = velocity.linear
+    #         angular_velocity = velocity.angular
+
+    #         # # Log data
+    #         data = [timestamp, x, y, z, roll, pitch, yaw,
+    #                 linear_velocity.x, linear_velocity.y, linear_velocity.z,
+    #                 angular_velocity.x, angular_velocity.y, angular_velocity.z]
+
+    #         if self.logging:
+    #             with open(log_filename[i], "a") as file:
+    #                 writer = csv.writer(file)
+    #                 writer.writerow(data)
+
+    #         # rospy.loginfo(f"Drone {self.drone_id} processed odometry at {timestamp}: {data}")
+    #         cur_odom[i, :] = data[1:]
 
         return cur_odom  # (robot_num, 12)
 
 
-    def process_image(self, image_msg, timestamp):
-        """Process the image messages
-
-        msgs is a list of self.robot_num messages
-        """
+    def process_image(self, timestamp, image_msg, log_dir):
 
         bridge = CvBridge()
         try:
-            for i in range(self.robot_num):
-                # Convert the ROS image message to an OpenCV image
-                cv_image = bridge.imgmsg_to_cv2(image_msg[i], "bgr8")
-                image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-                pil_image = PILImage.fromarray(image_rgb)
+            # Convert the ROS image message to an OpenCV image
+            cv_image = bridge.imgmsg_to_cv2(image_msg, "bgr8")
+            image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+            pil_image = PILImage.fromarray(image_rgb)
 
-                image_tensor = transform(pil_image)
+            image_tensor = transform(pil_image)
 
-                # Add batch dimension and move to device
-                #image_tensor = image_tensor.unsqueeze(0).to(self.device)  # Shape: (1, 3, 640, 640)
-                # Perform YOLO detection
-                #img_xywhn, detect_masks = yolo_detect(self.yolo_model, image_tensor, self.target_num, self.device)
-                #self.bbox_data = torch.cat((self.bbox_data[:, :, 4:], img_xywhn.cpu()), dim=2)
+            # Add batch dimension and move to device
+            #image_tensor = image_tensor.unsqueeze(0).to(self.device)  # Shape: (1, 3, 640, 640)
+            # Perform YOLO detection
+            #img_xywhn, detect_masks = yolo_detect(self.yolo_model, image_tensor, self.target_num, self.device)
+            #self.bbox_data = torch.cat((self.bbox_data[:, :, 4:], img_xywhn.cpu()), dim=2)
 
-                # Perform trajectory prediction
-                #pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data,
-                #                      self.target_num, self.win_size, self.pred_win_size, self.device)
-                # print('pred_traj', pred_traj)
+            # Perform trajectory prediction
+            #pred_traj = traj_pred(self.traj_model, self.odom_data, self.bbox_data,
+            #                      self.target_num, self.win_size, self.pred_win_size, self.device)
+            # print('pred_traj', pred_traj)
 
-                # Save the image
-                if self.logging:
-                    # Get the current timestamp for unique filenames
-                    img_filename = os.path.join(self.log_image_dir, "{:.6f}.png".format(timestamp))
-                    cv2.imwrite(img_filename, cv_image)
+            # Save the image
+            if self.logging:
+                # Get the current timestamp for unique filenames
+                img_filename = os.path.join(log_dir, "{:.6f}.png".format(timestamp))
+                cv2.imwrite(img_filename, cv_image)
 
-                    # rospy.loginfo(f"Drone {self.drone_id} processed image at {timestamp}, saved to {img_filename}")
+                # rospy.loginfo(f"Drone {self.drone_id} processed image at {timestamp}, saved to {img_filename}")
 
-                # Convert img_xywhn to numpy array for logging
-                #bbox = img_xywhn.cpu().numpy().flatten().tolist()  # Shape: (target_num*4,)
-                #detect_masks = detect_masks.cpu().numpy().flatten().tolist() # Shape: (target_num,)
-                #print('bbox', bbox)
-                #print('detect_masks', detect_masks)
+            # Convert img_xywhn to numpy array for logging
+            #bbox = img_xywhn.cpu().numpy().flatten().tolist()  # Shape: (target_num*4,)
+            #detect_masks = detect_masks.cpu().numpy().flatten().tolist() # Shape: (target_num,)
+            #print('bbox', bbox)
+            #print('detect_masks', detect_masks)
 
-                # Log bbox data
-                # if self.logging:
-                #     # Log bounding boxes to CSV
-                #     with open(self.log_file_bbox, "a") as file:
-                #         writer = csv.writer(file)
-                #         row = [timestamp] + bbox
-                #         writer.writerow(row)
+            # Log bbox data
+            # if self.logging:
+            #     # Log bounding boxes to CSV
+            #     with open(self.log_file_bbox, "a") as file:
+            #         writer = csv.writer(file)
+            #         row = [timestamp] + bbox
+            #         writer.writerow(row)
 
         except Exception as e:
             rospy.logerr(f"Drone {self.drone_id}: Failed to convert image: {e}")
@@ -298,7 +330,7 @@ class CentralDroneProcessor:
         # rospy.loginfo(f"Drone {self.drone_id} published predicted trajectory at {timestamp}")
 
 
-    def synchronized_callback(self, msgs):
+    def synchronized_callback(self, *msgs):
         global last_call_time
         now = rospy.Time.now().to_sec()
         if now - last_call_time < self.time_step: # Rate limiting
@@ -318,16 +350,20 @@ class CentralDroneProcessor:
             #odom = self.process_odom(timestamp, odom_msg, f"{self.log_path}/odom.csv")
 
             #process ground truth
-            odom = self.process_odom(timestamp, ground_truth_msgs, self.log_file_odom)
-            odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)
-            self.odom_data = torch.cat((self.odom_data[:, 12:], odom), dim=1)
+            for i in range(self.robot_num):
+                odom = self.process_odom(timestamp, ground_truth_msgs[i], self.log_file_odom[i])
+                odom = torch.tensor(np.array(odom).reshape(1, -1), dtype=torch.float32)
+                #self.odom_data = torch.cat((self.odom_data[:, 12:], odom), dim=1)
 
             #process car odom
-            for i, car_msg in enumerate(car_msgs, 1):
-                self.process_odom(timestamp, car_msg, self.log_file_target[i])
+            for j, car_msg in enumerate(car_msgs):
+                # Repeat the same car odom data in each robot's folder
+                for i in range(self.robot_num):
+                    self.process_odom(timestamp, car_msg, self.log_file_target[i][j])
 
             #process image
-            self.process_image(image_msgs, timestamp)
+            for i in range(self.robot_num):
+                self.process_image(timestamp, image_msgs[i], self.log_image_dir[i])
 
             # # Log bounding boxes
             #self.publish_pred_traj(bbox, detect_masks, pred_traj) #all three targets, zeros out if less than target num
