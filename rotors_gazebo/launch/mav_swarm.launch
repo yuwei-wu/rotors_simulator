@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="world_name" default="agri1"/>
+  <arg name="world_name" default="agri3"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
