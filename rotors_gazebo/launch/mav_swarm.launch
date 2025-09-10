@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="world_name" default="agri3"/>
+  <arg name="world_name" default="agri1"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
@@ -67,13 +67,19 @@
         args="messages /drone3/ground_truth/odometry 30.0 /drone3/ground_truth/odometry_throttled" output="screen" />
 
   <!-- Throttle target to 30 Hz -->
-  <node pkg="topic_tools" type="throttle" name="target1_throttle"
-        args="messages /car_1/odometry 30.0 /car_1/odometry_throttled" output="screen" />
+  <node pkg="rotors_gazebo" type="odometry_republisher.py" name="car1_repub" output="screen">
+    <param name="car_name" value="car_1"/>
+    <param name="rate_hz" value="30.0"/>
+  </node>
 
-  <node pkg="topic_tools" type="throttle" name="target2_throttle"
-        args="messages /car_2/odometry 30.0 /car_2/odometry_throttled" output="screen" />
+  <node pkg="rotors_gazebo" type="odometry_republisher.py" name="car2_repub" output="screen">
+    <param name="car_name" value="car_2"/>
+    <param name="rate_hz" value="30.0"/>
+  </node>
 
-  <node pkg="topic_tools" type="throttle" name="target3_throttle"
-        args="messages /car_3/odometry 30.0 /car_3/odometry_throttled" output="screen" />
+  <node pkg="rotors_gazebo" type="odometry_republisher.py" name="car3_repub" output="screen">
+    <param name="car_name" value="car_3"/>
+    <param name="rate_hz" value="30.0"/>
+  </node>
 
 </launch>

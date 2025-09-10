@@ -64,7 +64,7 @@ class CentralDroneProcessor:
             if self.robot_num == 3:
                 traj_model_name = os.path.join(self.pred_model_path, "best_central_r3.pth")
             elif self.robot_num == 4:
-                traj_model_name = os.path.join(self.pred_model_path, "best_central_r4.pth")
+                traj_model_name = os.path.join(self.pred_model_path, "best_central_r4_agri1.pth")
             else:
                 raise NotImplementedError(f"Do not have centralized pretrained model with robot num {self.robot_num}")
 
@@ -122,7 +122,7 @@ class CentralDroneProcessor:
         self.ts = message_filters.ApproximateTimeSynchronizer(
             [*ground_truth_subs, *car_subs, *image_subs],
             queue_size=50,
-            slop=0.1
+            slop=0.5
         )
         self.ts.registerCallback(self.synchronized_callback)
         
@@ -296,6 +296,7 @@ class CentralDroneProcessor:
             # Trajectory prediction
             pred_traj = traj_pred(self.traj_model, self.odom_data, self.image_data, 
                                   self.target_num, self.win_size, self.pred_win_size, self.device)
+            print(pred_traj)
 
             # # Log bounding boxes
             self.publish_pred_traj(pred_traj) 
