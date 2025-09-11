@@ -59,7 +59,7 @@ class DroneProcessor:
             self.learning = rospy.get_param('~learning', 'frozen') # 'frozen', 'centralized', 'dronefl'
             if self.learning == 'frozen':
                 self.logging = False  # No data logging in frozen
-            self.train_warmup = rospy.get_param('~train_warmup', 150) # The sample interval to fire training
+            self.train_warmup = rospy.get_param('~train_warmup', 400) # The sample start to fire training
 
             yolo_model_name = os.path.join(self.pred_model_path, "best_yolo_t6.pt")
             traj_model_name = os.path.join(self.pred_model_path, "best_model.pth")
