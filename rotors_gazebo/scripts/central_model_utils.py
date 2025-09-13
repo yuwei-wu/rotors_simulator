@@ -40,7 +40,7 @@ def traj_pred(model, odom_data, image_data, target_num, win_size, pred_win_size,
     # The reference point is x,y position of the latest sample on robot 0
     drone_odometry = drone_odometry.reshape(-1, n_robot, win_size, 12)  # Shape: [bsz, n_client, win_size, 12]
     new_refer_point = drone_odometry[:, 0, -1, :2].clone()  # Shape: [bsz, 2]
-    # print('new reference point', new_refer_point.shape)
+    # print('new reference point', new_refer_point)
 
     # Convert the drone odometry to the new reference point
     # Subtract the new reference point from the first two columns
@@ -55,7 +55,10 @@ def traj_pred(model, odom_data, image_data, target_num, win_size, pred_win_size,
     # Add the predicted trajectory with the reference point
     # print('out shape:', out.shape) # (n_target, bsz, pred_win_size * 2)
     out = out.reshape(target_num, -1, pred_win_size, 2)
+    # print('out before', out.shape, out)
+    # out[0, 0, 0, 0] -= 5.0  # TEMP FIX to let the centralized baseline work on 2-target, 2-drone case
     out += new_refer_point.unsqueeze(0).unsqueeze(2)  # Add the new reference point to the predicted trajectory
+    # print('out after', out)
     out = out.reshape(target_num, -1, pred_win_size * 2)  # Shape: (n_target, bsz, pred_win_size * 2)
 
     return out.cpu().numpy()

@@ -64,9 +64,9 @@ class CentralDroneProcessor:
             if self.robot_num == 2:
                 traj_model_name = os.path.join(self.pred_model_path, "best_central_r2_agri3.pth")
             elif self.robot_num == 3:
-                traj_model_name = os.path.join(self.pred_model_path, "best_central_r3.pth")
+                traj_model_name = os.path.join(self.pred_model_path, "best_central_r3_agri1.pth")
             elif self.robot_num == 4:
-                traj_model_name = os.path.join(self.pred_model_path, "best_central_r4_agri1.pth")
+                traj_model_name = os.path.join(self.pred_model_path, "best_central_r4_agri3.pth")
             else:
                 raise NotImplementedError(f"Do not have centralized pretrained model with robot num {self.robot_num}")
 
