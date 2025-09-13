@@ -1,7 +1,7 @@
 <launch>
     <!-- Parameters -->
-    <arg name="robot_num" default="3"/>
-    <arg name="target_num" default="3"/>
+    <arg name="robot_num" default="2"/>
+    <arg name="target_num" default="2"/>
     <arg name="win_size" default="10"/>
     <arg name="pred_win_size" default="1"/>
     <arg name="pred_model_path" default="$(find rotors_gazebo)/pred_model_ckpt/"/>
@@ -15,7 +15,7 @@
         <param name="win_size" value="$(arg win_size)"/>
         <param name="pred_win_size" value="$(arg pred_win_size)"/>
         <param name="pred_model_path" value="$(arg pred_model_path)"/>
-        <param name="log_path" value="$(find rotors_gazebo)/exp1_logs/"/>
+        <param name="log_path" value="$(find rotors_gazebo)/exp0_logs/"/>
         <param name="logging" value="$(arg logging)"/>
     </node>
     

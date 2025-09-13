@@ -61,7 +61,9 @@ class CentralDroneProcessor:
             #    self.logging = False  # No data logging in frozen
             self.train_warmup = rospy.get_param('~train_warmup', 150) # The sample interval to fire training
 
-            if self.robot_num == 3:
+            if self.robot_num == 2:
+                traj_model_name = os.path.join(self.pred_model_path, "best_central_r2_agri3.pth")
+            elif self.robot_num == 3:
                 traj_model_name = os.path.join(self.pred_model_path, "best_central_r3.pth")
             elif self.robot_num == 4:
                 traj_model_name = os.path.join(self.pred_model_path, "best_central_r4_agri1.pth")
