@@ -271,7 +271,7 @@ void GazeboRosActorCommand::OnUpdate(const common::UpdateInfo &_info) {
   // publish the odom 
   nav_msgs::Odometry odom_msg;
   odom_msg.header.stamp = ros::Time::now();
-  odom_msg.header.frame_id = odom_frame_id_;  // or your world frame
+  odom_msg.header.frame_id = "world";  // or your world frame
   odom_msg.child_frame_id = "base_link";  // or your actor frame
 
   // Set position

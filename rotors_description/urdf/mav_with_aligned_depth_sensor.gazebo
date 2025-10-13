@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<robot name="$(arg mav_name)" xmlns:xacro="http://ros.org/wiki/xacro">
+  <!-- Instantiate the mav with a generic odometry sensor. -->
+  <xacro:include filename="$(find rotors_description)/urdf/mav_generic_odometry_sensor.gazebo" />
+
+  <!-- Mount a VI-sensor in front of the Firefly. -->
+  <xacro:vi_sensor_macro
+    namespace="${namespace}/vi_sensor"
+    parent_link="${namespace}/base_link"
+    enable_cameras="true"
+    enable_depth="false"
+    enable_ground_truth="true">
+    <origin xyz="0.0 0.0 0.086" rpy="0.0 0.0 0.0" />
+  </xacro:vi_sensor_macro>
+
+  <!-- RGB-D Camera Link aligned to the VI sensor -->
+  <link name="${namespace}/aligned_camera_link">
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.05 0.1 0.05" />
+      </geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <box size="0.05 0.1 0.05" />
+      </geometry>
+      <material name="red">
+        <color rgba="1.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+    <inertial>
+      <mass value="1e-5" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6" />
+    </inertial>
+  </link>
+
+  <!-- Joint to attach RGB-D camera aligned with VI sensor -->
+  <joint name="${namespace}/aligned_camera_joint" type="fixed">
+    <parent link="${namespace}/vi_sensor/vi_sensor_link"/>
+    <child link="${namespace}/aligned_camera_link"/>
+    <origin xyz="0.165 0.0 0.0065" rpy="0 0 0"/> <!-- Moved forward by 15cm to avoid propeller in view -->
+  </joint>
+
+  <!-- Optical center of RGB-D camera -->
+  <link name="${namespace}/aligned_camera_optical_center_link" />
+  <joint name="${namespace}/aligned_camera_optical_center_joint" type="fixed">
+    <origin xyz="0 0 0" rpy="-1.5708 0 -1.5708" />
+    <parent link="${namespace}/aligned_camera_link" />
+    <child link="${namespace}/aligned_camera_optical_center_link" />
+  </joint>
+
+  <!-- RGB-D Camera Sensor using standard Gazebo plugin -->
+  <gazebo reference="${namespace}/aligned_camera_link">
+    <sensor type="depth" name="aligned_depth_camera">
+      <always_on>true</always_on>
+      <update_rate>30.0</update_rate>
+      <camera>
+        <horizontal_fov>1.047198</horizontal_fov> <!-- 60 degrees -->
+        <image>
+          <format>R8G8B8</format>
+          <width>640</width>
+          <height>480</height>
+        </image>
+        <clip>
+          <near>0.1</near>
+          <far>10.0</far>
+        </clip>
+      </camera>
+      <plugin name="aligned_depth_camera_controller" filename="libgazebo_ros_openni_kinect.so">
+        <baseline>0.2</baseline>
+        <alwaysOn>true</alwaysOn>
+        <updateRate>30.0</updateRate>
+        <robotNamespace>${namespace}</robotNamespace>
+        <cameraName>aligned</cameraName>
+        <imageTopicName>rgb/image_raw</imageTopicName>
+        <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
+        <depthImageTopicName>depth/image_raw</depthImageTopicName>
+        <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+        <pointCloudTopicName>depth/points</pointCloudTopicName>
+        <frameName>${namespace}/aligned_camera_optical_center_link</frameName>
+        <pointCloudCutoff>0.1</pointCloudCutoff>
+        <pointCloudCutoffMax>10.0</pointCloudCutoffMax>
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+      </plugin>
+    </sensor>
+  </gazebo>
+
+</robot>

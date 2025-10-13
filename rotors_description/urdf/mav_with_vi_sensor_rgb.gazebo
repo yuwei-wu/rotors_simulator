@@ -50,7 +50,7 @@
   <joint name="rgb_camera_joint" type="fixed">
     <parent link="${namespace}/base_link"/>   <!-- parent is base_link -->
     <child link="rgb_camera_link"/>           <!-- child is rgb_camera_link -->
-    <origin xyz="0.05 0 0" rpy="0 0 0"/>
+    <origin xyz="0.2 0 0" rpy="0 0 0"/>
   </joint>
 
   <!-- Gazebo plugin for RGB camera -->
