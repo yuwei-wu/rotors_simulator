@@ -66,7 +66,7 @@
         </image>
         <clip>
           <near>0.1</near>
-          <far>10.0</far>
+          <far>30.0</far>
         </clip>
       </camera>
       <plugin name="aligned_depth_camera_controller" filename="libgazebo_ros_openni_kinect.so">
@@ -82,7 +82,7 @@
         <pointCloudTopicName>depth/points</pointCloudTopicName>
         <frameName>${namespace}/aligned_camera_optical_center_link</frameName>
         <pointCloudCutoff>0.1</pointCloudCutoff>
-        <pointCloudCutoffMax>10.0</pointCloudCutoffMax>
+        <pointCloudCutoffMax>30.0</pointCloudCutoffMax>
         <distortionK1>0.0</distortionK1>
         <distortionK2>0.0</distortionK2>
         <distortionK3>0.0</distortionK3>

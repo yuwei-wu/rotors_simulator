@@ -1,75 +1,94 @@
 #!/usr/bin/env python3
 '''
-Virtual Joystick from Keyboard without uinput
-重构后的虚拟摇杆：剥离 uinput，直接发布 sensor_msgs/Joy 消息
+Virtual Joystick from Keyboard - Fixed for Hummingbird Control
+Publishes PoseStamped messages to control the drone directly
 '''
 
 import os
 import time
-import pygame, sys
+import pygame
+import sys
 import rospy
-from pygame.locals import *
-from sensor_msgs.msg import Joy
+from geometry_msgs.msg import PoseStamped, Point, Quaternion
+from std_msgs.msg import Header
+import tf.transformations as tf_trans
+
+# Set SDL video driver and display settings for better GUI compatibility
+os.environ['SDL_VIDEODRIVER'] = 'x11'
+os.environ['DISPLAY'] = ':0'
+
+# Initialize pygame first
+pygame.init()
+
+# Import pygame constants after initialization
+QUIT = pygame.QUIT
+KEYDOWN = pygame.KEYDOWN 
+KEYUP = pygame.KEYUP
+K_UP = pygame.K_UP
+K_DOWN = pygame.K_DOWN
+K_LEFT = pygame.K_LEFT
+K_RIGHT = pygame.K_RIGHT
+K_w = pygame.K_w
+K_s = pygame.K_s
+K_a = pygame.K_a
+K_d = pygame.K_d
+K_u = pygame.K_u
+K_y = pygame.K_y
+K_j = pygame.K_j
+K_h = pygame.K_h
+K_m = pygame.K_m
+K_n = pygame.K_n
+K_ESCAPE = pygame.K_ESCAPE
 
 # 初始化 pygame 窗口
-pygame.init()
 WHITE = (255, 255, 255)
-WIDTH = 485
-HEIGHT = 530
-windowSurface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
-windowSurface.fill(WHITE)
-pygame.display.set_caption('Position Controller Joystick')
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+WIDTH = 600
+HEIGHT = 400
 
-# 加载背景图片（如果需要）
-dir_path = os.path.dirname(__file__)
-bg_img_path = os.path.join(dir_path, '../media/sticks.png')
-if os.path.exists(bg_img_path):
-    img = pygame.image.load(bg_img_path)
-    windowSurface.blit(img, (0, 0))
-pygame.display.flip()
+try:
+    windowSurface = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
+    windowSurface.fill(WHITE)
+    pygame.display.set_caption('Hummingbird Position Controller')
+    print("✅ Pygame window created successfully")
+except Exception as e:
+    print(f"❌ Error creating pygame window: {e}")
+    sys.exit(1)
 
-class StickState(object):
-    def __init__(self, name, key_up, key_down, spring_back=True, incr_val=1.0):
-        self.name = name                # 控制名称
-        self.key_up = key_up            # 增加对应键
-        self.key_down = key_down        # 减少对应键
-        self.spring_back = spring_back  # 松开后是否回弹到中心
-        self.incr_val = incr_val        # 每次按键的增量
-        self.min_val = 0.0              # 最小值
-        self.max_val = 255.0            # 最大值
-        # 对于有回弹的摇杆，中心值设为127；否则初始为0
-        self.zero = 127.0 if spring_back else 0.0
-        self.val = self.zero
+class DroneController(object):
+    def __init__(self, name, key_up, key_down, increment=0.1):
+        self.name = name
+        self.key_up = key_up
+        self.key_down = key_down
+        self.increment = increment
+        self.value = 0.0
         self.active_up = False
         self.active_down = False
-
+        
+        # Set limits based on control type
+        if name in ['X', 'Y']:
+            self.min_val = -500.0  # X and Y position limits in meters
+            self.max_val = 500.0
+        elif name == 'Z':
+            self.min_val = 0.0   # Z position limit in meters
+            self.max_val = 50.0
+        else:  # Yaw
+            self.min_val = -3.14159  # Yaw limits in radians
+            self.max_val = 3.14159
+            
     def keypress_up(self):
         self.active_up = True
-        if self.val + self.incr_val <= self.max_val:
-            self.val += self.incr_val
-        else:
-            self.val = self.max_val
-
+        new_val = self.value + self.increment
+        self.value = min(new_val, self.max_val)
+        
     def keypress_down(self):
         self.active_down = True
-        if self.val - self.incr_val >= self.min_val:
-            self.val -= self.incr_val
-        else:
-            self.val = self.min_val
-
-    def release_stick(self):
-        if not self.spring_back:
-            return
-        # 回弹到中心（逐渐恢复）
-        if self.val > self.zero:
-            self.val -= self.incr_val * 0.2
-            if self.val < self.zero:
-                self.val = self.zero
-        elif self.val < self.zero:
-            self.val += self.incr_val * 0.2
-            if self.val > self.zero:
-                self.val = self.zero
-
+        new_val = self.value - self.increment
+        self.value = max(new_val, self.min_val)
+        
     def update_event(self, event):
         if event.type == KEYDOWN:
             if event.key == self.key_up:
@@ -81,91 +100,127 @@ class StickState(object):
                 self.active_up = False
             elif event.key == self.key_down:
                 self.active_down = False
-
+                
     def update(self):
         if self.active_up:
             self.keypress_up()
         elif self.active_down:
             self.keypress_down()
-        else:
-            self.release_stick()
-        # 限制数值范围
-        if self.val < self.min_val:
-            self.val = self.min_val
-        if self.val > self.max_val:
-            self.val = self.max_val
-        return self.val
-
-    def get_normalized(self):
-        """
-        对于有回弹的轴，将 [0,255] 转换为 [-1,1]（中心 127 对应 0）；
-        对于非回弹轴，归一化到 [0,1]
-        """
-        if self.spring_back:
-            return (self.val - self.zero) / self.zero
-        else:
-            return self.val / self.max_val
+        return self.value
 
 def main():
     # 初始化 ROS 节点和发布者
     rospy.init_node('virtual_joystick', anonymous=True)
-    # 发布到 /hummingbird/joy 话题，消息类型 sensor_msgs/Joy
-    pub = rospy.Publisher('/hummingbird/joy', Joy, queue_size=10)
+    # 发布到 /hummingbird/command/pose 话题，消息类型 geometry_msgs/PoseStamped
+    pub = rospy.Publisher('/hummingbird/command/pose', PoseStamped, queue_size=10)
 
     # 创建各个控制轴，按键映射与原代码一致：
     # x: K_UP / K_DOWN
-    x_stick = StickState('X', K_UP, K_DOWN)
-    # y: K_LEFT / K_RIGHT
-    y_stick = StickState('Y', K_LEFT, K_RIGHT)
+    x_controller = DroneController('X', K_UP, K_DOWN, increment=0.1)
+    # y: K_LEFT / K_RIGHT  
+    y_controller = DroneController('Y', K_LEFT, K_RIGHT, increment=0.1)
     # z: K_w / K_s
-    z_stick = StickState('Z', K_w, K_s)
+    z_controller = DroneController('Z', K_w, K_s, increment=0.1)
     # yaw: K_d / K_a
-    yaw_stick = StickState('Yaw', K_d, K_a)
-    # 外部扰动力（若需要）：extforceX: K_u / K_y
-    extforce_x = StickState('extforceX', K_u, K_y, spring_back=False, incr_val=5.0)
-    # extforceY: K_j / K_h
-    extforce_y = StickState('extforceY', K_j, K_h, spring_back=False, incr_val=5.0)
-    # extforceZ: K_m / K_n
-    extforce_z = StickState('extforceZ', K_m, K_n, spring_back=False, incr_val=5.0)
+    yaw_controller = DroneController('Yaw', K_d, K_a, increment=0.1)
 
-    sticks = [x_stick, y_stick, z_stick, yaw_stick, extforce_x, extforce_y, extforce_z]
+    controllers = [x_controller, y_controller, z_controller, yaw_controller]
 
     rate = rospy.Rate(50)  # 50 Hz 发布频率
+    
+    # Initialize font
+    pygame.font.init()
+    font = pygame.font.Font(None, 24)
+    
+    print("🎮 Virtual Joystick Started!")
+    print("📡 Publishing to /hummingbird/command/pose")
+    print("🎯 Use arrow keys, WASD, and AD to control the drone")
 
     while not rospy.is_shutdown():
         # 处理 pygame 事件
         for event in pygame.event.get():
-            if event.type == QUIT:
+            if event.type == QUIT or (event.type == KEYDOWN and event.key == K_ESCAPE):
+                print("👋 Exiting...")
                 pygame.quit()
                 sys.exit()
-            for stick in sticks:
-                stick.update_event(event)
+            for controller in controllers:
+                controller.update_event(event)
 
         # 更新所有控制的当前数值
-        raw_values = [stick.update() for stick in sticks]
-        norm_values = [stick.get_normalized() for stick in sticks]
+        for controller in controllers:
+            controller.update()
 
         # 可选：在界面上刷新显示当前原始值
         windowSurface.fill(WHITE)
-        font = pygame.font.SysFont("Arial", 16)
-        for idx, stick in enumerate(sticks):
-            text = font.render(f"{stick.name}: {int(stick.val)}", True, (0,0,0))
-            windowSurface.blit(text, (10, 10 + idx*20))
+        
+        # Display current values
+        for idx, controller in enumerate(controllers):
+            text_str = f"{controller.name}: {controller.value:.2f}"
+            color = GREEN if abs(controller.value) > 0.01 else BLACK
+            text = font.render(text_str, True, color)
+            windowSurface.blit(text, (10, 10 + idx*30))
+            
+        # Add instructions
+        instructions = [
+            "🎮 Hummingbird Drone Control",
+            "",
+            "📍 Position Control:",
+            "  X: ↑/↓ arrows (forward/back)",
+            "  Y: ←/→ arrows (left/right)", 
+            "  Z: W/S keys (up/down)",
+            "",
+            "🔄 Orientation:", 
+            "  Yaw: A/D keys (rotate)",
+            "",
+            "🔧 Controls:",
+            "  ESC: Exit",
+            "",
+            "📡 Status: Publishing to ROS ✅" if not rospy.is_shutdown() else "📡 Status: ROS Disconnected ❌"
+        ]
+        
+        for idx, instruction in enumerate(instructions):
+            color = BLUE if instruction.startswith("🎮") else BLACK
+            if instruction.startswith("📡 Status") and "✅" in instruction:
+                color = GREEN
+            elif instruction.startswith("📡 Status") and "❌" in instruction:
+                color = RED
+                
+            text = font.render(instruction, True, color)
+            windowSurface.blit(text, (250, 10 + idx*20))
+            
         pygame.display.flip()
 
-        # 构造 sensor_msgs/Joy 消息并发布
-        joy_msg = Joy()
-        joy_msg.header.stamp = rospy.Time.now()
-        # 轴顺序：X, Y, Z, Yaw, extforceX, extforceY, extforceZ
-        joy_msg.axes = norm_values
-        # 如果没有按钮状态，可以为空
-        joy_msg.buttons = []
-        pub.publish(joy_msg)
-
+        # 构造 geometry_msgs/PoseStamped 消息并发布
+        pose_msg = PoseStamped()
+        pose_msg.header = Header()
+        pose_msg.header.stamp = rospy.Time.now()
+        pose_msg.header.frame_id = "world"
+        
+        # 设置位置 (X, Y, Z)
+        pose_msg.pose.position = Point()
+        pose_msg.pose.position.x = x_controller.value
+        pose_msg.pose.position.y = y_controller.value  
+        pose_msg.pose.position.z = z_controller.value
+        
+        # 设置姿态 (Yaw)
+        quaternion = tf_trans.quaternion_from_euler(0, 0, yaw_controller.value)
+        pose_msg.pose.orientation = Quaternion()
+        pose_msg.pose.orientation.x = quaternion[0]
+        pose_msg.pose.orientation.y = quaternion[1]
+        pose_msg.pose.orientation.z = quaternion[2]
+        pose_msg.pose.orientation.w = quaternion[3]
+        
+        pub.publish(pose_msg)
         rate.sleep()
 
 if __name__ == '__main__':
     try:
         main()
     except rospy.ROSInterruptException:
+        print("🔴 ROS Interrupted")
         pass
+    except KeyboardInterrupt:
+        print("🔴 Keyboard Interrupt")
+        pass
+    finally:
+        pygame.quit()
