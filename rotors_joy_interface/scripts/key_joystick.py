@@ -76,8 +76,8 @@ class DroneController(object):
             self.min_val = 0.0   # Z position limit in meters
             self.max_val = 50.0
         else:  # Yaw
-            self.min_val = -3.14159  # Yaw limits in radians
-            self.max_val = 3.14159
+            self.min_val = float('-inf')  # Unlimited yaw rotation
+            self.max_val = float('inf')
             
     def keypress_up(self):
         self.active_up = True
@@ -114,17 +114,17 @@ def main():
     # 发布到 /hummingbird/command/pose 话题，消息类型 geometry_msgs/PoseStamped
     pub = rospy.Publisher('/hummingbird/command/pose', PoseStamped, queue_size=10)
 
-    # 创建各个控制轴，按键映射与原代码一致：
-    # x: K_UP / K_DOWN
-    x_controller = DroneController('X', K_UP, K_DOWN, increment=0.1)
-    # y: K_LEFT / K_RIGHT  
-    y_controller = DroneController('Y', K_LEFT, K_RIGHT, increment=0.1)
-    # z: K_w / K_s
+    # 创建各个控制轴，使用drone-relative控制：
+    # forward/back: K_UP / K_DOWN (relative to drone's front)
+    forward_controller = DroneController('Forward', K_UP, K_DOWN, increment=0.1)
+    # left/right: K_LEFT / K_RIGHT (relative to drone's sides)  
+    right_controller = DroneController('Right', K_RIGHT, K_LEFT, increment=0.1)
+    # z: K_w / K_s (altitude)
     z_controller = DroneController('Z', K_w, K_s, increment=0.1)
-    # yaw: K_d / K_a
-    yaw_controller = DroneController('Yaw', K_d, K_a, increment=0.1)
+    # yaw: K_d / K_a (slower rotation)
+    yaw_controller = DroneController('Yaw', K_d, K_a, increment=0.03)
 
-    controllers = [x_controller, y_controller, z_controller, yaw_controller]
+    controllers = [forward_controller, right_controller, z_controller, yaw_controller]
 
     rate = rospy.Rate(50)  # 50 Hz 发布频率
     
@@ -164,13 +164,13 @@ def main():
         instructions = [
             "🎮 Hummingbird Drone Control",
             "",
-            "📍 Position Control:",
-            "  X: ↑/↓ arrows (forward/back)",
-            "  Y: ←/→ arrows (left/right)", 
+            "📍 Drone-Relative Control:",
+            "  Forward: ↑/↓ arrows (drone front/back)",
+            "  Right: ←/→ arrows (drone left/right)", 
             "  Z: W/S keys (up/down)",
             "",
             "🔄 Orientation:", 
-            "  Yaw: A/D keys (rotate)",
+            "  Yaw: A/D keys (rotate unlimited)",
             "",
             "🔧 Controls:",
             "  ESC: Exit",
@@ -196,10 +196,20 @@ def main():
         pose_msg.header.stamp = rospy.Time.now()
         pose_msg.header.frame_id = "world"
         
+        # Convert drone-relative movement to world coordinates
+        import math
+        current_yaw = yaw_controller.value
+        forward_distance = forward_controller.value
+        right_distance = right_controller.value
+        
+        # Transform to world coordinates based on current yaw
+        world_x = forward_distance * math.cos(current_yaw) - right_distance * math.sin(current_yaw)
+        world_y = forward_distance * math.sin(current_yaw) + right_distance * math.cos(current_yaw)
+        
         # 设置位置 (X, Y, Z)
         pose_msg.pose.position = Point()
-        pose_msg.pose.position.x = x_controller.value
-        pose_msg.pose.position.y = y_controller.value  
+        pose_msg.pose.position.x = world_x
+        pose_msg.pose.position.y = world_y  
         pose_msg.pose.position.z = z_controller.value
         
         # 设置姿态 (Yaw)

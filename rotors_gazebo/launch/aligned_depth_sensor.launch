@@ -5,7 +5,7 @@
   <arg name="init_y" value="-4.0"/>
   <arg name="init_z" value="0.8"/> 
   <arg name="mav_name" default="hummingbird"/>
-  <arg name="world_name" default="outdoor_no_actor"/>
+  <arg name="world_name" default="outdoor_with_random_actor"/>
   <arg name="enable_logging" default="false" />
   <arg name="enable_ground_truth" default="true" />
   <arg name="log_file" default="$(arg mav_name)" />
@@ -62,6 +62,9 @@
      <param name="init_state_y" value="$(arg init_y)"/>
      <param name="init_state_z" value="$(arg init_z)"/>
    </node>
+
+    <!-- Random Actor Controller for dynamic movement -->
+    <node name="random_actor_controller" pkg="rotors_gazebo" type="random_actor_controller.py" output="screen" />
 
     <!-- Launch rviz -->
     <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator.rviz"/>
