@@ -38,7 +38,7 @@
 
 <!-- Main multirotor link -->
   <xacro:macro name="multirotor_base_macro"
-    params="robot_namespace mass body_width body_height use_mesh_file color mesh_file *inertia">
+    params="robot_namespace mass body_width body_height use_mesh_file mesh_file *inertia color:=Blue">
     <link name="${robot_namespace}/base_link"></link>
 
     <joint name="${robot_namespace}/base_joint" type="fixed">

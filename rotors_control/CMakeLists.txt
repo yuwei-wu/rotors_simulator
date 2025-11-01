@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   cmake_modules
+  quadrotor_msgs
 )
 
 find_package(Eigen3 REQUIRED)
@@ -52,11 +53,15 @@ add_dependencies(roll_pitch_yawrate_thrust_controller_node ${catkin_EXPORTED_TAR
 target_link_libraries(roll_pitch_yawrate_thrust_controller_node
   roll_pitch_yawrate_thrust_controller ${catkin_LIBRARIES})
 
+add_executable(ego_planner_bridge_node src/nodes/ego_planner_bridge_node.cpp)
+add_dependencies(ego_planner_bridge_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(ego_planner_bridge_node ${catkin_LIBRARIES})
+
 install(TARGETS lee_position_controller roll_pitch_yawrate_thrust_controller
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
-install(TARGETS lee_position_controller_node roll_pitch_yawrate_thrust_controller_node
+install(TARGETS lee_position_controller_node roll_pitch_yawrate_thrust_controller_node ego_planner_bridge_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
