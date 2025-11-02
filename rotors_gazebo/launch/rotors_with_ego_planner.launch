@@ -16,9 +16,9 @@
   <arg name="enable_hovering" default="false"/>
 
   <!-- Ego-planner map parameters -->
-  <arg name="map_size_x" default="40.0"/>
-  <arg name="map_size_y" default="40.0"/>
-  <arg name="map_size_z" default="3.0"/>
+  <arg name="map_size_x" default="100.0"/>
+  <arg name="map_size_y" default="100.0"/>
+  <arg name="map_size_z" default="10.0"/>
 
   <!-- Odometry topic - use odometry sensor instead of ground truth -->
   <arg name="odom_topic" default="/$(arg mav_name)/odometry_sensor1/odometry" />

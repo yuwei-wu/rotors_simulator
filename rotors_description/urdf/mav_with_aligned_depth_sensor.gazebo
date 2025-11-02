@@ -8,7 +8,7 @@
     namespace="${namespace}/vi_sensor"
     parent_link="${namespace}/base_link"
     enable_cameras="true"
-    enable_depth="false"
+    enable_depth="true"
     enable_ground_truth="true">
     <origin xyz="0.0 0.0 0.086" rpy="0.0 0.0 0.0" />
   </xacro:vi_sensor_macro>
