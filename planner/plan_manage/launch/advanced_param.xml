@@ -3,10 +3,15 @@
   <arg name="map_size_y_"/>
   <arg name="map_size_z_"/>
 
+  <!-- Local update range arguments for persistent mapping -->
+  <arg name="local_update_range_x" default="5.5"/>
+  <arg name="local_update_range_y" default="5.5"/>
+  <arg name="local_update_range_z" default="4.5"/>
+
   <arg name="odometry_topic"/>
   <arg name="camera_pose_topic"/>
   <arg name="depth_topic"/>
-  <arg name="cloud_topic"/>
+  <!-- <arg name="cloud_topic"/> -->
 
   <arg name="cx"/>
   <arg name="cy"/>
@@ -40,7 +45,7 @@
   <node pkg="ego_planner" name="ego_planner_node" type="ego_planner_node" output="screen">
     <remap from="/odom_world" to="$(arg odometry_topic)"/>
     <remap from="/grid_map/odom" to="$(arg odometry_topic)"/>
-    <remap from="/grid_map/cloud" to="$(arg cloud_topic)"/>
+    <!-- <remap from="/grid_map/cloud" to="$(arg cloud_topic)"/> -->
     <remap from = "/grid_map/pose"   to = "$(arg camera_pose_topic)"/> 
     <remap from = "/grid_map/depth" to = "$(arg depth_topic)"/>
 
@@ -73,9 +78,9 @@
     <param name="grid_map/map_size_x"   value="$(arg map_size_x_)" /> 
     <param name="grid_map/map_size_y"   value="$(arg map_size_y_)" /> 
     <param name="grid_map/map_size_z"   value="$(arg map_size_z_)" /> 
-    <param name="grid_map/local_update_range_x"  value="5.5" /> 
-    <param name="grid_map/local_update_range_y"  value="5.5" /> 
-    <param name="grid_map/local_update_range_z"  value="5.5" /> 
+    <param name="grid_map/local_update_range_x"  value="$(arg local_update_range_x)" /> 
+    <param name="grid_map/local_update_range_y"  value="$(arg local_update_range_y)" /> 
+    <param name="grid_map/local_update_range_z"  value="$(arg local_update_range_z)" /> 
     <param name="grid_map/obstacles_inflation"     value="0.099" /> 
     <param name="grid_map/local_map_margin" value="30"/>
     <param name="grid_map/ground_height"        value="-0.01"/>
@@ -101,8 +106,8 @@
     <param name="grid_map/min_ray_length" value="0.1"/>
     <param name="grid_map/max_ray_length" value="4.5"/>
 
-    <param name="grid_map/virtual_ceil_height"   value="2.5"/>
-    <param name="grid_map/visualization_truncate_height"   value="2.4"/>
+    <param name="grid_map/virtual_ceil_height"   value="10"/>
+    <param name="grid_map/visualization_truncate_height"   value="10"/>
     <param name="grid_map/show_occ_time"  value="false"/>
     <param name="grid_map/pose_type"     value="2"/>  
     <param name="grid_map/frame_id"      value="world"/>

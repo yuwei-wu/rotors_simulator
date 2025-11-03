@@ -88,10 +88,17 @@ void GridMap::initMap(ros::NodeHandle &nh)
 
   md_.proj_points_.resize(640 * 480 / mp_.skip_pixel_ / mp_.skip_pixel_);
   md_.proj_points_cnt = 0;
-  md_.cam2body_ << 0.0, 0.0, 1.0, 0.0,
-      -1.0, 0.0, 0.0, 0.0,
-      0.0, -1.0, 0.0, -0.02,
-      0.0, 0.0, 0.0, 1.0;
+  // Camera optical frame to body frame transform for VI sensor
+  // Optical frame: Z=forward, X=right, Y=down (ROS optical convention)
+  // Body frame: X=forward, Y=left, Z=up
+  // Rotation columns: [where_optical_X_goes, where_optical_Y_goes, where_optical_Z_goes]
+  // Optical X (right) -> Body -Y: [0, -1, 0]
+  // Optical Y (down) -> Body -Z: [0, 0, -1]
+  // Optical Z (forward) -> Body X: [1, 0, 0]
+  md_.cam2body_ << 0.0,  0.0,  1.0,  0.015,
+                  -1.0,  0.0,  0.0,  0.055,
+                   0.0, -1.0,  0.0,  0.0925,
+                   0.0,  0.0,  0.0,  1.0;
 
   /* init callback */
 
@@ -116,8 +123,9 @@ void GridMap::initMap(ros::NodeHandle &nh)
   }
 
   // use odometry and point cloud
-  indep_cloud_sub_ =
-      node_.subscribe<sensor_msgs::PointCloud2>("/grid_map/cloud", 10, &GridMap::cloudCallback, this);
+  // NOTE: Disabled cloud callback to use depth image with proper transforms instead
+  // indep_cloud_sub_ =
+  //     node_.subscribe<sensor_msgs::PointCloud2>("/grid_map/cloud", 10, &GridMap::cloudCallback, this);
   indep_odom_sub_ =
       node_.subscribe<nav_msgs::Odometry>("/grid_map/odom", 10, &GridMap::odomCallback, this);
 
@@ -241,80 +249,104 @@ void GridMap::projectDepthImage()
   /* use depth filter */
   else
   {
+    Eigen::Vector3d pt_cur, pt_world, pt_reproj;
 
-    if (!md_.has_first_depth_)
-      md_.has_first_depth_ = true;
-    else
-    {
-      Eigen::Vector3d pt_cur, pt_world, pt_reproj;
-
-      Eigen::Matrix3d last_camera_r_inv;
+    Eigen::Matrix3d last_camera_r_inv;
+    if (md_.has_first_depth_)
       last_camera_r_inv = md_.last_camera_q_.inverse();
-      const double inv_factor = 1.0 / mp_.k_depth_scaling_factor_;
+    
+    const double inv_factor = 1.0 / mp_.k_depth_scaling_factor_;
+    
+    int valid_count = 0;
+    int zero_count = 0;
+    int too_close_count = 0;
+    int too_far_count = 0;
+    double min_depth_seen = 999.0;
+    double max_depth_seen = 0.0;
 
-      for (int v = mp_.depth_filter_margin_; v < rows - mp_.depth_filter_margin_; v += mp_.skip_pixel_)
+    for (int v = mp_.depth_filter_margin_; v < rows - mp_.depth_filter_margin_; v += mp_.skip_pixel_)
+    {
+      row_ptr = md_.depth_image_.ptr<uint16_t>(v) + mp_.depth_filter_margin_;
+
+      for (int u = mp_.depth_filter_margin_; u < cols - mp_.depth_filter_margin_;
+           u += mp_.skip_pixel_)
       {
-        row_ptr = md_.depth_image_.ptr<uint16_t>(v) + mp_.depth_filter_margin_;
 
-        for (int u = mp_.depth_filter_margin_; u < cols - mp_.depth_filter_margin_;
-             u += mp_.skip_pixel_)
+        depth = (*row_ptr) * inv_factor;
+        row_ptr = row_ptr + mp_.skip_pixel_;
+
+        // filter depth
+        // depth += rand_noise_(eng_);
+        // if (depth > 0.01) depth += rand_noise2_(eng_);
+
+        if (depth == 0)
         {
+          zero_count++;
+          depth = mp_.max_ray_length_ + 0.1;
+        }
+        else if (depth < mp_.depth_filter_mindist_)
+        {
+          too_close_count++;
+          continue;
+        }
+        else if (depth > mp_.depth_filter_maxdist_)
+        {
+          too_far_count++;
+          depth = mp_.max_ray_length_ + 0.1;
+        }
+        else
+        {
+          valid_count++;
+          min_depth_seen = std::min(min_depth_seen, depth);
+          max_depth_seen = std::max(max_depth_seen, depth);
+        }
 
-          depth = (*row_ptr) * inv_factor;
-          row_ptr = row_ptr + mp_.skip_pixel_;
+        // project to world frame
+        pt_cur(0) = (u - mp_.cx_) * depth / mp_.fx_;
+        pt_cur(1) = (v - mp_.cy_) * depth / mp_.fy_;
+        pt_cur(2) = depth;
 
-          // filter depth
-          // depth += rand_noise_(eng_);
-          // if (depth > 0.01) depth += rand_noise2_(eng_);
+        pt_world = camera_r * pt_cur + md_.camera_pos_;
+        // if (!isInMap(pt_world)) {
+        //   pt_world = closetPointInMap(pt_world, md_.camera_pos_);
+        // }
 
-          if (*row_ptr == 0)
+        md_.proj_points_[md_.proj_points_cnt++] = pt_world;
+
+        // check consistency with last image, disabled...
+        if (false)
+        {
+          pt_reproj = last_camera_r_inv * (pt_world - md_.last_camera_pos_);
+          double uu = pt_reproj.x() * mp_.fx_ / pt_reproj.z() + mp_.cx_;
+          double vv = pt_reproj.y() * mp_.fy_ / pt_reproj.z() + mp_.cy_;
+
+          if (uu >= 0 && uu < cols && vv >= 0 && vv < rows)
           {
-            depth = mp_.max_ray_length_ + 0.1;
-          }
-          else if (depth < mp_.depth_filter_mindist_)
-          {
-            continue;
-          }
-          else if (depth > mp_.depth_filter_maxdist_)
-          {
-            depth = mp_.max_ray_length_ + 0.1;
-          }
-
-          // project to world frame
-          pt_cur(0) = (u - mp_.cx_) * depth / mp_.fx_;
-          pt_cur(1) = (v - mp_.cy_) * depth / mp_.fy_;
-          pt_cur(2) = depth;
-
-          pt_world = camera_r * pt_cur + md_.camera_pos_;
-          // if (!isInMap(pt_world)) {
-          //   pt_world = closetPointInMap(pt_world, md_.camera_pos_);
-          // }
-
-          md_.proj_points_[md_.proj_points_cnt++] = pt_world;
-
-          // check consistency with last image, disabled...
-          if (false)
-          {
-            pt_reproj = last_camera_r_inv * (pt_world - md_.last_camera_pos_);
-            double uu = pt_reproj.x() * mp_.fx_ / pt_reproj.z() + mp_.cx_;
-            double vv = pt_reproj.y() * mp_.fy_ / pt_reproj.z() + mp_.cy_;
-
-            if (uu >= 0 && uu < cols && vv >= 0 && vv < rows)
-            {
-              if (fabs(md_.last_depth_image_.at<uint16_t>((int)vv, (int)uu) * inv_factor -
-                       pt_reproj.z()) < mp_.depth_filter_tolerance_)
-              {
-                md_.proj_points_[md_.proj_points_cnt++] = pt_world;
-              }
-            }
-            else
+            if (fabs(md_.last_depth_image_.at<uint16_t>((int)vv, (int)uu) * inv_factor -
+                     pt_reproj.z()) < mp_.depth_filter_tolerance_)
             {
               md_.proj_points_[md_.proj_points_cnt++] = pt_world;
             }
           }
+          else
+          {
+            md_.proj_points_[md_.proj_points_cnt++] = pt_world;
+          }
         }
       }
     }
+    
+    // Print debug info every 30 frames (about once per second at 30 fps)
+    static int debug_frame_count = 0;
+    if (debug_frame_count++ % 30 == 0)
+    {
+      ROS_INFO("Depth stats - Valid: %d, Zero: %d, TooClose: %d, TooFar: %d, Range: [%.2f, %.2f]m, CamPos: [%.2f, %.2f, %.2f]",
+               valid_count, zero_count, too_close_count, too_far_count, 
+               min_depth_seen, max_depth_seen,
+               md_.camera_pos_(0), md_.camera_pos_(1), md_.camera_pos_(2));
+    }
+    
+    md_.has_first_depth_ = true;
   }
 
   /* maintain camera pose for consistency check */
@@ -1011,6 +1043,10 @@ void GridMap::depthOdomCallback(const sensor_msgs::ImageConstPtr &img,
   cv_ptr->image.copyTo(md_.depth_image_);
 
   md_.occ_need_update_ = true;
+  
+  // Mark that we have received odometry
+  if (!md_.has_odom_)
+    md_.has_odom_ = true;
 }
 
 // GridMap

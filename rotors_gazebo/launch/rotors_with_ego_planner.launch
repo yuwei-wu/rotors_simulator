@@ -19,6 +19,11 @@
   <arg name="map_size_x" default="100.0"/>
   <arg name="map_size_y" default="100.0"/>
   <arg name="map_size_z" default="10.0"/>
+  
+  <!-- Local update range - set to half map size for global persistent mapping -->
+  <arg name="local_update_range_x" default="50.0"/>
+  <arg name="local_update_range_y" default="50.0"/>
+  <arg name="local_update_range_z" default="5.0"/>
 
   <!-- Odometry topic - use odometry sensor instead of ground truth -->
   <arg name="odom_topic" default="/$(arg mav_name)/odometry_sensor1/odometry" />
@@ -83,14 +88,21 @@
     <arg name="map_size_x_" value="$(arg map_size_x)"/>
     <arg name="map_size_y_" value="$(arg map_size_y)"/>
     <arg name="map_size_z_" value="$(arg map_size_z)"/>
+    
+    <!-- Local update range for persistent global mapping -->
+    <arg name="local_update_range_x" value="$(arg local_update_range_x)"/>
+    <arg name="local_update_range_y" value="$(arg local_update_range_y)"/>
+    <arg name="local_update_range_z" value="$(arg local_update_range_z)"/>
+    
     <arg name="odometry_topic" value="$(arg odom_topic)"/>
 
     <!-- Aligned depth camera settings -->
     <arg name="camera_pose_topic" value="/$(arg mav_name)/vi_sensor/camera_depth/camera_info"/>
-    <arg name="depth_topic" value="/$(arg mav_name)/vi_sensor/camera_depth/depth/disparity"/>
+        <!-- Depth topic for grid_map - use aligned camera which publishes proper depth images -->
+    <arg name="depth_topic" value="/$(arg mav_name)/aligned/depth/image_raw"/>
 
     <!-- Point cloud topic (using aligned depth sensor point cloud) -->
-    <arg name="cloud_topic" value="/$(arg mav_name)/vi_sensor/camera_depth/depth/points"/>
+    <!-- <arg name="cloud_topic" value="/$(arg mav_name)/vi_sensor/camera_depth/depth/points"/> -->
 
     <!-- Camera intrinsics for aligned depth sensor (adjust if needed) -->
     <arg name="cx" value="320.5"/>
