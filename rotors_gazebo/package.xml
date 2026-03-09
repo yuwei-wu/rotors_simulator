@@ -24,7 +24,9 @@
   <depend>geometry_msgs</depend>
   <depend>joy</depend>
   <depend>mav_msgs</depend>
+  <depend>nav_msgs</depend>
   <depend>roscpp</depend>
+  <depend>rospy</depend>
   <depend>rotors_gazebo_plugins</depend>
   <depend>sensor_msgs</depend>
   <depend>xacro</depend>

@@ -1,0 +1,141 @@
+<launch>
+  <arg name="car_count" default="6"/>
+  <arg name="vehicle_type" default="car"/>
+  <arg name="car1_x" default="-5.0"/>
+  <arg name="car1_y" default="-5.0"/>
+  <arg name="car1_z" default="0.0"/>
+
+  <arg name="car2_x" default="5.0"/>
+  <arg name="car2_y" default="-5.0"/>
+  <arg name="car2_z" default="0.0"/>
+
+  <arg name="car3_x" default="15.0"/>
+  <arg name="car3_y" default="-5.0"/>
+  <arg name="car3_z" default="0.0"/>
+
+  <arg name="car4_x" default="25.0"/>
+  <arg name="car4_y" default="-5.0"/>
+  <arg name="car4_z" default="0.5"/>
+
+  <arg name="car5_x" default="35.0"/>
+  <arg name="car5_y" default="-5.0"/>
+  <arg name="car5_z" default="0.5"/>
+
+  <arg name="car6_x" default="45.0"/>
+  <arg name="car6_y" default="-5.0"/>
+  <arg name="car6_z" default="0.5"/>
+
+  <group if="$(eval int(arg('car_count')) >= 1 and arg('vehicle_type') == 'car')">
+    <node name="spawn_car_1" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-sdf -model car_1 -database car_1 -x $(arg car1_x) -y $(arg car1_y) -z $(arg car1_z)"/>
+    <node name="car_1_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_1"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+  <group if="$(eval int(arg('car_count')) >= 1 and arg('vehicle_type') == 'scarab')">
+    <param name="car_1/robot_description"
+           command="$(find xacro)/xacro $(find rotors_scarab_description)/urdf/scarab.xacro tf_prefix:=car_1 camera:=false hokuyo:=false gazebo_color:=Gazebo/Red" />
+    <node name="spawn_car_1" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-urdf -model car_1 -param /car_1/robot_description -x $(arg car1_x) -y $(arg car1_y) -z $(arg car1_z)"/>
+    <node name="car_1_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_1"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+
+  <group if="$(eval int(arg('car_count')) >= 2 and arg('vehicle_type') == 'car')">
+    <node name="spawn_car_2" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-sdf -model car_2 -database car_2 -x $(arg car2_x) -y $(arg car2_y) -z $(arg car2_z)"/>
+    <node name="car_2_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_2"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+  <group if="$(eval int(arg('car_count')) >= 2 and arg('vehicle_type') == 'scarab')">
+    <param name="car_2/robot_description"
+           command="$(find xacro)/xacro $(find rotors_scarab_description)/urdf/scarab.xacro tf_prefix:=car_2 camera:=false hokuyo:=false gazebo_color:=Gazebo/Green" />
+    <node name="spawn_car_2" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-urdf -model car_2 -param /car_2/robot_description -x $(arg car2_x) -y $(arg car2_y) -z $(arg car2_z)"/>
+    <node name="car_2_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_2"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+
+  <group if="$(eval int(arg('car_count')) >= 3 and arg('vehicle_type') == 'car')">
+    <node name="spawn_car_3" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-sdf -model car_3 -database car_3 -x $(arg car3_x) -y $(arg car3_y) -z $(arg car3_z)"/>
+    <node name="car_3_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_3"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+  <group if="$(eval int(arg('car_count')) >= 3 and arg('vehicle_type') == 'scarab')">
+    <param name="car_3/robot_description"
+           command="$(find xacro)/xacro $(find rotors_scarab_description)/urdf/scarab.xacro tf_prefix:=car_3 camera:=false hokuyo:=false gazebo_color:=Gazebo/Blue" />
+    <node name="spawn_car_3" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-urdf -model car_3 -param /car_3/robot_description -x $(arg car3_x) -y $(arg car3_y) -z $(arg car3_z)"/>
+    <node name="car_3_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_3"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+
+  <group if="$(eval int(arg('car_count')) >= 4 and arg('vehicle_type') == 'car')">
+    <node name="spawn_car_4" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-sdf -model car_4 -database car_4 -x $(arg car4_x) -y $(arg car4_y) -z $(arg car4_z)"/>
+    <node name="car_4_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_4"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+  <group if="$(eval int(arg('car_count')) >= 4 and arg('vehicle_type') == 'scarab')">
+    <param name="car_4/robot_description"
+           command="$(find xacro)/xacro $(find rotors_scarab_description)/urdf/scarab.xacro tf_prefix:=car_4 camera:=false hokuyo:=false gazebo_color:=Gazebo/Yellow" />
+    <node name="spawn_car_4" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-urdf -model car_4 -param /car_4/robot_description -x $(arg car4_x) -y $(arg car4_y) -z $(arg car4_z)"/>
+    <node name="car_4_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_4"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+
+  <group if="$(eval int(arg('car_count')) >= 5 and arg('vehicle_type') == 'car')">
+    <node name="spawn_car_5" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-sdf -model car_5 -database car_5 -x $(arg car5_x) -y $(arg car5_y) -z $(arg car5_z)"/>
+    <node name="car_5_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_5"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+  <group if="$(eval int(arg('car_count')) >= 5 and arg('vehicle_type') == 'scarab')">
+    <param name="car_5/robot_description"
+           command="$(find xacro)/xacro $(find rotors_scarab_description)/urdf/scarab.xacro tf_prefix:=car_5 camera:=false hokuyo:=false gazebo_color:=Gazebo/Purple" />
+    <node name="spawn_car_5" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-urdf -model car_5 -param /car_5/robot_description -x $(arg car5_x) -y $(arg car5_y) -z $(arg car5_z)"/>
+    <node name="car_5_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_5"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+
+  <group if="$(eval int(arg('car_count')) >= 6 and arg('vehicle_type') == 'car')">
+    <node name="spawn_car_6" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-sdf -model car_6 -database car_6 -x $(arg car6_x) -y $(arg car6_y) -z $(arg car6_z)"/>
+    <node name="car_6_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_6"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+  <group if="$(eval int(arg('car_count')) >= 6 and arg('vehicle_type') == 'scarab')">
+    <param name="car_6/robot_description"
+           command="$(find xacro)/xacro $(find rotors_scarab_description)/urdf/scarab.xacro tf_prefix:=car_6 camera:=false hokuyo:=false gazebo_color:=Gazebo/Turquoise" />
+    <node name="spawn_car_6" pkg="gazebo_ros" type="spawn_model" output="screen"
+          args="-urdf -model car_6 -param /car_6/robot_description -x $(arg car6_x) -y $(arg car6_y) -z $(arg car6_z)"/>
+    <node name="car_6_odom_pub" pkg="rotors_gazebo" type="car_odometry_publisher.py" output="screen">
+      <param name="car_name" value="car_6"/>
+      <param name="rate_hz" value="30.0"/>
+    </node>
+  </group>
+</launch>

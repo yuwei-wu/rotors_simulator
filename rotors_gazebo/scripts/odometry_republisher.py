@@ -3,15 +3,16 @@ import rospy
 from nav_msgs.msg import Odometry
 
 class OdometryRepublisher:
-    def __init__(self, car_name, rate_hz=30.0):
-        self.car_name = car_name
+    def __init__(self, input_topic, output_topic, rate_hz=30.0):
+        self.input_topic = input_topic
+        self.output_topic = output_topic
         self.latest_msg = None
 
         # Subscriber (high-frequency source)
-        rospy.Subscriber(f"/{car_name}/odometry", Odometry, self.callback)
+        rospy.Subscriber(input_topic, Odometry, self.callback)
 
         # Publisher (fixed-rate output)
-        self.pub = rospy.Publisher(f"/{car_name}/odometry_throttled", Odometry, queue_size=10)
+        self.pub = rospy.Publisher(output_topic, Odometry, queue_size=10)
 
         # Timer to republish at exactly rate_hz
         rospy.Timer(rospy.Duration(1.0 / rate_hz), self.timer_callback)
@@ -30,7 +31,9 @@ if __name__ == "__main__":
 
     # Get params (so you can reuse for multiple cars)
     car_name = rospy.get_param("~car_name", "car_1")
+    input_topic = rospy.get_param("~input_topic", f"/{car_name}/odometry")
+    output_topic = rospy.get_param("~output_topic", f"/{car_name}/odometry_throttled")
     rate_hz = rospy.get_param("~rate_hz", 30.0)
 
-    republisher = OdometryRepublisher(car_name, rate_hz)
+    republisher = OdometryRepublisher(input_topic, output_topic, rate_hz)
     rospy.spin()

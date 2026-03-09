@@ -1,6 +1,9 @@
 <launch>
 
   <arg name="world_name" default="agri3"/>
+  <arg name="spawn_cars" default="false"/>
+  <arg name="car_count" default="6"/>
+  <arg name="vehicle_type" default="car"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
@@ -47,19 +50,10 @@
     <arg name="init_z" value="15.0"/>
   </include>
 
-  <!-- Each node calls gazebo_ros/spawn_model once -->
-  <!-- <node name="spawn_car_1" pkg="gazebo_ros" type="spawn_model" output="screen"
-        args="-sdf -model car_1 -database car_1 -x -5  -y -5  -z 0.5"/>
-  <node name="spawn_car_2" pkg="gazebo_ros" type="spawn_model" output="screen"
-        args="-sdf -model car_2 -database car_2 -x  5  -y -5  -z 0.5"/>
-  <node name="spawn_car_3" pkg="gazebo_ros" type="spawn_model" output="screen"
-        args="-sdf -model car_3 -database car_3 -x 15  -y -5  -z 0.5"/>
-  <node name="spawn_car_4" pkg="gazebo_ros" type="spawn_model" output="screen"
-        args="-sdf -model car_4 -database car_4 -x 25  -y -5  -z 0.5"/>
-  <node name="spawn_car_5" pkg="gazebo_ros" type="spawn_model" output="screen"
-        args="-sdf -model car_5 -database car_5 -x 35  -y -5  -z 0.5"/>
-  <node name="spawn_car_6" pkg="gazebo_ros" type="spawn_model" output="screen"
-        args="-sdf -model car_6 -database car_6 -x 45  -y -5  -z 0.5"/> -->
+  <include if="$(arg spawn_cars)" file="$(find rotors_gazebo)/launch/spawn_cars.launch">
+    <arg name="car_count" value="$(arg car_count)"/>
+    <arg name="vehicle_type" value="$(arg vehicle_type)"/>
+  </include>
 
   <!-- RViz -->
   <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator_2.rviz"/>

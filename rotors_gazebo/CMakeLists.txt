@@ -52,6 +52,12 @@ foreach(dir launch models resource worlds)
       DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
 endforeach(dir)
 
+install(PROGRAMS
+  scripts/car_odometry_publisher.py
+  scripts/odometry_republisher.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 install(TARGETS waypoint_publisher waypoint_publisher_file hovering_example
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

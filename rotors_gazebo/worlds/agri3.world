@@ -16,14 +16,16 @@
       </attenuation>
       <direction>-0.5 -0.5 -1</direction>
     </light> -->
-
-
+<!-- 
+    <include>
+      <uri>model://sun</uri>
+    </include> -->
 
     <light name='sun' type='directional'>
       <cast_shadows>1</cast_shadows>
       <pose frame=''>0 0 50 0 -0 0</pose>
       <diffuse>0.8 0.8 0.8 1</diffuse>
-      <specular>0.1 0.1 0.1 1</specular>
+      <specular>0.3 0.3 0.3 1</specular>
       <attenuation>
         <range>1000</range>
         <constant>0.9</constant>
@@ -69,15 +71,12 @@
       <shadows>1</shadows>
       <origin_visual>0</origin_visual>
       <grid>0</grid>
-      <sky>
-        <clouds>
-          <speed>-4</speed>
-        </clouds>
-      </sky>
     </scene>  
+
+    
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose frame=''>218.674 28.4041 66.9437 0 0.275643 3.14159</pose>
+        <pose frame=''>227.079010 1.4 58 0 0 3.14159</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
       </camera>
@@ -198,53 +197,7 @@
       </link>
       <pose>-62.722168 135.521393 0.0 0 -0 -1.57</pose>
     </model>    
-
-
-
-    <!-- First Moving Target -->
-    <include>
-      <uri>model://car_1</uri>
-      <pose>-5 -5 0.5 0 -0 0</pose>
-      <name>car_1</name>
-    </include>
-
-    <!-- Second Moving Target -->
-    <include>
-      <uri>model://car_2</uri>
-      <pose>5 -5 0.5 0 -0 0</pose>
-      <name>car_2</name>
-    </include>
-
-    <!-- Third Moving Target -->
-    <include>
-      <uri>model://car_3</uri>
-      <pose>15 -5 0.5 0 -0 0</pose>
-      <name>car_3</name>
-    </include>
-
-    <!-- Fourth Moving Target -->
-    <include>
-      <uri>model://car_4</uri>
-      <pose>25 -5 0.5 0 -0 0</pose>
-      <name>car_4</name>
-    </include>
-
-    <!-- Fifth Moving Target -->
-    <include>
-      <uri>model://car_5</uri>
-      <pose>35 -5 0.5 0 -0 0</pose>
-      <name>car_5</name>
-    </include>
-
-    <!-- Sixth Moving Target -->
-    <include>
-      <uri>model://car_6</uri>
-      <pose>45 -5 0.5 0 -0 0</pose>
-      <name>car_6</name>
-    </include>
-
-
-
+    <!-- Car targets are spawned from rotors_gazebo/launch/spawn_cars.launch. -->
 
   </world>
 </sdf>

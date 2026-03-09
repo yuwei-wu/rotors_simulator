@@ -10,7 +10,9 @@ roslaunch rotors_gazebo mav_swarm_all.launch
 
 ### Features
 
-* Targets do **not move autonomously**. They will only start moving after you set a **2D Nav Goal** in RViz (published to `/move_base_simple/goal`).
+* Targets are Gazebo car models driven by `moving_target_plugin`.
+* Each car publishes live odometry on `/car_X/odometry`.
+* When using the updated `drone-fl` planner, targets can start automatically without manually clicking a **2D Nav Goal** in RViz. The planner publishes the `/move_base_simple/goal` trigger itself by default.
 * Added **predicted target trajectory visualization**:
 
   * The prediction is visualized as markers in RViz.
@@ -48,6 +50,63 @@ python3 tracker_server.py
 # One terminal running multi-thred yolo detection and trajectory prediction
 roslaunch rotors_gazebo multi_drone.launch
 ```
+
+### Planner With Gazebo Cars
+
+The `drone-fl` planner can now use the Gazebo cars directly as live targets.
+
+What is connected:
+
+* `moving_target_plugin` moves each car model and publishes `/car_X/odometry`
+* `tracker_server.py` subscribes to `/car_X/odometry`
+* In `ros simulation`, the planner now uses the live car odometry as target ground truth instead of propagating an internal synthetic target model
+* The planner also auto-publishes `/move_base_simple/goal` once the ROS topics are ready, so the cars start moving automatically by default
+
+Planner config requirements in `drone-fl/planner/config/<exp>.yaml`:
+
+```yaml
+exp: "ros simulation"
+targetID: [1, 2, 3]
+targetID_car: [1, 2, 3]
+target_autostart: true
+fusion_method: "gt"   # optional if you want to test using ground truth targets only
+```
+
+Topic mapping:
+
+* `targetID: [1, 2, 3]` means the planner subscribes to:
+  * `/car_1/odometry`
+  * `/car_2/odometry`
+  * `/car_3/odometry`
+
+Minimal run sequence:
+
+Terminal 1:
+```bash
+cd ~/Code/xiaofan_ws
+source devel/setup.bash
+roslaunch rotors_gazebo mav_swarm.launch
+```
+
+Terminal 2:
+```bash
+cd ~/Code/xiaofan_ws/drone-fl/planner/script
+python3 tracker_server.py --exp_name exp1
+```
+
+Terminal 3, only if you want detector-based predicted trajectories:
+```bash
+cd ~/Code/xiaofan_ws
+source devel/setup.bash
+roslaunch rotors_gazebo multi_drone.launch
+```
+
+Notes:
+
+* If `fusion_method: "gt"`, the planner can run from car odometry alone and does not need `multi_drone.launch`.
+* If `fusion_method` is `average` or `kalman`, the planner waits for `/droneX/pred_traj` messages from the detector stack.
+* If you want the old manual start behavior, set `target_autostart: false` and publish a `2D Nav Goal` in RViz yourself.
+* The current planner assumes car topics are named `/car_<id>/odometry`.
 
 ### File Locations
 

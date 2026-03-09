@@ -1,0 +1,163 @@
+<?xml version="1.0" ?>
+<!--
+This is not a standalone urdf for kobuki. It simply defines the scarab tag that
+can be incorporated by other urdf files (e.g. turtlebot).
+-->
+<robot name="kobuki" xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:include filename="$(find rotors_scarab_description)/urdf/common_properties.urdf.xacro"/>
+  <xacro:include filename="$(find rotors_scarab_description)/urdf/kobuki_gazebo.urdf.xacro"/>
+
+  <!-- Kobuki -->
+  <xacro:macro name="kobuki">
+    <link name="$(arg tf_prefix)/base_footprint"/>
+    <!--
+    Base link is set at the bottom of the base mould. This is done to be
+    compatible with the way base link was configured for turtlebot 1. Refer to
+
+    https://github.com/turtlebot/turtlebot/issues/40
+
+    To put the base link at the more oft used wheel axis, set the z-distance
+    from the base_footprint to 0.352.
+    -->
+    <joint name="$(arg tf_prefix)/base_joint" type="fixed">
+      <origin xyz="0 0 0.0102" rpy="0 0 0" />
+      <parent link="$(arg tf_prefix)/base_footprint"/>
+      <child link="$(arg tf_prefix)/base_link" />
+    </joint>
+    <link name="$(arg tf_prefix)/base_link">
+      <visual>
+        <geometry>
+          <!-- new mesh -->
+          <mesh filename="package://rotors_scarab_description/meshes/kobuki/main_body.dae" />
+        </geometry>
+        <origin xyz="0.001 0 0.05199" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="0.10938" radius="0.178"/>
+        </geometry>
+        <origin xyz="0.0 0 0.05949" rpy="0 0 0"/>
+      </collision>
+      <inertial>
+        <!-- COM experimentally determined -->
+        <origin xyz="0.01 0 0"/>
+        <mass value="0.0001"/>
+        <!--
+        Kobuki's inertia tensor is approximated by a cylinder with homogeneous
+        mass distribution More details:
+        http://en.wikipedia.org/wiki/List_of_moment_of_inertia_tensors
+
+        m = 2.4 kg; h = 0.09 m; r = 0.175 m
+        ixx = 1/12 * m * (3 * r^2 + h^2)
+        iyy = 1/12 * m * (3 * r^2 + h^2)
+        izz = 1/2 * m * r^2
+        -->
+        <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+                 iyy="0.000001" iyz="0.0"
+                 izz="0.000001" />
+      </inertial>
+    </link>
+
+    <joint name="$(arg tf_prefix)/wheel_left_joint" type="continuous">
+      <parent link="$(arg tf_prefix)/base_link"/>
+      <child link="$(arg tf_prefix)/wheel_left_link"/>
+      <origin xyz="0.00 ${0.23/2} 0.0250" rpy="${-M_PI/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+    <link name="$(arg tf_prefix)/wheel_left_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://rotors_scarab_description/meshes/kobuki/wheel.dae"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="0.0206" radius="0.0352"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.0001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+                 iyy="0.000001" iyz="0.0"
+                 izz="0.000001" />
+      </inertial>
+    </link>
+
+    <joint name="$(arg tf_prefix)/wheel_right_joint" type="continuous">
+      <parent link="$(arg tf_prefix)/base_link"/>
+      <child link="$(arg tf_prefix)/wheel_right_link"/>
+      <origin xyz="0.00 -${0.23/2} 0.0250" rpy="${-M_PI/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+    <link name="$(arg tf_prefix)/wheel_right_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://rotors_scarab_description/meshes/kobuki/wheel.dae"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder length="0.0206" radius="0.0350"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.0001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+                 iyy="0.000001" iyz="0.0"
+                 izz="0.000001" />
+      </inertial>
+    </link>
+
+    <joint name="$(arg tf_prefix)/caster_front_joint" type="fixed">
+      <parent link="$(arg tf_prefix)/base_link"/>
+      <child link="$(arg tf_prefix)/caster_front_link"/>
+      <origin xyz="0.115 0.0 0.007" rpy="${-M_PI/2} 0 0"/>
+    </joint>
+    <link name="$(arg tf_prefix)/caster_front_link">
+      <collision>
+        <geometry>
+          <cylinder length="0.0176" radius="0.017"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.0001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+                 iyy="0.000001" iyz="0.0"
+                 izz="0.000001" />
+      </inertial>
+    </link>
+
+    <joint name="$(arg tf_prefix)/caster_back_joint" type="fixed">
+      <parent link="$(arg tf_prefix)/base_link"/>
+      <child link="$(arg tf_prefix)/caster_back_link"/>
+      <origin xyz="-0.135 0.0 0.009" rpy="${-M_PI/2} 0 0"/>
+    </joint>
+    <link name="$(arg tf_prefix)/caster_back_link">
+      <collision>
+        <geometry>
+          <cylinder length="0.0176" radius="0.017"/>
+        </geometry>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+      </collision>
+      <inertial>
+        <mass value="0.0001" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.000001" ixy="0.0" ixz="0.0"
+                 iyy="0.000001" iyz="0.0"
+                 izz="0.000001" />
+      </inertial>
+    </link>
+
+    <!-- Kobuki Gazebo simulation details -->
+    <xacro:kobuki_sim/>
+
+  </xacro:macro>
+</robot>

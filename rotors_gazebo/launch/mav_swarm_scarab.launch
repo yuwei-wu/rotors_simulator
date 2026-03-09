@@ -1,9 +1,18 @@
 <launch>
 
-  <arg name="world_name" default="agri3"/>
-  <arg name="spawn_cars" default="false"/>
+  <arg name="world_name" default="agri2"/>
+  <arg name="spawn_cars" default="true"/>
   <arg name="car_count" default="3"/>
-  <arg name="vehicle_type" default="car"/>
+  <arg name="vehicle_type" default="scarab"/>
+  <arg name="car1_x" default="-2.0"/>
+  <arg name="car1_y" default="-4.0"/>
+  <arg name="car1_z" default="0.0"/>
+  <arg name="car2_x" default="0.0"/>
+  <arg name="car2_y" default="-4.0"/>
+  <arg name="car2_z" default="0.0"/>
+  <arg name="car3_x" default="2.0"/>
+  <arg name="car3_y" default="-4.0"/>
+  <arg name="car3_z" default="0.0"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
@@ -11,7 +20,7 @@
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find rotors_gazebo)/worlds/$(arg world_name).world" />
     <!-- <arg name="debug" value="true"/> -->
-    <arg name="paused" value="true"/>
+    <!-- <arg name="paused" value="true"/> -->
     <!-- <arg name="gui" value="false"/> -->
     <!-- <arg name="verbose" value="true"/> -->
   </include>
@@ -21,34 +30,26 @@
   <include file="$(find rotors_gazebo)/launch/mav_single.launch">
     <arg name="mav_id" value="drone1"/>
     <arg name="mav_name" value="hummingbird"/>
-    <arg name="init_x" value="-5.0"/>
+    <arg name="init_x" value="-4.0"/>
     <arg name="init_y" value="-5.0"/>
-    <arg name="init_z" value="12.0"/>
+    <arg name="init_z" value="4.5"/>
   </include>
 
   <include file="$(find rotors_gazebo)/launch/mav_single.launch">
     <arg name="mav_id" value="drone2"/>
     <arg name="mav_name" value="hummingbird"/>
-    <arg name="init_x" value="5.0"/>
+    <arg name="init_x" value="0.0"/>
     <arg name="init_y" value="-5.0"/>
-    <arg name="init_z" value="12.5"/>
+    <arg name="init_z" value="8.5"/>
   </include>
 
-  <!-- <include file="$(find rotors_gazebo)/launch/mav_single.launch">
+  <include file="$(find rotors_gazebo)/launch/mav_single.launch">
     <arg name="mav_id" value="drone3"/>
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="4.0"/>
     <arg name="init_y" value="-5.0"/>
-    <arg name="init_z" value="15.0"/>
-  </include> -->
-
-  <include if="$(arg spawn_cars)" file="$(find rotors_gazebo)/launch/spawn_cars.launch">
-    <arg name="car_count" value="$(arg car_count)"/>
-    <arg name="vehicle_type" value="$(arg vehicle_type)"/>
+    <arg name="init_z" value="5.5"/>
   </include>
-
-  <!-- RViz -->
-  <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator.rviz"/>
 
   <!-- Throttle odom to 30 Hz -->
   <node pkg="topic_tools" type="throttle" name="odom_throttle1"
@@ -60,20 +61,22 @@
   <node pkg="topic_tools" type="throttle" name="odom_throttle3"
         args="messages /drone3/ground_truth/odometry 30.0 /drone3/ground_truth/odometry_throttled" output="screen" />
 
-  <!-- Throttle target to 30 Hz -->
-  <node pkg="rotors_gazebo" type="odometry_republisher.py" name="car1_repub" output="screen">
-    <param name="car_name" value="car_1"/>
-    <param name="rate_hz" value="30.0"/>
-  </node>
 
-  <node pkg="rotors_gazebo" type="odometry_republisher.py" name="car2_repub" output="screen">
-    <param name="car_name" value="car_2"/>
-    <param name="rate_hz" value="30.0"/>
-  </node>
+  <include if="$(arg spawn_cars)" file="$(find rotors_gazebo)/launch/spawn_cars.launch">
+    <arg name="car_count" value="$(arg car_count)"/>
+    <arg name="vehicle_type" value="$(arg vehicle_type)"/>
+    <arg name="car1_x" value="$(arg car1_x)"/>
+    <arg name="car1_y" value="$(arg car1_y)"/>
+    <arg name="car1_z" value="$(arg car1_z)"/>
+    <arg name="car2_x" value="$(arg car2_x)"/>
+    <arg name="car2_y" value="$(arg car2_y)"/>
+    <arg name="car2_z" value="$(arg car2_z)"/>
+    <arg name="car3_x" value="$(arg car3_x)"/>
+    <arg name="car3_y" value="$(arg car3_y)"/>
+    <arg name="car3_z" value="$(arg car3_z)"/>
+  </include>
 
-  <node pkg="rotors_gazebo" type="odometry_republisher.py" name="car3_repub" output="screen">
-    <param name="car_name" value="car_3"/>
-    <param name="rate_hz" value="30.0"/>
-  </node>
+  <!-- RViz -->
+  <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator.rviz"/>
 
 </launch>
