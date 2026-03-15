@@ -1,6 +1,8 @@
 
 The following cases are tested with the latest code in rotors_simulator (`xiaofan`) and drone-fl (`main`).
 
+None of the three cases work completely on my end now. It would be nice if you could make sure they all work with your new planner.
+
 
 ### How to run Case 1 using frozen model and ground-truth for planning
 
