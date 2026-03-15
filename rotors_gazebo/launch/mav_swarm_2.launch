@@ -1,9 +1,27 @@
 <launch>
 
   <arg name="world_name" default="agri3"/>
-  <arg name="spawn_cars" default="false"/>
+  <arg name="spawn_cars" default="true"/>
   <arg name="car_count" default="6"/>
   <arg name="vehicle_type" default="car"/>
+  <arg name="car1_x" default="-5.0"/>
+  <arg name="car1_y" default="-5.0"/>
+  <arg name="car1_z" default="0.0"/>
+  <arg name="car2_x" default="5.0"/>
+  <arg name="car2_y" default="-5.0"/>
+  <arg name="car2_z" default="0.0"/>
+  <arg name="car3_x" default="15.0"/>
+  <arg name="car3_y" default="-5.0"/>
+  <arg name="car3_z" default="0.0"/>
+  <arg name="car4_x" default="25.0"/>
+  <arg name="car4_y" default="-5.0"/>
+  <arg name="car4_z" default="0.5"/>
+  <arg name="car5_x" default="35.0"/>
+  <arg name="car5_y" default="-5.0"/>
+  <arg name="car5_z" default="0.5"/>
+  <arg name="car6_x" default="45.0"/>
+  <arg name="car6_y" default="-5.0"/>
+  <arg name="car6_z" default="0.5"/>
 
   <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
   <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
@@ -53,6 +71,24 @@
   <include if="$(arg spawn_cars)" file="$(find rotors_gazebo)/launch/spawn_cars.launch">
     <arg name="car_count" value="$(arg car_count)"/>
     <arg name="vehicle_type" value="$(arg vehicle_type)"/>
+    <arg name="car1_x" value="$(arg car1_x)"/>
+    <arg name="car1_y" value="$(arg car1_y)"/>
+    <arg name="car1_z" value="$(arg car1_z)"/>
+    <arg name="car2_x" value="$(arg car2_x)"/>
+    <arg name="car2_y" value="$(arg car2_y)"/>
+    <arg name="car2_z" value="$(arg car2_z)"/>
+    <arg name="car3_x" value="$(arg car3_x)"/>
+    <arg name="car3_y" value="$(arg car3_y)"/>
+    <arg name="car3_z" value="$(arg car3_z)"/>
+    <arg name="car4_x" value="$(arg car4_x)"/>
+    <arg name="car4_y" value="$(arg car4_y)"/>
+    <arg name="car4_z" value="$(arg car4_z)"/>
+    <arg name="car5_x" value="$(arg car5_x)"/>
+    <arg name="car5_y" value="$(arg car5_y)"/>
+    <arg name="car5_z" value="$(arg car5_z)"/>
+    <arg name="car6_x" value="$(arg car6_x)"/>
+    <arg name="car6_y" value="$(arg car6_y)"/>
+    <arg name="car6_z" value="$(arg car6_z)"/>
   </include>
 
   <!-- RViz -->

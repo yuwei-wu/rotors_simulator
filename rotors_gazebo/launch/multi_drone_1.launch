@@ -32,7 +32,7 @@
     </node>
     
     <!-- Drone 3 Processor -->
-    <!-- <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone3_processor" output="screen">
+    <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone3_processor" output="screen">
         <param name="drone_id" value="3"/>
         <param name="target_num" value="$(arg target_num)"/>
         <param name="win_size" value="$(arg win_size)"/>
@@ -41,7 +41,7 @@
         <param name="log_path" value="$(find rotors_gazebo)/exp1_logs/"/>
         <param name="logging" value="$(arg logging)"/>
         <param name="learning" value="$(arg learning)"/>
-    </node> -->
+    </node>
 
 </launch>
 

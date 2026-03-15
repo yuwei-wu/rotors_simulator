@@ -52,13 +52,13 @@
     <arg name="init_z" value="12.5"/>
   </include>
 
-  <!--<include file="$(find rotors_gazebo)/launch/mav_single.launch">
+  <include file="$(find rotors_gazebo)/launch/mav_single.launch">
     <arg name="mav_id" value="drone3"/>
     <arg name="mav_name" value="hummingbird"/>
-    <arg name="init_x" value="4.0"/>
+    <arg name="init_x" value="15.0"/>
     <arg name="init_y" value="-5.0"/>
     <arg name="init_z" value="15.0"/>
-  </include>-->
+  </include>
 
   <include if="$(arg spawn_cars)" file="$(find rotors_gazebo)/launch/spawn_cars.launch">
     <arg name="car_count" value="$(arg car_count)"/>
