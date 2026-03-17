@@ -1,4 +1,6 @@
 
+Add a new world app1.world that you can test
+
 The following cases are tested with the latest code in rotors_simulator (`xiaofan`) and drone-fl (`main`).
 
 None of the three cases work completely on my end now. It would be nice if you could make sure they all work with your new planner.
