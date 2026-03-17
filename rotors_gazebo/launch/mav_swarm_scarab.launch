@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="world_name" default="agri2"/>
+  <arg name="world_name" default="app1"/>
   <arg name="spawn_cars" default="true"/>
   <arg name="car_count" default="3"/>
   <arg name="vehicle_type" default="scarab"/>
