@@ -144,25 +144,25 @@ Visualization Manager:
               Value: true
             Position:
               Alpha: 0.30000001192092896
-              Color: 204; 51; 204
+              Color: 245; 121; 0
               Scale: 1
               Value: true
             Value: true
           Enabled: true
-          Keep: 100
+          Keep: 1
           Name: Odometry
           Position Tolerance: 0.10000000149011612
-          Queue Size: 10
+          Queue Size: 1
           Shape:
             Alpha: 1
-            Axes Length: 1
-            Axes Radius: 0.10000000149011612
-            Color: 196; 160; 0
+            Axes Length: 0.5
+            Axes Radius: 0.07999999821186066
+            Color: 245; 121; 0
             Head Length: 0.10000000149011612
             Head Radius: 0.10000000149011612
             Shaft Length: 0.5
             Shaft Radius: 0.05000000074505806
-            Value: Arrow
+            Value: Axes
           Topic: /drone1/ground_truth/odometry
           Unreliable: false
           Value: true
@@ -222,7 +222,7 @@ Visualization Manager:
             - Alpha: 1
               Buffer Length: 1
               Class: rviz/Path
-              Color: 78; 154; 6
+              Color: 245; 121; 0
               Enabled: false
               Head Diameter: 0.30000001192092896
               Head Length: 0.20000000298023224
@@ -234,7 +234,7 @@ Visualization Manager:
                 X: 0
                 Y: 0
                 Z: 0
-              Pose Color: 255; 85; 255
+              Pose Color: 252; 233; 79
               Pose Style: None
               Queue Size: 10
               Radius: 0.029999999329447746
@@ -284,7 +284,7 @@ Visualization Manager:
                   Value: true
                 Position:
                   Alpha: 0.30000001192092896
-                  Color: 204; 51; 204
+                  Color: 245; 121; 0
                   Scale: 1
                   Value: true
                 Value: true
@@ -297,7 +297,7 @@ Visualization Manager:
                 Alpha: 1
                 Axes Length: 1
                 Axes Radius: 0.05000000074505806
-                Color: 255; 25; 0
+                Color: 245; 121; 0
                 Head Length: 0.30000001192092896
                 Head Radius: 0.10000000149011612
                 Shaft Length: 1
@@ -328,6 +328,14 @@ Visualization Manager:
           Enabled: true
           Marker Topic: /drone1/pyramid
           Name: fov
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /drone1/trajectory
+          Name: drone1
           Namespaces:
             {}
           Queue Size: 100
@@ -412,28 +420,28 @@ Visualization Manager:
               Frame: Local
               Offset: 1
               Scale: 1
-              Value: true
+              Value: false
             Position:
               Alpha: 0.30000001192092896
-              Color: 204; 51; 204
+              Color: 52; 101; 164
               Scale: 1
               Value: true
-            Value: true
+            Value: false
           Enabled: true
-          Keep: 100
+          Keep: 1
           Name: Odometry
           Position Tolerance: 0.10000000149011612
-          Queue Size: 10
+          Queue Size: 1
           Shape:
             Alpha: 1
-            Axes Length: 1
-            Axes Radius: 0.10000000149011612
-            Color: 196; 160; 0
+            Axes Length: 0.5
+            Axes Radius: 0.07999999821186066
+            Color: 52; 101; 164
             Head Length: 0.10000000149011612
             Head Radius: 0.10000000149011612
             Shaft Length: 0.5
             Shaft Radius: 0.05000000074505806
-            Value: Arrow
+            Value: Axes
           Topic: /drone2/ground_truth/odometry
           Unreliable: false
           Value: true
@@ -493,7 +501,7 @@ Visualization Manager:
             - Alpha: 1
               Buffer Length: 1
               Class: rviz/Path
-              Color: 78; 154; 6
+              Color: 52; 101; 164
               Enabled: false
               Head Diameter: 0.30000001192092896
               Head Length: 0.20000000298023224
@@ -505,7 +513,7 @@ Visualization Manager:
                 X: 0
                 Y: 0
                 Z: 0
-              Pose Color: 255; 85; 255
+              Pose Color: 114; 159; 207
               Pose Style: None
               Queue Size: 10
               Radius: 0.029999999329447746
@@ -555,7 +563,7 @@ Visualization Manager:
                   Value: true
                 Position:
                   Alpha: 0.30000001192092896
-                  Color: 204; 51; 204
+                  Color: 52; 101; 164
                   Scale: 1
                   Value: true
                 Value: true
@@ -568,7 +576,7 @@ Visualization Manager:
                 Alpha: 1
                 Axes Length: 1
                 Axes Radius: 0.05000000074505806
-                Color: 255; 25; 0
+                Color: 52; 101; 164
                 Head Length: 0.30000001192092896
                 Head Radius: 0.10000000149011612
                 Shaft Length: 1
@@ -599,6 +607,14 @@ Visualization Manager:
           Enabled: true
           Marker Topic: /drone2/pyramid
           Name: fov
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /drone2/trajectory
+          Name: drone2
           Namespaces:
             {}
           Queue Size: 100
@@ -686,25 +702,25 @@ Visualization Manager:
               Value: true
             Position:
               Alpha: 0.30000001192092896
-              Color: 204; 51; 204
+              Color: 117; 80; 123
               Scale: 1
               Value: true
             Value: true
           Enabled: true
-          Keep: 100
+          Keep: 1
           Name: Odometry
           Position Tolerance: 0.10000000149011612
           Queue Size: 10
           Shape:
             Alpha: 1
-            Axes Length: 1
-            Axes Radius: 0.10000000149011612
-            Color: 196; 160; 0
+            Axes Length: 0.5
+            Axes Radius: 0.07999999821186066
+            Color: 117; 80; 123
             Head Length: 0.10000000149011612
             Head Radius: 0.10000000149011612
             Shaft Length: 0.5
             Shaft Radius: 0.05000000074505806
-            Value: Arrow
+            Value: Axes
           Topic: /drone3/ground_truth/odometry
           Unreliable: false
           Value: true
@@ -764,7 +780,7 @@ Visualization Manager:
             - Alpha: 1
               Buffer Length: 1
               Class: rviz/Path
-              Color: 78; 154; 6
+              Color: 117; 80; 123
               Enabled: false
               Head Diameter: 0.30000001192092896
               Head Length: 0.20000000298023224
@@ -776,7 +792,7 @@ Visualization Manager:
                 X: 0
                 Y: 0
                 Z: 0
-              Pose Color: 255; 85; 255
+              Pose Color: 173; 127; 168
               Pose Style: None
               Queue Size: 10
               Radius: 0.029999999329447746
@@ -826,7 +842,7 @@ Visualization Manager:
                   Value: true
                 Position:
                   Alpha: 0.30000001192092896
-                  Color: 204; 51; 204
+                  Color: 117; 80; 123
                   Scale: 1
                   Value: true
                 Value: true
@@ -839,7 +855,7 @@ Visualization Manager:
                 Alpha: 1
                 Axes Length: 1
                 Axes Radius: 0.05000000074505806
-                Color: 255; 25; 0
+                Color: 117; 80; 123
                 Head Length: 0.30000001192092896
                 Head Radius: 0.10000000149011612
                 Shaft Length: 1
@@ -870,6 +886,14 @@ Visualization Manager:
           Enabled: true
           Marker Topic: /drone3/pyramid
           Name: fov
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /drone3/trajectory
+          Name: drone3
           Namespaces:
             {}
           Queue Size: 100
@@ -957,25 +981,25 @@ Visualization Manager:
               Value: true
             Position:
               Alpha: 0.30000001192092896
-              Color: 204; 51; 204
+              Color: 0; 153; 153
               Scale: 1
               Value: true
             Value: true
           Enabled: true
-          Keep: 100
+          Keep: 1
           Name: Odometry
           Position Tolerance: 0.10000000149011612
-          Queue Size: 10
+          Queue Size: 1
           Shape:
             Alpha: 1
-            Axes Length: 1
-            Axes Radius: 0.10000000149011612
-            Color: 196; 160; 0
+            Axes Length: 0.5
+            Axes Radius: 0.07999999821186066
+            Color: 0; 153; 153
             Head Length: 0.10000000149011612
             Head Radius: 0.10000000149011612
             Shaft Length: 0.5
             Shaft Radius: 0.05000000074505806
-            Value: Arrow
+            Value: Axes
           Topic: /drone4/ground_truth/odometry
           Unreliable: false
           Value: true
@@ -1035,7 +1059,7 @@ Visualization Manager:
             - Alpha: 1
               Buffer Length: 1
               Class: rviz/Path
-              Color: 78; 154; 6
+              Color: 0; 153; 153
               Enabled: false
               Head Diameter: 0.30000001192092896
               Head Length: 0.20000000298023224
@@ -1047,7 +1071,7 @@ Visualization Manager:
                 X: 0
                 Y: 0
                 Z: 0
-              Pose Color: 255; 85; 255
+              Pose Color: 114; 210; 210
               Pose Style: None
               Queue Size: 10
               Radius: 0.029999999329447746
@@ -1097,7 +1121,7 @@ Visualization Manager:
                   Value: true
                 Position:
                   Alpha: 0.30000001192092896
-                  Color: 204; 51; 204
+                  Color: 0; 153; 153
                   Scale: 1
                   Value: true
                 Value: true
@@ -1110,7 +1134,7 @@ Visualization Manager:
                 Alpha: 1
                 Axes Length: 1
                 Axes Radius: 0.05000000074505806
-                Color: 255; 25; 0
+                Color: 0; 153; 153
                 Head Length: 0.30000001192092896
                 Head Radius: 0.10000000149011612
                 Shaft Length: 1
@@ -1145,6 +1169,14 @@ Visualization Manager:
             {}
           Queue Size: 100
           Value: true
+        - Class: rviz/Marker
+          Enabled: true
+          Marker Topic: /drone4/trajectory
+          Name: drone4
+          Namespaces:
+            {}
+          Queue Size: 100
+          Value: true
       Enabled: true
       Name: Drone4
     - Angle Tolerance: 0.10000000149011612
@@ -1172,7 +1204,7 @@ Visualization Manager:
       Shape:
         Alpha: 1
         Axes Length: 1
-        Axes Radius: 0.10000000149011612
+        Axes Radius: 0.07999999821186066
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
@@ -1207,7 +1239,7 @@ Visualization Manager:
       Shape:
         Alpha: 1
         Axes Length: 1
-        Axes Radius: 0.10000000149011612
+        Axes Radius: 0.07999999821186066
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
@@ -1242,7 +1274,7 @@ Visualization Manager:
       Shape:
         Alpha: 1
         Axes Length: 1
-        Axes Radius: 0.10000000149011612
+        Axes Radius: 0.07999999821186066
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
@@ -1277,7 +1309,7 @@ Visualization Manager:
       Shape:
         Alpha: 1
         Axes Length: 1
-        Axes Radius: 0.10000000149011612
+        Axes Radius: 0.07999999821186066
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
@@ -1312,7 +1344,7 @@ Visualization Manager:
       Shape:
         Alpha: 1
         Axes Length: 1
-        Axes Radius: 0.10000000149011612
+        Axes Radius: 0.07999999821186066
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612
@@ -1347,7 +1379,7 @@ Visualization Manager:
       Shape:
         Alpha: 1
         Axes Length: 1
-        Axes Radius: 0.10000000149011612
+        Axes Radius: 0.07999999821186066
         Color: 255; 25; 0
         Head Length: 0.30000001192092896
         Head Radius: 0.10000000149011612

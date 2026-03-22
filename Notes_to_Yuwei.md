@@ -91,4 +91,3 @@ cd /home/wyw/Code/xiaofan_ws/drone-fl/planner/script
 python3 tracker_server.py --exp_name exp2
 ```
 
-On my end, the issue is: Target 4-6 do not move after the start.
