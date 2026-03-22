@@ -57,12 +57,13 @@ class DroneProcessor:
             self.log_path = os.path.join(self.log_path, f'trial_{self.drone_id-1}')
             self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
             self.learning = rospy.get_param('~learning', 'frozen') # 'frozen', 'centralized', 'dronefl'
+            self.fl_method = rospy.get_param('~fl_method', 'fedavg') # 'fedavg', 'fedper', 'fedprox'
             if self.learning == 'frozen':
                 self.logging = False  # No data logging in frozen
             self.train_warmup = rospy.get_param('~train_warmup', 400) # The sample start to fire training
 
             yolo_model_name = os.path.join(self.pred_model_path, "best_yolo_t6.pt")
-            traj_model_name = os.path.join(self.pred_model_path, "best_model.pth")
+            traj_model_name = os.path.join(self.pred_model_path, "best_model_adain.pth" if self.adain else "best_model.pth")
 
             #initialize models
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -125,7 +126,13 @@ class DroneProcessor:
         self.ts.registerCallback(self.synchronized_callback)
         
         # Model receiving callback
-        rospy.Subscriber("/model_weights", Float32MultiArray, self.receive_weights_callback)
+        if self.fl_method == 'fedper':
+            client_id = self.drone_id - 1  # drone_id is 1-indexed, client_id is 0-indexed
+            weight_topic = f"/model_weights/client_{client_id}"
+        else:
+            weight_topic = "/model_weights"
+        rospy.Subscriber(weight_topic, Float32MultiArray, self.receive_weights_callback)
+        rospy.loginfo(f"Drone {self.drone_id} subscribing to weights on: {weight_topic}")
 
 
     def setup_publishers(self):

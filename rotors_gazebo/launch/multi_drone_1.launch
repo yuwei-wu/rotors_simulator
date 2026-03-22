@@ -6,6 +6,8 @@
     <arg name="pred_model_path" default="$(find rotors_gazebo)/pred_model_ckpt/"/>
     <arg name="logging" default="false"/> <!--whether data collector works-->
     <arg name="learning" default="frozen"/>  <!--frozen or dronefl-->
+    <arg name="adain" default="false"/>
+    <arg name="fl_method" default="fedavg"/>  <!-- fedavg, fedper, fedprox -->
 
     <!-- Drone 1 Processor -->
     <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone1_processor" output="screen">
@@ -17,8 +19,10 @@
         <param name="log_path" value="$(find rotors_gazebo)/exp1_logs/"/>
         <param name="logging" value="$(arg logging)"/>
         <param name="learning" value="$(arg learning)"/>
+        <param name="adain" value="$(arg adain)"/>
+        <param name="fl_method" value="$(arg fl_method)"/>
     </node>
-    
+
     <!-- Drone 2 Processor -->
     <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone2_processor" output="screen">
         <param name="drone_id" value="2"/>
@@ -29,8 +33,10 @@
         <param name="log_path" value="$(find rotors_gazebo)/exp1_logs/"/>
         <param name="logging" value="$(arg logging)"/>
         <param name="learning" value="$(arg learning)"/>
+        <param name="adain" value="$(arg adain)"/>
+        <param name="fl_method" value="$(arg fl_method)"/>
     </node>
-    
+
     <!-- Drone 3 Processor -->
     <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone3_processor" output="screen">
         <param name="drone_id" value="3"/>
@@ -41,6 +47,8 @@
         <param name="log_path" value="$(find rotors_gazebo)/exp1_logs/"/>
         <param name="logging" value="$(arg logging)"/>
         <param name="learning" value="$(arg learning)"/>
+        <param name="adain" value="$(arg adain)"/>
+        <param name="fl_method" value="$(arg fl_method)"/>
     </node>
 
 </launch>
