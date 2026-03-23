@@ -16,7 +16,7 @@ from torchvision import transforms
 from PIL import Image as PILImage
 from std_msgs.msg import Float32MultiArray
 from visualization_msgs.msg import Marker, MarkerArray
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, PoseStamped
 
 from model_utils import load_yolo_model, yolo_detect
 from model_utils import load_traj_model, traj_pred
@@ -79,6 +79,7 @@ class DroneProcessor:
             # sample count for firing simultaneous training
             self.sample_cnt = 0
             self.train_runs = 0
+            self.targets_started = False  # Wait for /move_base_simple/goal before collecting data
 
             # Setup publishers
             self.setup_publishers()
@@ -133,6 +134,15 @@ class DroneProcessor:
             weight_topic = "/model_weights"
         rospy.Subscriber(weight_topic, Float32MultiArray, self.receive_weights_callback)
         rospy.loginfo(f"Drone {self.drone_id} subscribing to weights on: {weight_topic}")
+
+        # Target start signal — data collection begins after this is received
+        rospy.Subscriber("/move_base_simple/goal", PoseStamped, self._target_start_callback)
+
+
+    def _target_start_callback(self, msg):
+        if not self.targets_started:
+            self.targets_started = True
+            rospy.logwarn(f"Drone {self.drone_id}: Target start signal received. Data collection enabled.")
 
 
     def setup_publishers(self):
@@ -297,6 +307,11 @@ class DroneProcessor:
 
         image_msg = car_msgs[-1]  # The last message is the image
         car_msgs = car_msgs[:-1]  # All but the last are car odometry
+
+        # Skip data collection until target start signal is received
+        if not self.targets_started:
+            print('waiting for the start signal from tracker_server...')
+            return
 
         rospy.logdebug(f"Drone {self.drone_id} received synchronized messages at {rospy.get_time()}")
 
