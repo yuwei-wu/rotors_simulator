@@ -108,6 +108,74 @@ Notes:
 * If you want the old manual start behavior, set `target_autostart: false` and publish a `2D Nav Goal` in RViz yourself.
 * The current planner assumes car topics are named `/car_<id>/odometry`.
 
+### Running Complete Experiments (End-to-End FL + ROS)
+
+Four experiments are available: `exp0` (2 drones, 2 targets), `exp1` (3 drones, 3 targets), `exp2` (4 drones, 6 targets), and `scarab`. Each requires **four terminals**.
+
+#### Terminal 1 — Gazebo Simulation
+
+```bash
+cd ~/catkin_ws
+source devel/setup.bash
+
+# Pick one:
+roslaunch rotors_gazebo mav_swarm_0.launch      # exp0
+roslaunch rotors_gazebo mav_swarm_1.launch      # exp1
+roslaunch rotors_gazebo mav_swarm_2.launch      # exp2
+roslaunch rotors_gazebo mav_swarm_scarab.launch  # scarab
+```
+
+#### Terminal 2 — Drone Processors (Detection + Prediction + FL Weight Receiving)
+
+```bash
+cd ~/catkin_ws
+source devel/setup.bash
+
+# Pick the matching experiment. Set arguments as needed:
+#   learning:  frozen (no training) | dronefl (online federated learning)
+#   fl_method: fedavg | fedper | fedprox  (only matters when learning:=dronefl)
+#   adain:     true | false
+
+# Examples:
+roslaunch rotors_gazebo multi_drone_0.launch learning:=dronefl fl_method:=fedper adain:=true
+roslaunch rotors_gazebo multi_drone_1.launch learning:=dronefl fl_method:=fedper adain:=true
+roslaunch rotors_gazebo multi_drone_2.launch learning:=dronefl fl_method:=fedper adain:=true
+roslaunch rotors_gazebo multi_drone_scarab.launch learning:=dronefl fl_method:=fedavg
+```
+
+#### Terminal 3 — Planner (Tracker Server)
+
+```bash
+cd ~/catkin_ws/drone-fl/planner/script
+
+# Pick the matching experiment:
+python3 tracker_server.py --exp_name exp0
+python3 tracker_server.py --exp_name exp1
+python3 tracker_server.py --exp_name exp2
+python3 tracker_server.py --exp_name scarab
+```
+
+#### Terminal 4 — Federated Learning Training (only when `learning:=dronefl`)
+
+```bash
+cd ~/catkin_ws/drone-fl
+
+# Usage: bash scripts/run_fed_ros_<exp>.sh <method> [adain]
+#   method: fedavg | fedper | fedprox
+#   adain:  optional, pass "adain" to enable AdaIN
+
+# Examples:
+bash scripts/run_fed_ros_0.sh fedavg
+bash scripts/run_fed_ros_0.sh fedper adain
+bash scripts/run_fed_ros_1.sh fedper adain
+bash scripts/run_fed_ros_2.sh fedper adain
+bash scripts/run_fed_ros_2.sh fedavg
+```
+
+**Important:** Make sure the `fl_method` in Terminal 2 matches the `method` in Terminal 4. For FedPer, each drone subscribes to its own per-client weight topic (`/model_weights/client_<i>`), so the FL side must publish per-client weights.
+
+---
+
 ### File Locations
 
 * File for logging script: https://github.com/yuwei-wu/rotors_simulator/blob/xiaofan/rotors_gazebo/scripts/my_logger.py

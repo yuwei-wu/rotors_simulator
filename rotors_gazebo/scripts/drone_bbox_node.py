@@ -298,7 +298,7 @@ class DroneProcessor:
         image_msg = car_msgs[-1]  # The last message is the image
         car_msgs = car_msgs[:-1]  # All but the last are car odometry
 
-        rospy.loginfo(f"Drone {self.drone_id} received synchronized messages at {rospy.get_time()}")
+        rospy.logdebug(f"Drone {self.drone_id} received synchronized messages at {rospy.get_time()}")
 
         with self.lock: #ensure thread saftey
             timestamp = rospy.get_time()
@@ -323,14 +323,14 @@ class DroneProcessor:
 
             self.publish_pred_markers(detect_masks, pred_traj, timestamp)
 
-        rospy.loginfo(f"Drone {self.drone_id} finished processing at {timestamp}")
+        rospy.logdebug(f"Drone {self.drone_id} finished processing at {timestamp}")
         self.sample_cnt += 1
         
         # Fire training from Drone 1 if not in the frozen mode
         if self.drone_id == 1 and self.learning != 'frozen':
-            print('current sample cnt', self.sample_cnt)
-            print('current train runs', self.train_runs)
-            print(self.train_manager.train_running)
+            rospy.logdebug(f'current sample cnt {self.sample_cnt}')
+            rospy.logdebug(f'current train runs {self.train_runs}')
+            rospy.logdebug(f'train_running: {self.train_manager.train_running}')
             if self.sample_cnt >= self.train_warmup and \
                 not self.train_manager.check_train_running():
                 
@@ -447,15 +447,19 @@ class DroneProcessor:
     def receive_weights_callback(self, msg):
         """
         A subscriber callback that loads received weights into the given model.
-        
+
         Args:
             msg: Received message containing the weights
         """
-        rospy.loginfo(f"Received {len(msg.data)} weights. Loading into model...")
+        banner = "=" * 60
+        mode = f"[FedPer client_{self.drone_id - 1}]" if self.fl_method == 'fedper' else "[Global]"
+        rospy.logwarn(f"\n{banner}\n"
+                      f"  DRONE {self.drone_id} {mode} RECEIVING {len(msg.data)} WEIGHTS\n"
+                      f"{banner}")
 
         weights = np.array(msg.data, dtype=np.float32)
         idx = 0
-        
+
         # Iterate through model parameters and assign values
         with self.lock:
             with torch.no_grad():
@@ -465,7 +469,9 @@ class DroneProcessor:
                     param.copy_(torch.from_numpy(new_values))
                     idx += numel
 
-        rospy.loginfo("Model weights updated successfully.")
+        rospy.logwarn(f"\n{banner}\n"
+                      f"  DRONE {self.drone_id} {mode} WEIGHTS UPDATED SUCCESSFULLY\n"
+                      f"{banner}")
         self.train_manager.reset_train_running()
         
         # Log model update time

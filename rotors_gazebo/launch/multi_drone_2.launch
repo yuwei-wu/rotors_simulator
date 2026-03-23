@@ -6,8 +6,8 @@
     <arg name="pred_model_path" default="$(find rotors_gazebo)/pred_model_ckpt/"/>
     <arg name="logging" default="true"/> <!--whether data collector works-->
     <arg name="learning" default="dronefl"/>  <!--frozen or dronefl-->
-    <arg name="adain" default="true"/>
-    <arg name="fl_method" default="fedper"/>  <!-- fedavg, fedper -->
+    <arg name="adain" default="false"/>
+    <arg name="fl_method" default="fedavg"/>  <!-- fedavg, fedper -->
 
     <!-- Drone 1 Processor -->
     <node pkg="rotors_gazebo" type="drone_bbox_node.py" name="drone1_processor" output="screen">
