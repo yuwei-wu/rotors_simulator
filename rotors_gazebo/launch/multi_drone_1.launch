@@ -4,8 +4,8 @@
     <arg name="win_size" default="10"/>
     <arg name="pred_win_size" default="1"/>
     <arg name="pred_model_path" default="$(find rotors_gazebo)/pred_model_ckpt/"/>
-    <arg name="logging" default="false"/> <!--whether data collector works-->
-    <arg name="learning" default="frozen"/>  <!--frozen or dronefl-->
+    <arg name="logging" default="true"/> <!--whether data collector works-->
+    <arg name="learning" default="dronefl"/>  <!--frozen or dronefl-->
     <arg name="adain" default="false"/>
     <arg name="fl_method" default="fedavg"/>  <!-- fedavg, fedper, fedprox -->
 

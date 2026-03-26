@@ -1,6 +1,6 @@
 <launch>
     <!-- Parameters -->
-    <arg name="target_num" default="3"/>
+    <arg name="target_num" default="2"/>
     <arg name="win_size" default="10"/>
     <arg name="pred_win_size" default="1"/>
     <arg name="pred_model_path" default="$(find rotors_gazebo)/pred_model_ckpt/"/>

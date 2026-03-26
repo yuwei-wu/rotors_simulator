@@ -2,7 +2,7 @@
 
   <arg name="world_name" default="agri3"/>
   <arg name="spawn_cars" default="true"/>
-  <arg name="car_count" default="3"/>
+  <arg name="car_count" default="2"/>
   <arg name="vehicle_type" default="car"/>
   <arg name="car1_x" default="-5.0"/>
   <arg name="car1_y" default="-5.0"/>
