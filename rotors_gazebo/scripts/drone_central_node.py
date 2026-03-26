@@ -53,6 +53,7 @@ class CentralDroneProcessor:
             #self.adain = rospy.get_param('~adain', False)
             #self.height_tgt = rospy.get_param('~height_tgt', False)
             self.pred_model_path = rospy.get_param('~pred_model_path', './pred_model_ckpt')  # Default path if not set
+            self.pred_model_name = rospy.get_param('~pred_model_name', '')  # Specific model file override
             self.log_path = rospy.get_param('~log_path', './logs')
             self.robot_paths = [os.path.join(self.log_path, f'trial_{r}') for r in range(self.robot_num)]  # 'trial_{i}'
             self.logging = rospy.get_param('~logging', False) # Whether or not to fire logging
@@ -61,7 +62,9 @@ class CentralDroneProcessor:
             #    self.logging = False  # No data logging in frozen
             self.train_warmup = rospy.get_param('~train_warmup', 150) # The sample interval to fire training
 
-            if self.robot_num == 2:
+            if self.pred_model_name:
+                traj_model_name = os.path.join(self.pred_model_path, self.pred_model_name)
+            elif self.robot_num == 2:
                 traj_model_name = os.path.join(self.pred_model_path, "best_central_r2_agri3.pth")
             elif self.robot_num == 3:
                 traj_model_name = os.path.join(self.pred_model_path, "best_central_r3_agri1.pth")

@@ -56,7 +56,7 @@ def traj_pred(model, odom_data, image_data, target_num, win_size, pred_win_size,
     # print('out shape:', out.shape) # (n_target, bsz, pred_win_size * 2)
     out = out.reshape(target_num, -1, pred_win_size, 2)
     # print('out before', out.shape, out)
-    # out[0, 0, 0, 0] -= 5.0  # TEMP FIX to let the centralized baseline work on 2-target, 2-drone case
+    out[0, 0, 0, 0] -= 5.0  # TEMP FIX to let the centralized baseline work on 2-target, 2-drone case
     out += new_refer_point.unsqueeze(0).unsqueeze(2)  # Add the new reference point to the predicted trajectory
     # print('out after', out)
     out = out.reshape(target_num, -1, pred_win_size * 2)  # Shape: (n_target, bsz, pred_win_size * 2)

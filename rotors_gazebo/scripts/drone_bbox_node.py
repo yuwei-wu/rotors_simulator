@@ -62,8 +62,10 @@ class DroneProcessor:
                 self.logging = False  # No data logging in frozen
             self.train_warmup = rospy.get_param('~train_warmup', 400) # The sample start to fire training
 
-            yolo_model_name = os.path.join(self.pred_model_path, "best_yolo_t6.pt")
-            traj_model_name = os.path.join(self.pred_model_path, "best_model_adain.pth" if self.adain else "best_model.pth")
+            yolo_model_file = rospy.get_param('~yolo_model_name', "best_yolo_t6.pt")
+            traj_model_file = rospy.get_param('~traj_model_name', "best_model_adain.pth" if self.adain else "best_model.pth")
+            yolo_model_name = os.path.join(self.pred_model_path, yolo_model_file)
+            traj_model_name = os.path.join(self.pred_model_path, traj_model_file)
 
             #initialize models
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -79,7 +81,7 @@ class DroneProcessor:
             # sample count for firing simultaneous training
             self.sample_cnt = 0
             self.train_runs = 0
-            self.targets_started = False  # Wait for /move_base_simple/goal before collecting data
+            self.targets_started = True #False  # Wait for /move_base_simple/goal before collecting data
 
             # Setup publishers
             self.setup_publishers()
