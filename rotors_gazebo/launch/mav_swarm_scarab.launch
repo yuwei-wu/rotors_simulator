@@ -32,7 +32,7 @@
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="-4.0"/>
     <arg name="init_y" value="-5.0"/>
-    <arg name="init_z" value="4.5"/>
+    <arg name="init_z" value="6.5"/>
   </include>
 
   <include file="$(find rotors_gazebo)/launch/mav_single.launch">
@@ -48,7 +48,7 @@
     <arg name="mav_name" value="hummingbird"/>
     <arg name="init_x" value="4.0"/>
     <arg name="init_y" value="-5.0"/>
-    <arg name="init_z" value="5.5"/>
+    <arg name="init_z" value="7.5"/>
   </include>
 
   <!-- Throttle odom to 30 Hz -->

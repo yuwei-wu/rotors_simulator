@@ -287,9 +287,12 @@ class DroneProcessor:
         for i in range(self.target_num):
             if detect_masks[i]: # if detected
                 packet.append(1)
-                traj_packet.extend(data[i*self.pred_win_size*2:(i+1)*self.pred_win_size*2]) #flattened pred traj for target i
+                target_traj = data[i*self.pred_win_size*2:(i+1)*self.pred_win_size*2]
+                traj_packet.extend(target_traj) #flattened pred traj for target i
+                rospy.loginfo(f"Drone {self.drone_id} | Target {i+1} pred traj: {target_traj}")
             else: # if target is not detected
                 packet.append(0)
+                rospy.loginfo(f"Drone {self.drone_id} | Target {i+1} not detected")
 
         packet.extend(traj_packet) #add flattened pred traj to packet
 
