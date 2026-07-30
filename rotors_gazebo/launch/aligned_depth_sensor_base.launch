@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<!--
+  Shared base for the "hummingbird + aligned depth sensor" simulation setup:
+  Gazebo world, MAV spawn, Lee position controller, random actor, TF
+  publisher, RViz, and an optional auto-hover example.
+
+  Included by:
+    - aligned_depth_sensor.launch      (sensor/controller smoke test, auto-hover on)
+    - rotors_with_ego_planner.launch   (Ego-Planner controls the drone instead)
+-->
+<launch>
+
+  <arg name="init_x" default="-4.0"/>
+  <arg name="init_y" default="-4.0"/>
+  <arg name="init_z" default="0.8"/>
+  <arg name="mav_name" default="hummingbird"/>
+  <arg name="world_name" default="outdoor_with_random_actor"/>
+  <arg name="enable_logging" default="false" />
+  <arg name="enable_ground_truth" default="true" />
+  <arg name="log_file" default="$(arg mav_name)" />
+  <arg name="debug" default="false"/>
+  <arg name="gui" default="true"/>
+  <arg name="paused" default="true"/>
+  <arg name="verbose" default="false"/>
+
+  <!-- Auto-hover/takeoff example. Leave false when a planner (e.g. Ego-Planner)
+       is going to command the drone instead. -->
+  <arg name="enable_hovering" default="false"/>
+
+  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find rotors_gazebo)/models"/>
+  <env name="GAZEBO_RESOURCE_PATH" value="${GAZEBO_RESOURCE_PATH}:$(find rotors_gazebo)/models"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rotors_gazebo)/worlds/$(arg world_name).world" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="$(arg debug)"/>
+    <arg name="verbose" value="$(arg verbose)"/>
+  </include>
+
+  <group ns="$(arg mav_name)">
+    <!-- Load and spawn the MAV model -->
+    <include file="$(find rotors_gazebo)/launch/spawn_mav.launch">
+      <arg name="mav_name" value="$(arg mav_name)" />
+      <arg name="model" value="$(find rotors_description)/urdf/mav_with_aligned_depth_sensor.gazebo" />
+      <arg name="enable_logging" value="$(arg enable_logging)" />
+      <arg name="enable_ground_truth" value="$(arg enable_ground_truth)" />
+      <arg name="log_file" value="$(arg log_file)"/>
+      <arg name="x" value="$(arg init_x)"/>
+      <arg name="y" value="$(arg init_y)"/>
+      <arg name="z" value="$(arg init_z)"/>
+    </include>
+
+    <!-- Lee position controller -->
+    <node name="lee_position_controller_node" pkg="rotors_control" type="lee_position_controller_node" output="screen">
+      <rosparam command="load" file="$(find rotors_gazebo)/resource/lee_controller_$(arg mav_name).yaml" />
+      <rosparam command="load" file="$(find rotors_gazebo)/resource/$(arg mav_name).yaml" />
+      <remap from="odometry" to="odometry_sensor1/odometry" />
+    </node>
+
+    <!-- Auto-hover/takeoff example (optional; disabled by default) -->
+    <node name="hovering_example" pkg="rotors_gazebo" type="hovering_example" output="screen" if="$(arg enable_hovering)">
+      <param name="init_state_x" value="$(arg init_x)"/>
+      <param name="init_state_y" value="$(arg init_y)"/>
+      <param name="init_state_z" value="$(arg init_z)"/>
+    </node>
+
+    <!-- Random Actor Controller for dynamic movement -->
+    <node name="random_actor_controller" pkg="rotors_gazebo" type="random_actor_controller.py" output="screen" />
+
+    <!-- Robot state publisher for TF -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+    <!-- RViz for visualization -->
+    <node name="rviz" pkg="rviz" type="rviz" respawn="false" args="-d $(find rotors_gazebo)/launch/simulator.rviz"/>
+  </group>
+
+</launch>

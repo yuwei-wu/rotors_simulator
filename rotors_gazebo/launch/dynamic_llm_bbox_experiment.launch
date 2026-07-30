@@ -1,0 +1,114 @@
+<launch>
+  <!--
+    Dynamic-obstacle experiment for validating the llm_bbox pipeline:
+      - "random_walker" actor: bounded random walk inside a region
+        (region_random_walker_publisher.py), x in [7,17] y in [3,9].
+      - "road_walker" actor: back-and-forth along a fixed sidewalk line
+        (road_walker_publisher.py), y=-6, x in [2,22].
+      - "suv_front": one-way charge along the corridor centerline y=0, from
+        x=45 (past the usual goal; run_ab_experiment.sh's default goal
+        flag is now 40 5 1.5) to x=-10 (past the drone's spawn at x=-4),
+        then an instant reset back to x=45; never drives back the other
+        way, since that would approach the drone from behind, out of a
+        forward-facing camera's view. 1.5 m/s, below the drone's
+        max_vel=2.0 (see rotors_with_ego_planner.launch), so it's a fair
+        fight rather than something the planner can never outrun.
+      - "suv_side": parked behind occluder_wall at (26,-12), dashes into the
+        corridor at (26,-1) and back; "sudden emergence from the side". Its
+        lane (x=26) is deliberately east of the wall's span (x=[8,24]) so
+        it clears the wall's edge instead of teleporting through it. 2.0
+        m/s, at (not above) the drone's max_vel.
+
+    All four are independent scripted/actor loops (see
+    outdoor_dynamic_llm_bbox.world), not triggered by drone proximity, so
+    repeated flights get repeated exposure without extra bookkeeping. Tune
+    positions/speeds via the args below after a visual check in Gazebo;
+    the defaults are a reasonable starting layout, not calibrated to a
+    specific camera FOV or occlusion geometry.
+  -->
+
+  <!-- Same args as rotors_with_ego_planner.launch, forwarded through -->
+  <arg name="init_x" default="-4.0"/>
+  <arg name="init_y" default="-4.0"/>
+  <arg name="init_z" default="0.8"/>
+  <arg name="mav_name" default="hummingbird"/>
+  <arg name="gui" default="true"/>
+  <arg name="paused" default="true"/>
+
+  <include file="$(find rotors_gazebo)/launch/rotors_with_ego_planner.launch">
+    <arg name="init_x" value="$(arg init_x)"/>
+    <arg name="init_y" value="$(arg init_y)"/>
+    <arg name="init_z" value="$(arg init_z)"/>
+    <arg name="mav_name" value="$(arg mav_name)"/>
+    <arg name="world_name" value="outdoor_dynamic_llm_bbox"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="paused" value="$(arg paused)"/>
+  </include>
+
+  <!-- Pedestrian: bounded random walk -->
+  <!-- Fixed seed so llm_on and llm_off trials see the identical pedestrian
+       motion; the only thing that should differ between an A/B pair is
+       whether the LLM bbox pipeline was running. Change the seed between
+       distinct trial *pairs*, not within one. -->
+  <arg name="random_walk_seed" default="42"/>
+
+  <node pkg="rotors_gazebo" type="region_random_walker_publisher.py" name="region_random_walker_publisher" output="screen">
+    <param name="topic" value="/random_walker/cmd_path"/>
+    <param name="x_min" value="7.0"/>
+    <param name="x_max" value="17.0"/>
+    <param name="y_min" value="3.0"/>
+    <param name="y_max" value="9.0"/>
+    <param name="seed" value="$(arg random_walk_seed)"/>
+  </node>
+
+  <!-- Pedestrian: fixed sidewalk, back and forth -->
+  <node pkg="rotors_gazebo" type="road_walker_publisher.py" name="road_walker_publisher" output="screen">
+    <param name="topic" value="/road_walker/cmd_path"/>
+    <param name="x0" value="2.0"/>
+    <param name="y0" value="-6.0"/>
+    <param name="x1" value="22.0"/>
+    <param name="y1" value="-6.0"/>
+    <param name="speed" value="1.2"/>
+  </node>
+
+  <!-- SUV: one-way head-on charge along the corridor centerline. Spawns at
+       x=45, well past the default goal flag (x=40, see run_ab_experiment.sh),
+       so it's always still ahead of / approaching the drone, never
+       behind it, which a forward-facing camera can't see. Drives to x=-10
+       (past the drone's spawn at x=-4, so it covers the whole corridor),
+       then teleports straight back to x=45 (no visible reverse leg) and
+       charges again. If your goal is farther than x=40, move x0 out
+       further to match. Speed is below the drone's max_vel (2.0, see
+       rotors_with_ego_planner.launch) so the planner has a genuine chance
+       to out-maneuver it instead of just getting run down. -->
+  <node pkg="rotors_gazebo" type="suv_mover.py" name="suv_front_mover" output="screen">
+    <param name="model_name" value="suv_front"/>
+    <param name="mode" value="one_way"/>
+    <param name="x0" value="45.0"/>
+    <param name="y0" value="0.0"/>
+    <param name="x1" value="-10.0"/>
+    <param name="y1" value="0.0"/>
+    <param name="z" value="0.05"/>
+    <param name="speed" value="1.5"/>
+    <param name="pause_time" value="2.0"/>
+    <!-- suv model's nose faces local +X at pose yaw=0; if it looks like it's
+         driving backwards in Gazebo, set this to 180 -->
+    <param name="heading_offset_deg" value="0.0"/>
+  </node>
+
+  <!-- SUV: hidden dash from the side. Speed is at, not above, the drone's
+       max_vel: still a startle (it's hidden until it isn't), just not an
+       unwinnable one. -->
+  <node pkg="rotors_gazebo" type="suv_mover.py" name="suv_side_mover" output="screen">
+    <param name="model_name" value="suv_side"/>
+    <param name="x0" value="26.0"/>
+    <param name="y0" value="-12.0"/>
+    <param name="x1" value="26.0"/>
+    <param name="y1" value="-1.0"/>
+    <param name="z" value="0.05"/>
+    <param name="speed" value="2.0"/>
+    <param name="pause_time" value="3.0"/>
+    <param name="heading_offset_deg" value="0.0"/>
+  </node>
+
+</launch>

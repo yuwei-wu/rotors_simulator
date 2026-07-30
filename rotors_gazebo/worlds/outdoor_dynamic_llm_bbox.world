@@ -3285,11 +3285,13 @@
         <interpolate_x>true</interpolate_x>
       </animation>
       <plugin name="actor_plugin" filename="libgazebo_ros_actor_command.so">
-        <follow_mode>velocity</follow_mode>
+        <!-- path mode + region_random_walker_publisher.py: bounded random walk
+             inside a region, instead of unbounded velocity-driven roaming. -->
+        <follow_mode>path</follow_mode>
         <vel_topic>/random_walker/cmd_vel</vel_topic>
         <path_topic>/random_walker/cmd_path</path_topic>
         <animation_factor>4.0</animation_factor>
-        <linear_tolerance>0.1</linear_tolerance>
+        <linear_tolerance>0.3</linear_tolerance>
         <linear_velocity>1.0</linear_velocity>
         <angular_tolerance>0.0872</angular_tolerance>
         <angular_velocity>2.5</angular_velocity>
@@ -3330,7 +3332,86 @@
         </trajectory>
       </script>
     </actor>
-    
+
+    <!-- Pedestrian 2: walks back and forth along a fixed "sidewalk" line,
+         y=-6, x in [2,22]. Fed by road_walker_publisher.py. -->
+    <actor name='road_walker'>
+      <pose>2 -6 1.2138 0 0 0</pose>
+      <skin>
+        <filename>moonwalk.dae</filename>
+        <scale>1.0</scale>
+      </skin>
+      <animation name='walking'>
+        <filename>walk.dae</filename>
+        <scale>1.0</scale>
+        <interpolate_x>true</interpolate_x>
+      </animation>
+      <plugin name="actor_plugin" filename="libgazebo_ros_actor_command.so">
+        <follow_mode>path</follow_mode>
+        <vel_topic>/road_walker/cmd_vel</vel_topic>
+        <path_topic>/road_walker/cmd_path</path_topic>
+        <animation_factor>4.0</animation_factor>
+        <linear_tolerance>0.3</linear_tolerance>
+        <linear_velocity>1.2</linear_velocity>
+        <angular_tolerance>0.0872</angular_tolerance>
+        <angular_velocity>2.5</angular_velocity>
+        <default_rotation>1.57</default_rotation>
+      </plugin>
+    </actor>
+
+    <!-- SUV 1: one-way charge along the corridor centerline (y=0), from
+         x=45 (past the usual goal) to x=-10 (past the drone's spawn),
+         then an instant reset back to x=45; see suv_front_mover in
+         dynamic_llm_bbox_experiment.launch. Driving in -X is "straight at"
+         a drone approaching from the west; it never drives +X (which
+         would approach the drone from behind, out of camera view). -->
+    <include>
+      <name>suv_front</name>
+      <uri>model://suv</uri>
+      <pose>45 0 0.05 0 0 3.14159</pose>
+    </include>
+
+    <!-- SUV 2: parked south of the corridor, hidden behind occluder_wall;
+         dashes north into the corridor and back ("sudden emergence"). Its
+         transit lane is x=26, deliberately east of the wall's span
+         [8,24] so it drives past the wall's edge instead of through it
+         (the wall is a static collision box; the SUV moves via SetModelState
+         teleport, which ignores collisions, so it would clip straight
+         through if the lane crossed the wall). -->
+    <include>
+      <name>suv_side</name>
+      <uri>model://suv</uri>
+      <pose>26 -12 0.05 0 0 1.5708</pose>
+    </include>
+
+    <!-- Occluder: blocks line-of-sight from the corridor (y=0) to suv_side's
+         hiding spot (26,-12) until it crosses out into the open at (26,-1).
+         Spans x=[8,24] so it covers the sightline from typical corridor
+         viewing positions (x roughly 0-20) to the hiding spot, without
+         reaching as far as the x=26 transit lane. Tune after a visual check
+         — occlusion depends on camera FOV and the drone's actual approach
+         angle/distance. -->
+    <model name="occluder_wall">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box><size>16 0.4 2.5</size></box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box><size>16 0.4 2.5</size></box>
+          </geometry>
+          <material>
+            <ambient>0.6 0.6 0.6 1</ambient>
+            <diffuse>0.6 0.6 0.6 1</diffuse>
+          </material>
+        </visual>
+      </link>
+      <pose>16 -7 1.25 0 0 0</pose>
+    </model>
+
     <gravity>0 0 -9.8</gravity>
     <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
     <atmosphere type='adiabatic'/>
